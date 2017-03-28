@@ -1,6 +1,6 @@
 # osu!-map-linker-bot
 
-[/u/map-linker-bot](https://reddit.com/u/map-linker-bot) is a Reddit bot to comment on /r/osugame score posts with beatmap information.
+[/u/map-linker-bot](https://reddit.com/u/map-linker-bot) is a Reddit bot to comment on [/r/osugame](https://reddit.com/r/osugame) score posts with beatmap information.
 
 ## To score posters
 
