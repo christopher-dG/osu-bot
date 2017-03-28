@@ -63,7 +63,7 @@ def comment(post, map)
 
   text += "Beatmap: [#{link_label}](#{link_url}\n\n"
   text += "Creator: [#{map['creator']}](#{creator_url})\n\n"
-  text += "SR: #{stars} - AR: #{map['diff_approach']} - "
+  text += "SR: #{stars} - AR: #{map['diff_approach']} - CS: #{map['diff_size']} - "
   text += "OD: #{map['diff_overall']} - HP: #{map['diff_drain']}\n\n"
   text += "I'm a bot. [Source](#{gh_url}) | [Developer](#{dev_url})"
 
