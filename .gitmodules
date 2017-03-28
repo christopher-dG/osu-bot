@@ -1,0 +1,3 @@
+[submodule "oppai"]
+	path = oppai
+	url = git@github.com:Francesco149/oppai
