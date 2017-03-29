@@ -132,7 +132,7 @@ def gen_comment(title, map)
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
   m_start = title.index('+', title.index(']'))  # First '+' after the diff name.
-  mods = m_start != nil ? title[m_start...title.index(' ', m_start)] : ''  # '+Mods'
+  mods = m_start != nil ? title[m_start...title.index(' ', m_start)].gsub(',', '') : ''
 
   diff = get_diff_info(map, mods)
   len = convert_s(map['total_length'].to_i)
