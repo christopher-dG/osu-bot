@@ -132,21 +132,20 @@ def gen_comment(title, map)
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
   m_start = title.index('+', title.index(']'))  # First '+' after the diff name.
-  mods = m_start != nil ? title[m_start...title.index(' ', m_start)].gsub(',', '') : ''
+  mods = m_start != nil ? /\+([A-Z]|,)*/.match(title[m_start..-1]).to_s.gsub(',', '') : ''
 
   diff = get_diff_info(map, mods)
   len = convert_s(map['total_length'].to_i)
 
-  text += "Beatmap: [#{link_label}](#{link_url}\n\n"
-  text += "Creator: [#{map['creator']}](#{creator_url})\n\n"
+  text += "Beatmap: [#{link_label}](#{link_url} by [#{map['creator']}](#{creator_url})\n\n"
   text += "Length: #{len} - BPM: #{map['bpm']} - Plays: #{map['playcount']}\n\n"
-  text += "SR: #{diff['SR'][0]} - AR: #{diff['AR'][0]} - CS: #{diff['CS'][0]} "
-  text += "- OD: #{diff['OD'][0]} - HP: #{diff['HP'][0]}\n\n"
+  text += "CS: #{diff['CS'][0]} - AR: #{diff['AR'][0]} - OD: #{diff['OD'][0]} "
+  text += "- HP: #{diff['HP'][0]} - SR: #{diff['SR'][0]}\n\n"
 
   if !mods.empty?
     text += "#{mods}:\n\n"
-    text += "SR: #{diff['SR'][1]} - AR: #{diff['AR'][1]} - CS: #{diff['CS'][1]}"
-    text += " - OD: #{diff['OD'][1]} - HP: #{diff['HP'][1]}\n\n"
+    text += "CS: #{diff['CS'][1]} - AR: #{diff['AR'][1]} - OD: #{diff['OD'][1]} "
+    text += "- HP: #{diff['HP'][1]} - SR: #{diff['SR'][1]}\n\n"
   end
 
   text += "***\n\n"

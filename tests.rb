@@ -32,7 +32,7 @@ class TestLinkerBot < Test::Unit::TestCase
 
   def test_gen_comment
     post = FakePost.new('Player | Song - Artist [Diff]', false)
-    c = gen_comment(post, 's')
+    c = gen_comment(post.title, 's')
   end
 
   def test_convert_s
@@ -52,11 +52,11 @@ class TestLinkerBot < Test::Unit::TestCase
   def test_now
     # Technically this could fail, given sufficiently bad luck.
     t1 = now
-    t2 = DateTime.now
+    t2 = DateTime.now.to_s
     assert_equal(t1, "#{t2[5..9]}-#{t2[0..3]} #{t2[11..15]}")
     sleep(3)
     t1 = now
-    t2 = DateTime.now
+    t2 = DateTime.now.to_s
     assert_equal(t1, "#{t2[5..9]}-#{t2[0..3]} #{t2[11..15]}")
   end
 
