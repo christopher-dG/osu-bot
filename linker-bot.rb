@@ -3,16 +3,18 @@
 require 'httparty'
 require 'redd'
 
-KEY = File.open('key').read.chomp  # osu! API key.
-PASSWORD = File.open('pass').read.chomp  # Reddit password.
-SECRET = File.open('secret').read.chomp  # Reddit app secret.
+DIR = File.expand_path(File.dirname(__FILE__))  # Absolute path to file folder.
+KEY = File.open(File.join(DIR, 'key')).read.chomp  # osu! API key.
+PASSWORD = File.open(File.join(DIR, 'pass')).read.chomp  # Reddit password.
+SECRET = File.open(File.join(DIR, 'secret')).read.chomp  # Reddit app secret.
+LOG_PATH = File.join(DIR, 'logs')  # Path to log files.
 OSUGAME = Redd.it(
   user_agent: 'Redd:osu!-map-linker-bot:v0.0.0',
   client_id: 'OxznkS-LjaEH3A',
   secret: SECRET,
   username: 'map-linker-bot',
   password: PASSWORD,
-).subreddit('osugame')
+).subreddit('osugame')  # /r/osugame.
 
 # Use a Reddit post title to search for a beatmap.
 # Arguments:
@@ -48,7 +50,7 @@ def search(title)
     return beatmap
   rescue
     msg = "Map retrieval failed for \'#{title}\'.\n"
-    File.open(File.join('logs', now), 'a') {|f| f.write(msg)}
+    File.open(File.join(LOG_PATH, now), 'a') {|f| f.write(msg)}
     return nil
   end
 end
@@ -90,7 +92,7 @@ def get_diff_info(map, mods)
     File.delete('map.osu')
   rescue
     msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
-    File.open(File.join('logs', now), 'a') {|f| f.write(msg)}
+    File.open(File.join(LOG_PATH, now), 'a') {|f| f.write(msg)}
     return_nomod.call
   end
 
@@ -204,5 +206,6 @@ if __FILE__ == $0
       end
     end
   end
-  File.open(File.join('logs', now), 'a') {|f| f.write("Made #{c} comments.\n")}
+  msg = "Made #{c} comment#{c == 0 || c > 1 ? 's' : ''}."
+  File.open(File.join(LOG_PATH, now), 'a') {|f| f.write("Made #{c} comments.\n")}
 end
