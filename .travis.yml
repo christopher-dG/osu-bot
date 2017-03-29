@@ -1,11 +1,19 @@
 language: ruby
+dist: trusty
+sudo: required
+
+before_install:
+  - sudo apt update
+  - sudo apt install g++
 
 before_script:
   - echo $REDDIT_PW > pass
   - echo $REDDIT_SECRET > secret
   - echo $OSU_API_KEY > key
-  - wget "http://oppai.s3.amazonaws.com/oppai" -O oppai/oppai
-  - chmod +x oppai/oppai
+  - cd oppai; ./build.sh; cd ..
+
+after_script:
+  - rm pass secret key
 
 rvm:
   - 2.4.0
