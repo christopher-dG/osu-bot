@@ -1,0 +1,13 @@
+language: ruby
+
+before_script:
+  - echo $REDDIT_PW > pass
+  - echo $REDDIT_SECRET > secret
+  - echo $OSU_API_KEY > key
+  - wget "http://oppai.s3.amazonaws.com/oppai" -O oppai/oppai
+  - chmod +x oppai/oppai
+
+rvm:
+  - 2.4.0
+  - 2.4.1
+  - ruby-head

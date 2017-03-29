@@ -1,4 +1,5 @@
-pass
-key
-secret
-logs
+/Gemfile.lock
+/pass
+/key
+/secret
+/logs

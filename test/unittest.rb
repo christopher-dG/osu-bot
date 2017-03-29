@@ -1,10 +1,17 @@
-require_relative 'linker-bot'
+if ENV['CI'] == 'true'
+  require 'simplecov'
+  SimpleCov.start
+  require 'codecov'
+  SimpleCov.formatter = SimpleCov::Formatter::Codecov
+end
+
+require_relative File.join('..', 'linker-bot')
 require 'test/unit'
 require 'date'
 
 NOMOD_TEMPLATE = "Beatmap: [$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID)\n\nCreator: [$CREATOR](https://osu.ppy.sh/u/$CREATOR)\n\nLength: $LENGTH - BPM: $BPM - Plays: $PLAYS\n\nSR: $SR - AR: $AR- CS: $CS - OD: $OD - HP: $HP\n\n***\n\n^(I'm a bot. )[^Source](https://github.com/christopher-dG/osu-map-linker-bot)^( | )[^Developer](https://reddit.com/u/PM_ME_DOG_PICS_PLS)"
 MOD_TEMPLATE = "Beatmap: [$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID)\n\nCreator: [$CREATOR](https://osu.ppy.sh/u/$CREATOR)\n\nLength: $LENGTH - BPM: $BPM - Plays: $PLAYS\n\nSR: $SR - AR: $AR- CS: $CS - OD: $OD - HP: $HP\n\n$MODS\n\nSR: $M_SR - AR: $M_AR- CS: $M_CS - OD: $M_OD - HP: $M_HP\n\n***\n\n^(I'm a bot. )[^Source](https://github.com/christopher-dG/osu-map-linker-bot)^( | )[^Developer](https://reddit.com/u/PM_ME_DOG_PICS_PLS)"
-    
+
 class FakePost  # Mimic a Reddit post.
   attr_accessor :title
   attr_accessor :is_self
