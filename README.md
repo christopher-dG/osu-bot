@@ -21,6 +21,4 @@ ___
 
 Credit for mod calculations goes to [Francesco149](https://github.com/Francesco149/oppai) and [ThePooN](https://github.com/ThePooN/osu-ModPropertiesCalculator).
 
-___
-
 If you have comments or suggestions for the bot, feel free to [open an issue](https://github.com/christopher-dG/osu-map-linker-bot/issues/new) or [message me on Reddit](https://reddit.com/u/PM_ME_DOG_PICS_PLS).
