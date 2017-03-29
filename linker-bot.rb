@@ -8,13 +8,6 @@ KEY = File.open(File.join(DIR, 'key')).read.chomp  # osu! API key.
 PASSWORD = File.open(File.join(DIR, 'pass')).read.chomp  # Reddit password.
 SECRET = File.open(File.join(DIR, 'secret')).read.chomp  # Reddit app secret.
 LOG_PATH = File.join(DIR, 'logs')  # Path to log files.
-OSUGAME = Redd.it(
-  user_agent: 'Redd:osu!-map-linker-bot:v0.0.0',
-  client_id: 'OxznkS-LjaEH3A',
-  secret: SECRET,
-  username: 'map-linker-bot',
-  password: PASSWORD,
-).subreddit('osugame')  # /r/osugame.
 
 # Use a Reddit post title to search for a beatmap.
 # Arguments:
@@ -32,8 +25,7 @@ def search(title)
     url = "https://osu.ppy.sh/api/get_user?k=#{KEY}&u=#{player}&type=string"
     response = HTTParty.get(url)
 
-    full_name = "#{song} #{diff}"  # Artist - Title [Diff Name]
-    full_name.gsub!('&', '&amp;')
+    full_name = "#{song} #{diff}".gsub('&', '&amp;')  # Artist - Title [Diff Name]
 
     events = response.parsed_response[0]['events']
     for event in events
@@ -44,7 +36,7 @@ def search(title)
 
     url = "https://osu.ppy.sh/api/get_beatmaps?k=#{KEY}&b=#{map_id}"
     response = HTTParty.get(url)
-    beatmap = response.parse_response[0]
+    beatmap = response.parsed_response[0]
     beatmap.empty? && raise
 
     return beatmap
@@ -119,7 +111,7 @@ def get_diff_info(map, mods)
     m_hp = hp
   end
 
-  return {
+  {
     'SR' => [sr, m_sr], 'AR' => [ar, m_ar], 'CS' => [cs, m_cs],
     'OD' => [od, m_od], 'HP' => [hp, m_hp],
   }
@@ -127,11 +119,11 @@ end
 
 # Generate the text to be commented.
 # Arguments:
-#   post: Reddit post being commented on.
+#   title: Reddit post title.
 #   map: Beatmap data.
 # Returns:
 #   Comment text.
-def gen_comment(post, map)
+def gen_comment(title, map)
   text = ""
   link_url = "https://osu.ppy.sh/b/#{map['beatmap_id']})"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
@@ -139,9 +131,8 @@ def gen_comment(post, map)
   gh_url = 'https://github.com/christopher-dG/osu-map-linker-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
-  t = post.title
-  m_start = t.index('+', t.index(']'))  # First '+' after the diff name.
-  mods = m_start != nil ? t[m_start...t.index(' ', m_start)] : ''  # '+Mods'
+  m_start = title.index('+', title.index(']'))  # First '+' after the diff name.
+  mods = m_start != nil ? title[m_start...title.index(' ', m_start)] : ''  # '+Mods'
 
   diff = get_diff_info(map, mods)
   len = convert_s(map['total_length'].to_i)
@@ -161,7 +152,7 @@ def gen_comment(post, map)
   text += "***\n\n"
   text += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
 
-  return text
+  text
 end
 
 # Convert seconds to mm:ss.
@@ -175,14 +166,14 @@ def convert_s(s)
   if m < 10
     m = "0#{m}"
   end
-  return "#{h}:#{m}"
+  "#{h}:#{m}"
 end
 
 # Format the current date and time.
 # Returns:
 #   "MM-DD-YYYY hh:mm"
-def now()
-  return `date +"%m-%d-%Y %k:%M"`.chomp
+def now
+  `date +"%m-%d-%Y %k:%M"`.chomp
 end
 
 # Compares a post against some criteria for being classified as a score post.
@@ -191,17 +182,31 @@ end
 # Returns:
 #  Whether or not the post is considerd a score post.
 def is_score_post(post)
-  return /\|.*-.*\[.*\]/ =~ post.title && !post.is_self
+  /\|.*-.*\[.*\]/ =~ post.title && !post.is_self
+end
+
+# Get the /r/osugame subreddit.
+# Returns:
+#   /r/osugame subreddit.
+def get_sub
+  Redd.it(
+    user_agent: 'Redd:osu!-map-linker-bot:v0.0.0',
+    client_id: 'OxznkS-LjaEH3A',
+    secret: SECRET,
+    username: 'map-linker-bot',
+    password: PASSWORD,
+  ).subreddit('osugame')
 end
 
 if __FILE__ == $0
+  osu = get_sub
   c = 0
-  for post in OSUGAME.new
+  for post in osu.new
     if is_score_post(post) &&
-        !post.comments.any? {|comment| comment.author.name == 'map-linker-bot'}
+       !post.comments.any? {|comment| comment.author.name == 'map-linker-bot'}
       map = search(post.title)
       if map != nil
-        post.reply(gen_comment(post, map))
+        post.reply(gen_comment(post.title, map))
         c += 1
       end
     end
