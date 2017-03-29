@@ -197,7 +197,7 @@ end
 # Returns:
 #   "MM-DD-YYYY hh:mm"
 def now
-  `date +"%m-%d-%Y %k:%M"`.chomp
+  `date +"%m-%d-%Y %I:%M"`.chomp
 end
 
 # Compares a post against some criteria for being classified as a score post.
