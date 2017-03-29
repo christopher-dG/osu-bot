@@ -5,7 +5,7 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
-require_relative File.join('..', 'linker-bot')
+require_relative File.join('..', 'lib', 'linker-bot')
 require 'test/unit'
 require 'date'
 
@@ -60,11 +60,11 @@ class TestLinkerBot < Test::Unit::TestCase
     # Technically this could fail, given sufficiently bad luck.
     t1 = now
     t2 = DateTime.now.to_s
-    assert_equal(t1, "#{t2[5..9]}-#{t2[0..3]} #{t2[11..15]}")
+    assert_equal(t1, "#{t2[5..9]}-#{t2[0..3]}_#{t2[11..15]}")
     sleep(3)
     t1 = now
     t2 = DateTime.now.to_s
-    assert_equal(t1, "#{t2[5..9]}-#{t2[0..3]} #{t2[11..15]}")
+    assert_equal(t1, "#{t2[5..9]}-#{t2[0..3]}_#{t2[11..15]}")
   end
 
 end

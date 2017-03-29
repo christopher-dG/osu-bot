@@ -4,10 +4,10 @@ require 'httparty'
 require 'redd'
 
 DIR = File.expand_path(File.dirname(__FILE__))  # Absolute path to file folder.
-KEY = File.open(File.join(DIR, 'key')).read.chomp  # osu! API key.
-PASSWORD = File.open(File.join(DIR, 'pass')).read.chomp  # Reddit password.
-SECRET = File.open(File.join(DIR, 'secret')).read.chomp  # Reddit app secret.
-LOG_PATH = File.join(DIR, 'logs')  # Path to log files.
+KEY = File.open("#{DIR}/key").read.chomp  # osu! API key.
+PASSWORD = File.open("#{DIR}/pass").read.chomp  # Reddit password.
+SECRET = File.open("#{DIR}/secret").read.chomp  # Reddit app secret.
+LOG_PATH = "#{DIR}/../logs"  # Path to log files.
 URL = 'https://osu.ppy.sh'  # Base for API requests.
 
 # Use a Reddit post title to search for a beatmap.
@@ -62,7 +62,7 @@ def search(title)
     return beatmap
   rescue
     msg = "Map retrieval failed for \'#{title}\'.\n"
-    File.open(File.join(LOG_PATH, now), 'a') {|f| f.write(msg)}
+    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
     return nil
   end
 end
@@ -109,7 +109,7 @@ def get_diff_info(map, mods)
     File.delete('map.osu')
   rescue
     msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
-    File.open(File.join(LOG_PATH, now), 'a') {|f| f.write(msg)}
+    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
     return_nomod.call
   end
 
@@ -197,7 +197,7 @@ end
 # Returns:
 #   "MM-DD-YYYY hh:mm"
 def now
-  `date +"%m-%d-%Y %I:%M"`.chomp
+  `date +"%m-%d-%Y_%H:%M"`.chomp
 end
 
 # Compares a post against some criteria for being classified as a score post.
@@ -220,22 +220,4 @@ def get_sub
     username: 'map-linker-bot',
     password: PASSWORD,
   ).subreddit('osugame')
-end
-
-if __FILE__ == $0
-  osu = get_sub
-  c = 0
-  for post in osu.new
-    if is_score_post(post) &&
-       !post.comments.any? {|comment| comment.author.name == 'map-linker-bot'}
-      map = search(post.title)
-      if map != nil
-        puts(gen_comment(post.title, map))
-        post.reply(gen_comment(post.title, map))
-        c += 1
-      end
-    end
-  end
-  msg = "Made #{c} comment#{c == 0 || c > 1 ? 's' : ''}."
-  File.open(File.join(LOG_PATH, now), 'a') {|f| f.write("Made #{c} comments.\n")}
 end

@@ -7,13 +7,14 @@ before_install:
   - sudo apt install g++
 
 before_script:
-  - echo $REDDIT_PW > pass
-  - echo $REDDIT_SECRET > secret
-  - echo $OSU_API_KEY > key
+  - echo $REDDIT_PW > lib/pass
+  - echo $REDDIT_SECRET > lib/secret
+  - echo $OSU_API_KEY > lib/key
   - cd oppai; ./build.sh; cd ..
+  - mkdir logs
 
 after_script:
-  - rm pass secret key
+  - rm -r oppai/oppai lib/pass lib/secret lib/key logs
 
 rvm:
   - 2.4.0
