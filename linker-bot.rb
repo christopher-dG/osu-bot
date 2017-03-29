@@ -65,11 +65,16 @@ def get_diff_info(map, mods)
     return {'SR' => [sr], 'AR' => [ar], 'CS' => [cs], 'OD' => [od], 'HP' => [hp]}
   end
 
+  all_mods = [
+    'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
+    'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
+  ]
   ignore = ['HD', 'NF', 'SD', 'PF', 'SO', 'AP', 'RL']
   if !mods.empty?
     mod_list = mods[1..-1].scan(/../)
   end
-  if mods.empty? || mod_list.all? {|m| ignore.include?(m)}
+  if mods.empty? || mod_list.all? {|m| ignore.include?(m)} ||
+      !mod_list.all? {|m| all_mods.include?(m)}
     return_nomod.call
   end
 
@@ -80,7 +85,7 @@ def get_diff_info(map, mods)
   begin
     url = "https://osu.ppy.sh/osu/#{map['beatmap_id']}"
     `curl #{url} > map.osu`
-    oppai = `./oppai/oppai map.osu #{mods}`
+    oppai = `#{File.join(DIR, 'oppai/oppai')} map.osu #{mods}`
     File.delete('map.osu')
   rescue
     msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
@@ -142,7 +147,7 @@ def gen_comment(title, map)
   text += "CS: #{diff['CS'][0]} - AR: #{diff['AR'][0]} - OD: #{diff['OD'][0]} "
   text += "- HP: #{diff['HP'][0]} - SR: #{diff['SR'][0]}\n\n"
 
-  if !mods.empty?
+  if diff['SR'].length == 2
     text += "#{mods}:\n\n"
     text += "CS: #{diff['CS'][1]} - AR: #{diff['AR'][1]} - OD: #{diff['OD'][1]} "
     text += "- HP: #{diff['HP'][1]} - SR: #{diff['SR'][1]}\n\n"
