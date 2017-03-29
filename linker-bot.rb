@@ -8,6 +8,7 @@ KEY = File.open(File.join(DIR, 'key')).read.chomp  # osu! API key.
 PASSWORD = File.open(File.join(DIR, 'pass')).read.chomp  # Reddit password.
 SECRET = File.open(File.join(DIR, 'secret')).read.chomp  # Reddit app secret.
 LOG_PATH = File.join(DIR, 'logs')  # Path to log files.
+URL = 'https://osu.ppy.sh'  # Base for API requests.
 
 # Use a Reddit post title to search for a beatmap.
 # Arguments:
@@ -22,19 +23,38 @@ def search(title)
     song = map[0...map.index('[')].strip  # Artist - Title
     diff = map[map.index('[')..map.index(']')]  # [Diff Name]
 
-    url = "https://osu.ppy.sh/api/get_user?k=#{KEY}&u=#{player}&type=string"
+    url = "#{URL}/api/get_user?k=#{KEY}&u=#{player}&type=string"
     response = HTTParty.get(url)
 
-    full_name = "#{song} #{diff}".gsub('&', '&amp;')  # Artist - Title [Diff Name]
+    full_name = "#{song} #{diff}".gsub('&', '&amp;').downcase  # Artist - Title [Diff Name]
 
+    map_id = -1
+    # Use the player's recent events. Score posts are likely to be at least top
+    # 50 on the map, and this method takes less time than looking through recents.
     events = response.parsed_response[0]['events']
     for event in events
-      if event['display_html'].downcase.include?(full_name.downcase)
+      if event['display_html'].downcase.include?(full_name)
         map_id = event['beatmap_id']
       end
     end
 
-    url = "https://osu.ppy.sh/api/get_beatmaps?k=#{KEY}&b=#{map_id}"
+    if map_id == -1  # Use player's recent plays as a backup.
+      url = "#{URL}/api/get_user_recent?k=#{KEY}&u=#{player}&type=string&limit=50"
+      response = HTTParty.get(url)
+      recents = response.parsed_response
+      for play in recents
+        id = play['beatmap_id']
+        url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{id}"
+        response = HTTParty.get(url)
+        btmp = response.parsed_response[0]
+        if "#{btmp['artist']} - #{btmp['title']} [#{btmp['version']}]".downcase == full_name
+          map_id = id
+          break
+        end
+      end
+    end
+
+    url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{map_id}"
     response = HTTParty.get(url)
     beatmap = response.parsed_response[0]
     beatmap.empty? && raise
@@ -74,7 +94,7 @@ def get_diff_info(map, mods)
     mod_list = mods[1..-1].scan(/../)
   end
   if mods.empty? || mod_list.all? {|m| ignore.include?(m)} ||
-      !mod_list.all? {|m| all_mods.include?(m)}
+     !mod_list.all? {|m| all_mods.include?(m)}
     return_nomod.call
   end
 
@@ -83,7 +103,7 @@ def get_diff_info(map, mods)
   hp_max = 10  # Todo: verify this.
 
   begin
-    url = "https://osu.ppy.sh/osu/#{map['beatmap_id']}"
+    url = "#{URL}/osu/#{map['beatmap_id']}"
     `curl #{url} > map.osu`
     oppai = `#{File.join(DIR, 'oppai/oppai')} map.osu #{mods}`
     File.delete('map.osu')
@@ -130,9 +150,9 @@ end
 #   Comment text.
 def gen_comment(title, map)
   text = ""
-  link_url = "https://osu.ppy.sh/b/#{map['beatmap_id']})"
+  link_url = "#{URL}/b/#{map['beatmap_id']})"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
-  creator_url = "https://osu.ppy.sh/u/#{map['creator']}"
+  creator_url = "#{URL}/u/#{map['creator']}"
   gh_url = 'https://github.com/christopher-dG/osu-map-linker-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
@@ -210,6 +230,7 @@ if __FILE__ == $0
        !post.comments.any? {|comment| comment.author.name == 'map-linker-bot'}
       map = search(post.title)
       if map != nil
+        puts(gen_comment(post.title, map))
         post.reply(gen_comment(post.title, map))
         c += 1
       end
