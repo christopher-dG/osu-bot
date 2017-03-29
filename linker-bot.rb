@@ -16,8 +16,9 @@ OSUGAME = Redd.it(
 
 # Use a Reddit post title to search for a beatmap.
 # Arguments:
-#   title = Reddit post title.
-# Returns: dictionary with beatmap data, or nil in case of an error.
+#   title: Reddit post title.
+# Returns:
+#   Dictionary with beatmap data, or nil in case of an error.
 def search(title)
   begin
     tokens = title.split('|')
@@ -41,10 +42,13 @@ def search(title)
 
     url = "https://osu.ppy.sh/api/get_beatmaps?k=#{KEY}&b=#{map_id}"
     response = HTTParty.get(url)
-    return response.parsed_response[0]
+    beatmap = response.parse_response[0]
+    beatmap.empty? && raise
+
+    return beatmap
   rescue
-    msg = "Map retrieval failed for: #{title}"
-    File.open(File.join('logs', now), 'w') {|f| f.write(msg)}
+    msg = "Map retrieval failed for \'#{title}\'.\n"
+    File.open(File.join('logs', now), 'a') {|f| f.write(msg)}
     return nil
   end
 end
@@ -53,8 +57,9 @@ end
 # Arguments:
 #   map: Dictionary with beatmap data.
 #   mods: Mod string, i.e. "+HDDT" or "+HRFL".
-# Returns: Dictionary with [nomod, mod-adjusted] arrays as values, or just
-#   [nomod] arrays if the mods (or lack thereof) do not affect the values.
+# Returns:
+#   Dictionary with [nomod, mod-adjusted] arrays as values, or just [nomod]
+#   arrays if the mods (or lack thereof) do not affect the values.
 def get_diff_info(map, mods)
   sr = map['difficultyrating'].to_f.round(2)
   ar = map['diff_approach']
@@ -84,8 +89,8 @@ def get_diff_info(map, mods)
     oppai = `./oppai/oppai map.osu #{mods}`
     File.delete('map.osu')
   rescue
-    msg = "\`Downloading or analyzing the file at #{url}\` failed."
-    File.open(File.join('logs', now), 'w') {|f| f.write(msg)}
+    msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
+    File.open(File.join('logs', now), 'a') {|f| f.write(msg)}
     return_nomod.call
   end
 
@@ -122,6 +127,8 @@ end
 # Arguments:
 #   post: Reddit post being commented on.
 #   map: Beatmap data.
+# Returns:
+#   Comment text.
 def gen_comment(post, map)
   text = ""
   link_url = "https://osu.ppy.sh/b/#{map['beatmap_id']})"
@@ -131,12 +138,12 @@ def gen_comment(post, map)
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
   t = post.title
-  mods_start = t.index('+', t.index(']'))  # First '+' after the diff name.
-  mods = mods_start != nil ? t[mods_start...t.index(' ', mods_start)] : ''  # '+Mods'
+  m_start = t.index('+', t.index(']'))  # First '+' after the diff name.
+  mods = m_start != nil ? t[m_start...t.index(' ', m_start)] : ''  # '+Mods'
 
   diff = get_diff_info(map, mods)
   len = convert_s(map['total_length'].to_i)
-  
+
   text += "Beatmap: [#{link_label}](#{link_url}\n\n"
   text += "Creator: [#{map['creator']}](#{creator_url})\n\n"
   text += "Length: #{len} - BPM: #{map['bpm']} - Plays: #{map['playcount']}\n\n"
@@ -156,6 +163,10 @@ def gen_comment(post, map)
 end
 
 # Convert seconds to mm:ss.
+# Arguments:
+#   s: Number of seconds (Integer).
+# Returns:
+#   "m:ss" timestamp from s.
 def convert_s(s)
   h = s / 60
   m = s % 60
@@ -166,23 +177,32 @@ def convert_s(s)
 end
 
 # Format the current date and time.
+# Returns:
+#   "MM-DD-YYYY hh:mm"
 def now()
-  return `date +"%m-%d-%Y %k-%M"`.chomp
+  return `date +"%m-%d-%Y %k:%M"`.chomp
 end
 
-# Criteria for a post being classified as a score post.
+# Compares a post against some criteria for being classified as a score post.
+# Arguments:
+#   post: Reddit post.
+# Returns:
+#  Whether or not the post is considerd a score post.
 def is_score_post(post)
   return /\|.*-.*\[.*\]/ =~ post.title && !post.is_self
 end
 
 if __FILE__ == $0
+  c = 0
   for post in OSUGAME.new
     if is_score_post(post) &&
-        !post.comments.any? {|c| c.author.name == 'map-linker-bot'}
+        !post.comments.any? {|comment| comment.author.name == 'map-linker-bot'}
       map = search(post.title)
       if map != nil
         post.reply(gen_comment(post, map))
+        c += 1
       end
     end
   end
+  File.open(File.join('logs', now), 'a') {|f| f.write("Made #{c} comments.\n")}
 end
