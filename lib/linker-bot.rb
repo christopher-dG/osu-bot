@@ -21,23 +21,18 @@ IGNORE = ['HD', 'NF', 'SD', 'PF', 'SO', 'FL', 'AP', 'RL']  # Mods that don't aff
 # Returns:
 #   'player name', 'artist - title', '[diff name]' or nil if there are errors.
 def split_title(title)
-  begin
-    tokens = title.split('|')
-    player = tokens[0]
-    paren = player.index('(')
-    player = paren == nil ? player.strip : player[0...paren].strip
-    map = tokens[1]
-    song = map[0...map.rindex('[')].strip  # Artist - Title
-    # 'p | artist-name-songname [d]' will break here, but that's just a bad title.
-    if song.count('-') == 1
-      /\s-\s/ !~ song && song.sub!('-', ' - ')
-    end
-    diff = map[map.rindex('[')..map.rindex(']')]  # [Diff Name]
-  rescue
-    return nil
-  else
-    return player, song, diff
+  tokens = title.split('|')
+  player = tokens[0]
+  paren = player.index('(')
+  player = paren == nil ? player.strip : player[0...paren].strip
+  map = tokens[1]
+  song = map[0...map.rindex('[')].strip  # Artist - Title
+  # 'p | artist-name-songname [d]' will break here, but that's just a bad title.
+  if song.count('-') == 1
+    /\s-\s/ !~ song && song.sub!('-', ' - ')
   end
+  diff = map[map.rindex('[')..map.rindex(']')]  # [Diff Name]
+  return player, song, diff
 end
 
 # Use a Reddit post title to search for a beatmap.
@@ -258,7 +253,8 @@ end
 # Returns:
 #  Whether or not the post is considerd a score post.
 def is_score_post(post)
-  /\S+.*\|.*\S+.*-.*\S+.*\[.*\S+.*\]/ =~ post.title && !post.is_self
+  /\A(\w|-|\[|\]){3,}\|.*\S+.*-.*\S+.*\[.*\S+.*\]/ =~ post.title.strip &&
+    !post.is_self
 end
 
 # Get the /r/osugame subreddit.
