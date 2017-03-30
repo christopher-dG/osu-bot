@@ -18,10 +18,12 @@ URL = 'https://osu.ppy.sh'  # Base for API requests.
 def search(title)
   begin
     tokens = title.split('|')
-    player = tokens[0].strip
+    player = tokens[0]
+    paren = player.index('(')
+    player = paren == nil ? player.strip : player[0...paren].strip
     map = tokens[1]
-    song = map[0...map.index('[')].strip  # Artist - Title
-    diff = map[map.index('[')..map.index(']')]  # [Diff Name]
+    song = map[0...map.rindex('[')].strip  # Artist - Title
+    diff = map[map.rindex('[')..map.rindex(']')]  # [Diff Name]
 
     url = "#{URL}/api/get_user?k=#{KEY}&u=#{player}&type=string"
     response = HTTParty.get(url)
@@ -105,7 +107,7 @@ def get_diff_info(map, mods)
   begin
     url = "#{URL}/osu/#{map['beatmap_id']}"
     `curl #{url} > map.osu`
-    oppai = `#{File.join(DIR, 'oppai/oppai')} map.osu #{mods}`
+    oppai = `#{DIR}/../oppai/oppai map.osu #{mods}`
     File.delete('map.osu')
   rescue
     msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
