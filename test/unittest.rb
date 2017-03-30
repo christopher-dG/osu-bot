@@ -9,6 +9,7 @@ require_relative File.join('..', 'lib', 'linker-bot')
 require 'test/unit'
 require 'date'
 
+TEST_DIR = File.expand_path(File.dirname(__FILE__))  # Absolute path to file folder.
 oppai = Proc.new do |map, mods|
   `../oppai/oppai #{map} #{mods}`
 end
@@ -31,22 +32,26 @@ class FakeMap < Hash  # Mimic a beatmap dict.
 end
 
 def template_sub!(template, map)
+  template.gsub!('$BEATMAP_ID', map['beatmap_id'])
   template.gsub!('$ARTIST', map['artist'])
   template.gsub!('$TITLE', map['title'])
+  template.gsub!('$DIFF', map['version'])
   template.gsub!('$CREATOR', map['creator'])
-  template.gsub!('$LENGTH', map['total_length'])
+  template.gsub!('$LENGTH', convert_s(map['total_length'].to_i))
   template.gsub!('$BPM', map['bpm'])
   template.gsub!('$PLAYS', map['playcount'])
   template.gsub!('$CS', map['diff_size'])
   template.gsub!('$AR', map['diff_approach'])
   template.gsub!('$OD', map['diff_overall'])
   template.gsub!('$HP', map['diff_drain'])
-  template.gsub!('$SR', map['difficultyrating'].to_f.round(2))
+  template.gsub!('$SR', map['difficultyrating'].to_f.round(2).to_s)
 end
 
 class TestLinkerBot < Test::Unit::TestCase
 
   def test_search
+    # I'm not sure that I can test this, since it needs for a map
+    # to be in the given user's recent plays.
   end
 
   def test_split_title
@@ -95,6 +100,53 @@ class TestLinkerBot < Test::Unit::TestCase
   end
 
   def test_get_diff_info
+    map = FakeMap.new(
+      {
+        'beatmap_id' => '297663',
+        'difficultyrating' => '4.539580345153809',
+        'diff_approach' => '9',
+        'diff_size' => '4',
+        'diff_drain' => '8',
+        'diff_overall' => '8',
+        'total_length' => '180',
+        'bpm' => '174',
+        'version' => 'Another',
+        'playcount' => '-1',  # Impossible to hardcode.
+        'creator' => 'galvenize',
+        'title' => 'Nightmare (Maxin Remix)',
+        'artist' => 'SirensCeol',
+      }
+    )
+    assert_equal(
+      get_diff_info(map, ''),
+      {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
+    )
+    assert_equal(
+      get_diff_info(map, '+FL'),
+      {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
+    )
+
+    assert_equal(
+      get_diff_info(map, '+DT'),
+      {
+        'SR' => ['4.54', '6.26'], 'AR' => ['9', '10.33'], 'CS' => ['4', '4'],
+        'OD' => ['8', '9.75'], 'HP' => ['8', '8']
+      }
+    )
+    assert_equal(
+      get_diff_info(map, '+DTFL'),
+      {
+        'SR' => ['4.54', '6.26'], 'AR' => ['9', '10.33'], 'CS' => ['4', '4'],
+        'OD' => ['8', '9.75'], 'HP' => ['8', '8']
+      }
+    )
+    assert_equal(
+      get_diff_info(map, '+HR'),
+      {
+        'SR' => ['4.54', '4.83'], 'AR' => ['9', '10'], 'CS' => ['4', '5.2'],
+        'OD' => ['8', '10'], 'HP' => ['8', '10']
+      }
+    )
   end
 
   def test_get_mods
@@ -122,7 +174,26 @@ class TestLinkerBot < Test::Unit::TestCase
 
   def test_gen_comment
     post = FakePost.new('Player | Song - Artist [Diff]', false)
-    c = gen_comment(post.title, 's')
+    map = FakeMap.new(
+      {
+        'beatmap_id' => '297663',
+        'difficultyrating' => '4.539580345153809',
+        'diff_approach' => '9',
+        'diff_size' => '4',
+        'diff_drain' => '8',
+        'diff_overall' => '8',
+        'total_length' => '180',
+        'bpm' => '174',
+        'version' => 'Another',
+        'playcount' => '-1',  # Impossible to hardcode.
+        'creator' => 'galvenize',
+        'title' => 'Nightmare (Maxin Remix)',
+        'artist' => 'SirensCeol',
+      }
+    )
+    t = File.open("#{TEST_DIR}/nomod.txt") {|f| f.read}
+    template_sub!(t, map)
+    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
   end
 
   def test_convert_s

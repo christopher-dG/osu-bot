@@ -13,7 +13,7 @@ MODS = [
   'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
   'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
 ]  # All mods.
-IGNORE = ['HD', 'NF', 'SD', 'PF', 'SO', 'AP', 'RL']  # Mods that don't affect difficulty.
+IGNORE = ['HD', 'NF', 'SD', 'PF', 'SO', 'FL', 'AP', 'RL']  # Mods that don't affect difficulty.
 
 # Get player name, song artist and title, and diff name from a post title.
 # Arguments:
@@ -83,7 +83,6 @@ def search(title)
     response = HTTParty.get(url)
     beatmap = response.parsed_response[0]
     beatmap.empty? && raise
-
     return beatmap
   rescue
     msg = "Map retrieval failed for \'#{title}\'.\n"
@@ -100,7 +99,7 @@ end
 #   Dictionary with [nomod, mod-adjusted] arrays as values, or just [nomod]
 #   arrays if the mods (or lack thereof) do not affect the values.
 def get_diff_info(map, mods)
-  sr = map['difficultyrating'].to_f.round(2)
+  sr = map['difficultyrating'].to_f.round(2).to_s
   ar = map['diff_approach']
   cs = map['diff_size']
   od = map['diff_overall']
@@ -134,10 +133,11 @@ def get_diff_info(map, mods)
   end
 
   parse_oppai = Proc.new do |target, text|
-    /#{target}[0-9][0-9]?(\.[0-9][0-9]?)?/.match(text).to_s[2..-1].to_f
+    val = /#{target}[0-9][0-9]?(\.[0-9][0-9]?)?/.match(text).to_s[2..-1].to_f
+    val.to_i == val ? val.to_i.to_s : val.to_s
   end
 
-  m_sr = /[0-9]*\.[0-9]*\sstars/.match(oppai).to_s.split(' ')[0].to_f.round(2)
+  m_sr = /[0-9]*\.[0-9]*\sstars/.match(oppai).to_s.split(' ')[0].to_f.round(2).to_s
   m_ar = parse_oppai.call('ar', oppai)
   m_ar = m_ar.to_i == m_ar ? m_ar.to_i : m_ar
   m_cs = parse_oppai.call('cs', oppai)
@@ -148,10 +148,10 @@ def get_diff_info(map, mods)
   # Oppai does not handle HP drain.
   if mods.include?("EZ")
     m_hp = (hp.to_f * ez_hp_scalar).round(2)
-    m_hp = m_hp.to_i == m_hp ? m_hp.to_i : m_hp
+    m_hp = m_hp.to_i == m_hp ? m_hp.to_i.to_s : m_hp.to_s
   elsif mods.include?("HR")
     m_hp = (hp.to_f * hr_hp_scalar).round(2)
-    m_hp = m_hp > hp_max ? hp_max : m_hp.to_i == m_hp ? m_hp.to_i : m_hp
+    m_hp = m_hp > hp_max ? hp_max.to_s : m_hp.to_i == m_hp ? m_hp.to_i.to_s : m_hp.to_s
   else
     m_hp = hp
   end

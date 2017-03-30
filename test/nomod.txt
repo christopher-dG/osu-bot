@@ -1,10 +1,8 @@
-Beatmap: [$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID)
-
-Creator: [$CREATOR](https://osu.ppy.sh/u/$CREATOR)
+Beatmap: [$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID) by [$CREATOR](https://osu.ppy.sh/u/$CREATOR)
 
 Length: $LENGTH - BPM: $BPM - Plays: $PLAYS
 
-SR: $SR - AR: $AR- CS: $CS - OD: $OD - HP: $HP
+CS: $CS - AR: $AR - OD: $OD - HP: $HP - SR: $SR
 
 ***
 
