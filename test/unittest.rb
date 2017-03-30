@@ -52,12 +52,45 @@ class TestLinkerBot < Test::Unit::TestCase
   def test_split_title
     assert_equal(
       split_title('Player | Artist - Song [Diff] Other'),
-      ['Player', 'Artist - Song', '[Diff]']
+      ['Player', 'Artist - Song', '[Diff]'],
     )
     assert_equal(
-      split_title('Player | Artist - Song [Diff] Other'),
-      ['Player', 'Artist - Song', '[Diff]']
+      split_title('Player Name | Artist Name - Song Name [Diff Name]'),
+      ['Player Name', 'Artist Name - Song Name', '[Diff Name]'],
     )
+    assert_equal(
+      split_title('Player|Artist-Song[Diff]Other'),
+      ['Player', 'Artist - Song', '[Diff]'],
+    )
+    assert_equal(
+      split_title('p (x) | a - s [d] x'),
+      ['p', 'a - s', '[d]'],
+    )
+    assert_equal(
+      split_title('p(x) | a - s [d] x'),
+      ['p', 'a - s', '[d]'],
+    )
+    assert_equal(
+      split_title('p | a [x] - s [d] x'),
+      ['p', 'a [x] - s', '[d]'],
+    )
+    assert_equal(
+      split_title('p | a - s [x] [d] x'),
+      ['p', 'a - s [x]', '[d]'],
+    )
+    assert_equal(
+      split_title('p | a - s [x][d] x'),
+      ['p', 'a - s [x]', '[d]'],
+    )
+    assert_equal(
+      split_title('[p] | a - s [d] x'),
+      ['[p]', 'a - s', '[d]'],
+    )
+    assert_equal(
+      split_title('p [x] | a - s [d] x'),
+      ['p [x]', 'a - s', '[d]'],
+    )
+
 
   end
 
@@ -65,8 +98,14 @@ class TestLinkerBot < Test::Unit::TestCase
   end
 
   def test_get_mods
-    assert_equal(get_mods('Player | Artist - Song Name [Diff] +HDDT Other'), '+HDDT')
-    assert_equal(get_mods('Player | Artist - Song [Diff] HDDT Other'), '+HDDT')
+    assert_equal(get_mods('p | a - s [d] +HDDT x'), '+HDDT')
+    assert_equal(get_mods('p | a - s [d] HDDT x'), '+HDDT')
+    assert_equal(get_mods('p | a - s [d] x x'), '')
+    assert_equal(get_mods('p | a - s [d] +HDHH'), '')
+    assert_equal(get_mods('p | a - s [d] HDHH'), '')
+    assert_equal(get_mods('p | a - s [d] x x x x +HDHR'), '+HDHR')
+    assert_equal(get_mods('p | a - s [d] x HDHR x x HDDT'), '+HDHR')
+    assert_equal(get_mods('p | a - s [d] x HDHR x x +HDDT'), '+HDDT')
   end
 
   def test_get_sub
@@ -91,27 +130,27 @@ class TestLinkerBot < Test::Unit::TestCase
   end
 
   def test_is_score_post
-    assert(is_score_post(FakePost.new('p | s - a [d]o', false)))
-    assert(is_score_post(FakePost.new('p | s - a [d]', false)))
-    assert(is_score_post(FakePost.new('p | s - a [d]', false)))
-    assert(is_score_post(FakePost.new('p|s-a[d]', false)))
-    assert(is_score_post(FakePost.new('p (x) | s - a [d]', false)))
-    assert(is_score_post(FakePost.new('p [x] | s - a [d]', false)))
+    assert(is_score_post(FakePost.new('p | a - s [d]o', false)))
+    assert(is_score_post(FakePost.new('p | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('p | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('p|a-s[d]', false)))
+    assert(is_score_post(FakePost.new('p (x) | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('p [x] | a - s [d]', false)))
     assert(is_score_post(FakePost.new('p | s (x) - a [d]', false)))
     assert(is_score_post(FakePost.new('p | s [x] - a [d]', false)))
-    assert(is_score_post(FakePost.new('p | s - a (x) [d]', false)))
-    assert(is_score_post(FakePost.new('p | s - a [x] [d]', false)))
-    assert(!is_score_post(FakePost.new('p | s - a [d]', true)))
+    assert(is_score_post(FakePost.new('p | a - s (x) [d]', false)))
+    assert(is_score_post(FakePost.new('p | a - s [x] [d]', false)))
+    assert(!is_score_post(FakePost.new('p | a - s [d]', true)))
     assert(!is_score_post(FakePost.new('', false)))
     assert(!is_score_post(FakePost.new('x', false)))
-    assert(!is_score_post(FakePost.new('p | s - a [d', false)))
-    assert(!is_score_post(FakePost.new('p | s - a []', false)))
-    assert(!is_score_post(FakePost.new('p | s - a d]', false)))
+    assert(!is_score_post(FakePost.new('p | a - s [d', false)))
+    assert(!is_score_post(FakePost.new('p | a - s []', false)))
+    assert(!is_score_post(FakePost.new('p | a - s d]', false)))
     assert(!is_score_post(FakePost.new('p | s - [d]', false)))
     assert(!is_score_post(FakePost.new('p | s a [d]', false)))
     assert(!is_score_post(FakePost.new('p | - a [d]', false)))
-    assert(!is_score_post(FakePost.new('p s - a [d]', false)))
-    assert(!is_score_post(FakePost.new(' | s - a [d]', false)))
+    assert(!is_score_post(FakePost.new('p a - s [d]', false)))
+    assert(!is_score_post(FakePost.new(' | a - s [d]', false)))
   end
 
   def test_now

@@ -28,6 +28,10 @@ def split_title(title)
     player = paren == nil ? player.strip : player[0...paren].strip
     map = tokens[1]
     song = map[0...map.rindex('[')].strip  # Artist - Title
+    # 'p | artist-name-songname [d]' will break here, but that's just a bad title.
+    if song.count('-') == 1
+      /\s-\s/ !~ song && song.sub!('-', ' - ')
+    end
     diff = map[map.rindex('[')..map.rindex(']')]  # [Diff Name]
   rescue
     return nil
@@ -165,21 +169,27 @@ end
 #   Modstring formatted '+ModCombination'.
 def get_mods(title)
   title = title[title.index('|') + 1..-1]  # Drop the player name.
-  m_start = title.index('+', title.rindex(']'))  # First '+' after the diff name.
+  m_start = title.index('+', title.rindex(']'))
+  m_start = m_start != nil ? m_start + 1 : m_start
+
+  is_modstring = Proc.new do |s|
+    s.length % 2 == 0 && s.scan(/../).all? {|m| MODS.include?(m)}
+  end
+
   if m_start != nil
-    return /\+([A-Z]|,)*/.match(title[m_start..-1]).to_s.gsub(',', '')
-  else
-    is_modstring = Proc.new do |s|
-      s.length % 2 == 0 && s.scan(/../).all? {|m| MODS.include?(m)}
+    mods = /([A-Z]|,)*/.match(title[m_start..-1]).to_s.gsub(',', '')
+    if is_modstring.call(mods)
+      return "+#{mods}"
     end
+  else
     tokens = title[title.rindex(']') + 1..-1].split(' ')
     for token in tokens
       if is_modstring.call(token)
         return "+#{token}"
       end
     end
-    return ''
   end
+  return ''
 end
 
 # Generate the text to be commented.
