@@ -217,6 +217,10 @@ def gen_comment(title, map)
 
   if diff['SR'].length == 2
     text += "#{mods}:\n\n"
+    if /(DT|NC)/ =~ mods
+      len = convert_s((map['total_length'].to_i * 0.66).to_i)
+      text += "Length: #{len} - BPM: #{(map['bpm'].to_i * 1.5).to_i}\n\n"
+    end
     text += "CS: #{diff['CS'][1]} - AR: #{diff['AR'][1]} - OD: #{diff['OD'][1]} "
     text += "- HP: #{diff['HP'][1]} - SR: #{diff['SR'][1]}\n\n"
   end
