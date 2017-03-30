@@ -62,7 +62,7 @@ class TestLinkerBot < Test::Unit::TestCase
       split_title('Player | Artist - Song [Diff] Other'),
       ['Player', 'Artist - Song', '[Diff]'],
     )
-    assert_equal(<
+    assert_equal(
       split_title('Player Name | Artist Name - Song Name [Diff Name]'),
       ['Player Name', 'Artist Name - Song Name', '[Diff Name]'],
     )
@@ -209,26 +209,30 @@ class TestLinkerBot < Test::Unit::TestCase
   end
 
   def test_is_score_post
-    assert(is_score_post(FakePost.new('p | a - s [d]o', false)))
-    assert(is_score_post(FakePost.new('p | a - s [d]', false)))
-    assert(is_score_post(FakePost.new('p | a - s [d]', false)))
-    assert(is_score_post(FakePost.new('p|a-s[d]', false)))
-    assert(is_score_post(FakePost.new('p (x) | a - s [d]', false)))
-    assert(is_score_post(FakePost.new('p [x] | a - s [d]', false)))
-    assert(is_score_post(FakePost.new('p | s (x) - a [d]', false)))
-    assert(is_score_post(FakePost.new('p | s [x] - a [d]', false)))
-    assert(is_score_post(FakePost.new('p | a - s (x) [d]', false)))
-    assert(is_score_post(FakePost.new('p | a - s [x] [d]', false)))
-    assert(!is_score_post(FakePost.new('p | a - s [d]', true)))
+    assert(is_score_post(FakePost.new('ppp | a - s [d]o', false)))
+    assert(is_score_post(FakePost.new('ppp | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('--- | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('[[[ | a - s [d]', false)))
+    assert(is_score_post(FakePost.new(']]] | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('___ | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('ppp | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('ppp|a-s[d]', false)))
+    assert(is_score_post(FakePost.new('ppp (x) | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('ppp [x] | a - s [d]', false)))
+    assert(is_score_post(FakePost.new('ppp | s (x) - a [d]', false)))
+    assert(is_score_post(FakePost.new('ppp | s [x] - a [d]', false)))
+    assert(is_score_post(FakePost.new('ppp | a - s (x) [d]', false)))
+    assert(is_score_post(FakePost.new('ppp | a - s [x] [d]', false)))
+    assert(!is_score_post(FakePost.new('ppp | a - s [d]', true)))
     assert(!is_score_post(FakePost.new('', false)))
     assert(!is_score_post(FakePost.new('x', false)))
-    assert(!is_score_post(FakePost.new('p | a - s [d', false)))
-    assert(!is_score_post(FakePost.new('p | a - s []', false)))
-    assert(!is_score_post(FakePost.new('p | a - s d]', false)))
-    assert(!is_score_post(FakePost.new('p | s - [d]', false)))
-    assert(!is_score_post(FakePost.new('p | s a [d]', false)))
-    assert(!is_score_post(FakePost.new('p | - a [d]', false)))
-    assert(!is_score_post(FakePost.new('p a - s [d]', false)))
+    assert(!is_score_post(FakePost.new('ppp | a - s [d', false)))
+    assert(!is_score_post(FakePost.new('ppp | a - s []', false)))
+    assert(!is_score_post(FakePost.new('ppp | a - s d]', false)))
+    assert(!is_score_post(FakePost.new('ppp | s - [d]', false)))
+    assert(!is_score_post(FakePost.new('ppp | s a [d]', false)))
+    assert(!is_score_post(FakePost.new('ppp | - a [d]', false)))
+    assert(!is_score_post(FakePost.new('ppp a - s [d]', false)))
     assert(!is_score_post(FakePost.new(' | a - s [d]', false)))
   end
 

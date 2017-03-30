@@ -52,7 +52,7 @@ def search(title, test_set={})
     map_id = -1
     # Use the player's recent events. Score posts are likely to be at least top
     # 50 on the map, and this method takes less time than looking through recents.
-    events = test_set.empty? response.parsed_response[0]['events'] : test_set['events']
+    events = test_set.empty? ? response.parsed_response[0]['events'] : test_set['events']
     for event in events
       if event['display_html'].downcase.include?(full_name)
         map_id = event['beatmap_id']
@@ -254,8 +254,8 @@ end
 # Returns:
 #  Whether or not the post is considerd a score post.
 def is_score_post(post)
-  /\A(\w|-|\[|\]){3,}\|.*\S+.*-.*\S+.*\[.*\S+.*\]/ =~ post.title.strip &&
-    !post.is_self
+  r = /\A(\w|-|\[|\])(\w|-|\[|\]| )(\w|-|\[|\]).*\|.*\S+.*-.*\S+.*\[.*\S+.*\]/
+  r =~ post.title.strip && !post.is_self
 end
 
 # Get the /r/osugame subreddit.
