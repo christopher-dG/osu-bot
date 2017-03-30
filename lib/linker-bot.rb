@@ -254,8 +254,7 @@ end
 # Returns:
 #  Whether or not the post is considerd a score post.
 def is_score_post(post)
-  r = /\A(\w|-|\[|\])(\w|-|\[|\]| )(\w|-|\[|\]).*\|.*\S+.*-.*\S+.*\[.*\S+.*\]/
-  r =~ post.title.strip && !post.is_self
+  post.title.strip =~ /[\w ]{3,}\|.*-.* \[.*\]/ && !post.is_self
 end
 
 # Get the /r/osugame subreddit.
