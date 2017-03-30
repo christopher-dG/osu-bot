@@ -9,6 +9,12 @@ PASSWORD = File.open("#{DIR}/pass").read.chomp  # Reddit password.
 SECRET = File.open("#{DIR}/secret").read.chomp  # Reddit app secret.
 LOG_PATH = "#{DIR}/../logs"  # Path to log files.
 URL = 'https://osu.ppy.sh'  # Base for API requests.
+MODS = [
+  'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
+  'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
+]  # All mods.
+IGNORE = ['HD', 'NF', 'SD', 'PF', 'SO', 'AP', 'RL']  # Mods that don't affect difficulty.
+
 
 # Use a Reddit post title to search for a beatmap.
 # Arguments:
@@ -87,16 +93,11 @@ def get_diff_info(map, mods)
     return {'SR' => [sr], 'AR' => [ar], 'CS' => [cs], 'OD' => [od], 'HP' => [hp]}
   end
 
-  all_mods = [
-    'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
-    'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
-  ]
-  ignore = ['HD', 'NF', 'SD', 'PF', 'SO', 'AP', 'RL']
   if !mods.empty?
     mod_list = mods[1..-1].scan(/../)
   end
-  if mods.empty? || mod_list.all? {|m| ignore.include?(m)} ||
-     !mod_list.all? {|m| all_mods.include?(m)}
+  if mods.empty? || mod_list.all? {|m| IGNORE.include?(m)} ||
+     !mod_list.all? {|m| MODS.include?(m)}
     return_nomod.call
   end
 
@@ -144,6 +145,29 @@ def get_diff_info(map, mods)
   }
 end
 
+# Get mods from a Reddit post title.
+# Arguments:
+#   title: Post title.
+# Returns:
+#   Modstring formatted '+ModCombination'.
+def get_mods(title)
+  m_start = title.index('+', title.rindex(']'))  # First '+' after the diff name.
+  if m_start != nil
+    return /\+([A-Z]|,)*/.match(title[m_start..-1]).to_s.gsub(',', '')
+  else
+    is_modstring = Proc.new do |s|
+      s.length % 2 == 0 && s.scan(/../).all? {|m| MODS.include?(m)}
+    end
+    tokens = title[title.rindex(']') + 1..-1].split(' ')
+    for token in tokens
+      if is_modstring(token)
+        return "+#{token}"
+      end
+    end
+    return ''
+  end
+end
+
 # Generate the text to be commented.
 # Arguments:
 #   title: Reddit post title.
@@ -158,9 +182,7 @@ def gen_comment(title, map)
   gh_url = 'https://github.com/christopher-dG/osu-map-linker-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
-  m_start = title.index('+', title.index(']'))  # First '+' after the diff name.
-  mods = m_start != nil ? /\+([A-Z]|,)*/.match(title[m_start..-1]).to_s.gsub(',', '') : ''
-
+  mods = get_mods(title)
   diff = get_diff_info(map, mods)
   len = convert_s(map['total_length'].to_i)
 
