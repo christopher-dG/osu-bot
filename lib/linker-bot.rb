@@ -15,13 +15,12 @@ MODS = [
 ]  # All mods.
 IGNORE = ['HD', 'NF', 'SD', 'PF', 'SO', 'AP', 'RL']  # Mods that don't affect difficulty.
 
-
-# Use a Reddit post title to search for a beatmap.
+# Get player name, song artist and title, and diff name from a post title.
 # Arguments:
 #   title: Reddit post title.
 # Returns:
-#   Dictionary with beatmap data, or nil in case of an error.
-def search(title)
+#   'player name', 'artist - title', '[diff name]' or nil if there are errors.
+def split_title(title)
   begin
     tokens = title.split('|')
     player = tokens[0]
@@ -30,7 +29,21 @@ def search(title)
     map = tokens[1]
     song = map[0...map.rindex('[')].strip  # Artist - Title
     diff = map[map.rindex('[')..map.rindex(']')]  # [Diff Name]
+  rescue
+    return nil
+  else
+    return player, song, diff
+  end
+end
 
+# Use a Reddit post title to search for a beatmap.
+# Arguments:
+#   title: Reddit post title.
+# Returns:
+#   Dictionary with beatmap data, or nil in case of an error.
+def search(title)
+  begin
+    player, song, diff = split_title(title)
     url = "#{URL}/api/get_user?k=#{KEY}&u=#{player}&type=string"
     response = HTTParty.get(url)
 
@@ -151,6 +164,7 @@ end
 # Returns:
 #   Modstring formatted '+ModCombination'.
 def get_mods(title)
+  title = title[title.index('|') + 1..-1]  # Drop the player name.
   m_start = title.index('+', title.rindex(']'))  # First '+' after the diff name.
   if m_start != nil
     return /\+([A-Z]|,)*/.match(title[m_start..-1]).to_s.gsub(',', '')
@@ -160,7 +174,7 @@ def get_mods(title)
     end
     tokens = title[title.rindex(']') + 1..-1].split(' ')
     for token in tokens
-      if is_modstring(token)
+      if is_modstring.call(token)
         return "+#{token}"
       end
     end
@@ -230,7 +244,7 @@ end
 # Returns:
 #  Whether or not the post is considerd a score post.
 def is_score_post(post)
-  /\|.*-.*\[.*\]/ =~ post.title && !post.is_self
+  /\S+.*\|.*\S+.*-.*\S+.*\[.*\S+.*\]/ =~ post.title && !post.is_self
 end
 
 # Get the /r/osugame subreddit.

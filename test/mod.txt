@@ -1,0 +1,13 @@
+Beatmap: [$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID)\n\nCreator: [$CREATOR](https://osu.ppy.sh/u/$CREATOR)
+
+Length: $LENGTH - BPM: $BPM - Plays: $PLAYS
+
+CS: $CS - AR: $AR - OD: $OD - HP: $HP - SR: $SR
+
+$MODS
+
+CS: $M_CS - AR: $M_AR - OD: $M_OD - HP: $M_HP - SR: $M_SR
+
+***
+
+^(I'm a bot. )[^Source](https://github.com/christopher-dG/osu-map-linker-bot)^( | )[^Developer](https://reddit.com/u/PM_ME_DOG_PICS_PLS)
