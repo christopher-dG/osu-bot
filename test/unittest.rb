@@ -8,6 +8,7 @@ end
 require_relative File.join('..', 'lib', 'linker-bot')
 require 'test/unit'
 require 'date'
+require 'json'
 
 TEST_DIR = File.expand_path(File.dirname(__FILE__))  # Absolute path to file folder.
 oppai = Proc.new do |map, mods|
@@ -15,7 +16,7 @@ oppai = Proc.new do |map, mods|
 end
 
 class FakePost  # Mimic a Reddit post.
-  attr_reader :title
+  attr_accessor :title
   attr_accessor :is_self
   def initialize(t, s)
     @title = t
@@ -52,6 +53,8 @@ class TestLinkerBot < Test::Unit::TestCase
   def test_search
     # I'm not sure that I can test this, since it needs for a map
     # to be in the given user's recent plays.
+    events = File.open("#{TEST_DIR}/events.json") {|f| JSON.parse(f.read)}
+    recents = File.open("#{TEST_DIR}/recents.json") {|f| JSON.parse(f.read)}
   end
 
   def test_split_title
@@ -59,7 +62,7 @@ class TestLinkerBot < Test::Unit::TestCase
       split_title('Player | Artist - Song [Diff] Other'),
       ['Player', 'Artist - Song', '[Diff]'],
     )
-    assert_equal(
+    assert_equal(<
       split_title('Player Name | Artist Name - Song Name [Diff Name]'),
       ['Player Name', 'Artist Name - Song Name', '[Diff Name]'],
     )

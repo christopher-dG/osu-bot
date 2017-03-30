@@ -37,10 +37,11 @@ end
 
 # Use a Reddit post title to search for a beatmap.
 # Arguments:
-#   title: Reddit post title.
+#   title: Reddit post title
+#   test_set={}: List of precomputed API results to test with.
 # Returns:
 #   Dictionary with beatmap data, or nil in case of an error.
-def search(title)
+def search(title, test_set={})
   begin
     player, song, diff = split_title(title)
     url = "#{URL}/api/get_user?k=#{KEY}&u=#{player}&type=string"
@@ -51,7 +52,7 @@ def search(title)
     map_id = -1
     # Use the player's recent events. Score posts are likely to be at least top
     # 50 on the map, and this method takes less time than looking through recents.
-    events = response.parsed_response[0]['events']
+    events = test_set.empty? response.parsed_response[0]['events'] : test_set['events']
     for event in events
       if event['display_html'].downcase.include?(full_name)
         map_id = event['beatmap_id']
