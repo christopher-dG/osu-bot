@@ -17,6 +17,42 @@ MODS = [
 ]  # All mods.
 # Mods that either don't give affect difficulty or don't give pp.
 IGNORE = ['SD', 'PF', 'AP', 'RL']
+BITWISE_MODS = {
+  0 => '',
+  1 => 'NF',
+  2 => 'EZ',
+  8 => 'HD',
+  16 => 'HR',
+  32 => 'SD',
+  64 => 'DT',
+  128 => 'RL',
+  256 => 'HT',
+  512 => 'NC',
+  1024 => 'FL',
+  2048 => 'AT',
+  4096 => 'SO',
+  8192 => 'AT',
+  16384 => 'PF',
+}
+
+# Get the mod combination from an integer.
+# Arguments:
+#   mods: integer representing modstring.
+# Returns:
+#   Modstring from `mods`.
+def get_bitwise_mods(mods)
+  cur = mods
+  mod_list = []
+  for mod in BITWISE_MODS.keys.reverse
+    if cur == 0
+      return !mod_list.empty? ? " +#{mod_list.reverse.join('')} " : ''
+    elsif mod <= cur
+      mod_list.push(BITWISE_MODS[mod])
+      cur -= mod
+    end
+  end
+  return ''
+end
 
 # Get player name, song artist and title, and diff name from a post title.
 # Arguments:
@@ -64,7 +100,7 @@ def search(title, test_set={})
       end
     end
 
-    if map_id == -1  # Use player's recent plays as a backup.
+    if map_id == -1  # Use player's recent plays as a backup. This takes significantly longer.
       url = "#{URL}/api/get_user_recent?k=#{KEY}&u=#{player['user_id']}&type=id&limit=50"
       response = HTTParty.get(url)
       recents = response.parsed_response
@@ -202,7 +238,8 @@ end
 # Returns:
 #   Map status, and effective date if the map is qualified, ranked, or loved.
 def get_status(map)
-  status = {'1' => 'Ranked', '3' => 'Qualified', '4' => 'Loved'}
+  # '2' => 'Approved' but that's equivalent to 'Ranked'.
+  status = {'1' => 'Ranked', '2' => 'Ranked', '3' => 'Qualified', '4' => 'Loved'}
   return status.key?(map['approved']) ?
            "#{status[map['approved']]} (#{map['approved_date'][0..9]})" : 'Unranked'
 end
@@ -302,14 +339,15 @@ def gen_comment(title, map, player)
     p_pc = player['playcount']
     p_pp = player['pp_raw'].to_f.round(0)
     p_acc = "#{player['accuracy'].to_f.round(2)}%"
-
+1
     url = "#{URL}/api/get_user_best?k=#{KEY}&u=#{p_id}&type=id&limit=1"
     top_play = HTTParty.get(url).parsed_response[0]
     top_pp = top_play['pp'].to_f.round(0)
     url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{top_play['beatmap_id']}&type=id"
     top_map = HTTParty.get(url).parsed_response[0]
     map_name = "#{top_map['artist']} - #{top_map['title']} [#{top_map['version']}]"
-    top_md = "[#{map_name}](#{URL}/b/#{top_play['beatmap_id']}) (#{top_pp}pp)"
+    top_mods = get_bitwise_mods(top_play['enabled_mods'].to_i)
+    top_md = "[#{map_name}](#{URL}/b/#{top_play['beatmap_id']}) #{top_mods}(#{top_pp}pp)"
   rescue
     msg = "Fetching user information failed for \'#{player['username']}}\'.\n"
     File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}

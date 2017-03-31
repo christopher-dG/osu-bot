@@ -19,6 +19,7 @@ if __FILE__ == $0
         end
       end
     end
+  ensure
     msg = "Made #{c} comment#{c == 0 || c > 1 ? 's' : ''}.\n"
     File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
   end
