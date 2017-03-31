@@ -28,6 +28,7 @@ def split_title(title)
   player = paren == nil ? player.strip : player[0...paren].strip
   map = tokens[1]
   song = map[0...map.rindex('[')].strip  # Artist - Title
+
   # 'p | artist-name-songname [d]' will break here, but that's just a bad title.
   if song.count('-') == 1
     /\s-\s/ !~ song && song.sub!('-', ' - ')
@@ -53,7 +54,8 @@ def search(title, test_set={})
     map_id = -1
     # Use the player's recent events. Score posts are likely to be at least top
     # 50 on the map, and this method takes less time than looking through recents.
-    events = test_set.empty? ? response.parsed_response[0]['events'] : test_set['events']
+    player = test_set.empty? ? response.parsed_response[0] : test_set['user']
+    events = test_set.empty? ? response.parsed_response[0]['events'] : test_set['user']['events']
     for event in events
       if event['display_html'].downcase.include?(full_name)
         map_id = event['beatmap_id']
@@ -64,11 +66,13 @@ def search(title, test_set={})
       url = "#{URL}/api/get_user_recent?k=#{KEY}&u=#{player}&type=string&limit=50"
       response = HTTParty.get(url)
       recents = response.parsed_response
+
       for play in recents
         id = play['beatmap_id']
         url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{id}"
         response = HTTParty.get(url)
         btmp = response.parsed_response[0]
+
         if "#{btmp['artist']} - #{btmp['title']} [#{btmp['version']}]".downcase == full_name
           map_id = id
           break
@@ -80,11 +84,11 @@ def search(title, test_set={})
     response = HTTParty.get(url)
     beatmap = response.parsed_response[0]
     beatmap.empty? && raise
-    return beatmap
+    return player, beatmap
   rescue
     msg = "Map retrieval failed for \'#{title}\'.\n"
     File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
-    return nil
+    return nil, nil
   end
 end
 
@@ -154,7 +158,7 @@ def get_diff_info(map, mods)
     m_hp = hp
   end
 
-  {
+  return {
     'SR' => [sr, m_sr], 'AR' => [ar, m_ar], 'CS' => [cs, m_cs],
     'OD' => [od, m_od], 'HP' => [hp, m_hp],
   }
@@ -164,7 +168,7 @@ end
 # Arguments:
 #   title: Post title.
 # Returns:
-#   Modstring formatted '+ModCombination'.
+#   Modstring formatted '+ModCombination', or an empty string if there are no mods.
 def get_mods(title)
   title = title[title.index('|') + 1..-1]  # Drop the player name.
   m_start = title.index('+', title.rindex(']'))
@@ -197,8 +201,8 @@ end
 #   Map status, and effective date if the map is qualified, ranked, or loved.
 def get_status(map)
   status = {'1' => 'Ranked', '3' => 'Qualified', '4' => 'Loved'}
-  status.key?(map['approved']) ?
-    "#{status[map['approved']]} (#{map['approved_date'][0..9]})" : 'Unranked'
+  return status.key?(map['approved']) ?
+           "#{status[map['approved']]} (#{map['approved_date'][0..9]})" : 'Unranked'
 end
 
 # Get pp values for 95%, 98%, 99%, and 100% acc.
@@ -225,35 +229,32 @@ def get_pp(id, mods)
   ensure
     File.delete('map.osu')
   end
-  pp.join(' &#124; ')
+  return pp.join(' &#124; ')
 end
 
 # Adjust the BPM and length of a map for HT/DT/NC.
 # Arguments:
-#   bpm: Map's bpm.
-#   length: Map's length in seconds.
-#   mods: Active mods.
-# Returns:
-#   [adjusted_bpm, adjusted_length (in seconds)]
-def adjust_bpm_length(bpm, length, mods)
-  adjusted_bpm, adjusted_length = bpm, length
+#   map: Map being adjusted..
+def adjust_bpm_length!(map, mods)
+  bpm = map['bpm'].to_i
+  length = map['total_length'].to_i
   if mods =~ /DT|NC/
-    adjusted_bpm = (bpm * 1.5).to_f.round(0).to_s
-    adjusted_length = (length * 0.66).to_f.round(0).to_s
+    map['bpm'] = (bpm * 1.5).to_f.round(0).to_s
+    map['total_length'] = (length * 0.66).to_f.round(0).to_s
   elsif mods =~ /HT/
-    adjusted_bpm = (bpm * 0.66).to_f.round(0).to_s
-    adjusted_length = (length * 1.5).to_f.round(0).to_s
+    map['bpm'] = (bpm * 0.66).to_f.round(0).to_s
+    map['total_length'] = (length * 1.5).to_f.round(0).to_s
   end
-  [adjusted_bpm, adjusted_length]
 end
 
 # Generate the text to be commented.
 # Arguments:
 #   title: Reddit post title.
 #   map: Beatmap data.
+#   player: Player data.
 # Returns:
 #   Comment text.
-def gen_comment(title, map)
+def gen_comment(title, map, player)
   link_url = "#{URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
   map_md = "[#{link_label}](#{link_url})"
@@ -261,36 +262,65 @@ def gen_comment(title, map)
   creator_md = "[#{map['creator']}](#{creator_url})"
   gh_url = 'https://github.com/christopher-dG/osu-map-linker-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
-
-  text = "#{map_md} by #{creator_md} | #{get_status(map)} | #{map['playcount']} plays\n\n"
-
   mods = get_mods(title)
-  diff = get_diff_info(map, mods)
+  map_id = map['beatmap_id']
+  bpm = map['bpm']
   length = convert_s(map['total_length'].to_i)
+  status = get_status(map)
+  pc = "#{map['playcount']} plays"
+  d = '&#124;'  # Inline HTML delimiter.
+  diff = get_diff_info(map, mods)
+  m = diff['SR'].length == 2  # Whether or not the map has mods.
+  cs, m_cs = diff['CS']
+  ar, m_ar = diff['AR']
+  od, m_od = diff['OD']
+  hp, m_hp = diff['HP']
+  sr, m_sr = diff['SR']
+  pp = get_pp(map['beatmap_id'], '')
 
-  has_mods = diff['SR'].length == 2
-  text += "#{has_mods ? ' | ' : ''}CS | AR | OD | HP | SR | BPM | "
-  text += "Length | pp (95% &#124; 98% &#124; 99% &#124; 100%)\n"
-  text += "#{has_mods ? '- | ' : ''}- | - | - | - | - | - | - | -\n"
-  text += "#{has_mods ? 'NoMod | ' : ''}#{diff['CS'][0]} | #{diff['AR'][0]} | "
-  text += "#{diff['OD'][0]} | #{diff['HP'][0]} | #{diff['SR'][0]} | "
-  text += "#{map['bpm']} | #{length} | #{get_pp(map['beatmap_id'], '')}\n"
+  text = "##### **#{map_md} by #{creator_md} | #{status} | #{pc}**\n\n"
+  text += "#{m ? ' |' : ''}CS|AR|OD|HP|SR|BPM|Length|pp (95% #{d} 98% #{d} 99% #{d} 100%)\n"
+  text += "#{m ? ':-:|' : ''}:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n"
+  text += "#{m ? 'NoMod|' : ''}#{cs}|#{ar}|#{od}|#{hp}|#{sr}|#{bpm}|#{length}|#{pp}\n"
 
-  if has_mods
-    # Todo: Can probably just pass the dict and mutate it.
-    map['bpm'], map['total_length'] = adjust_bpm_length(map['bpm'], map['total_length'].to_i, mods)
+  if m
+    adjust_bpm_length!(map, mods)
+    bpm = map['bpm']
+    m_pp = get_pp(map['beatmap_id'], mods)
     length = convert_s(map['total_length'].to_i)
-    text += "#{mods} | #{diff['CS'][1]} | #{diff['AR'][1]} | #{diff['OD'][1]} | "
-    text += "#{diff['HP'][1]} | #{diff['SR'][1]} | #{map['bpm']} | "
-    text += "#{length} | #{get_pp(map['beatmap_id'], mods)}\n\n"
+    text += "#{mods}|#{m_cs}|#{m_ar}|#{m_od}|#{m_hp}|#{m_sr}|#{bpm}|#{length}|#{m_pp}\n\n"
   else
     text += "\n"
+  end
+
+  begin
+    p_id = player['user_id']
+    p_md = "[#{player['username']}](#{URL}/u/#{p_id})"
+    p_rank = "##{player['pp_rank']}"
+    p_pc = player['playcount']
+    p_pp = player['pp_raw'].to_f.round(0)
+    p_acc = "#{player['accuracy'].to_f.round(2)}%"
+
+    url = "#{URL}/api/get_user_best?k=#{KEY}&u=#{p_id}&type=id&limit=1"
+    top_play = HTTParty.get(url).parsed_response[0]
+    top_pp = top_play['pp'].to_f.round(0)
+    url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{top_play['beatmap_id']}&type=id"
+    top_map = HTTParty.get(url).parsed_response[0]
+    map_name = "#{top_map['artist']} - #{top_map['title']} [#{top_map['version']}]"
+    top_md = "[#{map_name}](#{URL}/b/#{top_play['beatmap_id']}) (#{top_pp}pp)"
+  rescue
+    msg = "Fetching user information failed for \'#{player['username']}}\'.\n"
+    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
+  else
+    text += "Player|Rank|pp|Acc|Playcount|Top Play\n"
+    text += ":-:|:-:|:-:|:-:|:-:|:-:\n"
+    text += "#{p_md}|#{p_rank}|#{p_pp}|#{p_acc}|#{p_pc}|#{top_md}\n\n"
   end
 
   text += "***\n\n"
   text += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
 
-  text
+  return text
 end
 
 # Convert seconds to mm:ss.
@@ -304,14 +334,14 @@ def convert_s(s)
   if m < 10
     m = "0#{m}"
   end
-  "#{h}:#{m}"
+  return "#{h}:#{m}"
 end
 
 # Format the current date and time.
 # Returns:
 #   "MM-DD-YYYY hh:mm"
 def now
-  `date +"%m-%d-%Y_%H:%M"`.chomp
+  return `date +"%m-%d-%Y_%H:%M"`.chomp
 end
 
 # Compares a post against some criteria for being classified as a score post.
@@ -320,7 +350,7 @@ end
 # Returns:
 #  Whether or not the post is considerd a score post.
 def is_score_post(post)
-  post.title.strip =~ /[ -\]\[\w]{3,}\|.*\S.*-.*\S.*\[.*\S.*\]/ && !post.is_self
+  return post.title.strip =~ /[ -\]\[\w]{3,}\|.*\S.*-.*\S.*\[.*\S.*\]/ && !post.is_self
 end
 
 # Get the /r/osugame subreddit.

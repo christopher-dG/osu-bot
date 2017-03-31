@@ -32,6 +32,15 @@ class FakeMap < Hash  # Mimic a beatmap dict.
   end
 end
 
+class FakePlayer < Hash  # Mimic a player dict.
+  def initialize(d)
+    d.each do |k, v|
+      self[k] = v
+    end
+  end
+end
+
+
 def template_sub!(template, map, mods)
   pp_nomod = get_pp(map['beatmap_id'], '').split(' &#124; ')
   pp_mods = get_pp(map['beatmap_id'], mods).split(' &#124; ')
@@ -59,10 +68,10 @@ def template_sub!(template, map, mods)
   template.gsub!('$STATUS', status)
   if diff['SR'].length == 2
     template.gsub!('$MODS', mods)
-    m_bpm, m_length = adjust_bpm_length(map['bpm'], map['total_length'].to_i, mods)
-    m_length = convert_s(m_length.to_i)
+    adjust_bpm_length!(map, mods)
+    m_length = convert_s(map['total_length'].to_i)
     template.gsub!('$M_LENGTH', m_length)
-    template.gsub!('$M_BPM', m_bpm)
+    template.gsub!('$M_BPM', map['bpm'])
     template.gsub!('$M_CS', diff['CS'][1])
     template.gsub!('$M_AR', diff['AR'][1])
     template.gsub!('$M_OD', diff['OD'][1])
@@ -146,6 +155,25 @@ class TestLinkerBot < Test::Unit::TestCase
         'artist' => 'SirensCeol',
       }
     )
+    player = FakePlayer.new(
+      {
+        'user_id' => '84841',
+        'username' => 'CXu',
+        'pp_rank' => '21',
+        'playcount' => '105093',
+        'pp_raw' => '10683.9',
+        'accuracy' => '99.05836486816406',
+      }
+    )
+    top_score = FakeScore(
+      {
+        'artist' => '',
+        'title' => '',
+        'version' => '',
+        'pp', => '',
+      }
+    )
+
     assert_equal(
       get_diff_info(map, ''),
       {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
@@ -233,10 +261,17 @@ class TestLinkerBot < Test::Unit::TestCase
       }
     )
 
+    # The map is mutated by adjust_bpm_length! so we need to undo it.
+    revert_bpm_length = Proc.new do |map|
+      map['total_length'] = '180'
+      map['bpm'] = '174'
+    end
+
     t = File.open("#{TEST_DIR}/nomod.txt") {|f| f.read}
     mods = ""
     template_sub!(t, map, mods)
     assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+
 
     post = FakePost.new('Player | Song - Artist [Diff] +FLNF', false)
     t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
@@ -248,12 +283,15 @@ class TestLinkerBot < Test::Unit::TestCase
     t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
     mods = "+HDDT"
     template_sub!(t, map, mods)
+    revert_bpm_length.call(map)
     assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+    revert_bpm_length.call(map)
 
     post = FakePost.new('Player | Song - Artist [Diff] +HT', false)
     t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
     mods = "+HT"
     template_sub!(t, map, mods)
+    revert_bpm_length.call(map)
     assert_equal(gen_comment(post.title, map).chomp, t.chomp)
 
   end
