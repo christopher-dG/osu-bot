@@ -47,8 +47,8 @@ end
 #   Dictionary with beatmap data, or nil in case of an error.
 def search(title, test_set={})
   begin
-    player, song, diff = split_title(title)
-    url = "#{URL}/api/get_user?k=#{KEY}&u=#{player}&type=string"
+    player_name, song, diff = split_title(title)
+    url = "#{URL}/api/get_user?k=#{KEY}&u=#{player_name}&type=string"
     response = HTTParty.get(url)
 
     full_name = "#{song} #{diff}".gsub('&', '&amp;').downcase  # Artist - Title [Diff Name]
@@ -65,7 +65,7 @@ def search(title, test_set={})
     end
 
     if map_id == -1  # Use player's recent plays as a backup.
-      url = "#{URL}/api/get_user_recent?k=#{KEY}&u=#{player}&type=string&limit=50"
+      url = "#{URL}/api/get_user_recent?k=#{KEY}&u=#{player['user_id']}&type=id&limit=50"
       response = HTTParty.get(url)
       recents = response.parsed_response
 
