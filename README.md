@@ -32,12 +32,12 @@ Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP REC
 * Make sure to pad the `-` separating the artist and song name with spaces.
 If you don't do this and the song or artist contains a `-`, the bot won't work.
 
-In general, you can't go wrong with [/r/osugame](https://reddit.com/r/osugme)'s well-established posting format
+In general, you can't go wrong with [/r/osugame](https://reddit.com/r/osugame)'s well-established posting format.
 
-#### What's in it for me?
+### What's in it for me?
 The bot will upvote your post as soon as it comments. Isn't that enough?
 ___
 
-Credit for mod calculations goes to [Francesco149](https://github.com/Francesco149/oppai) and [ThePooN](https://github.com/ThePooN/osu-ModPropertiesCalculator).
+Credit for mod/pp calculations goes to [Francesco149](https://github.com/Francesco149/oppai) and [ThePooN](https://github.com/ThePooN/osu-ModPropertiesCalculator).
 
 If you have comments or suggestions for the bot, feel free to [open an issue](https://github.com/christopher-dG/osu-bot/issues/new) or [message me on Reddit](https://reddit.com/u/PM_ME_DOG_PICS_PLS).
