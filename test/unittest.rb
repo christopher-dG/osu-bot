@@ -24,22 +24,14 @@ class FakePost  # Mimic a Reddit post.
   end
 end
 
-class FakeMap < Hash  # Mimic a beatmap dict.
+class Fake < Hash  # Mimic a beatmap dict.
   def initialize(d)
     d.each do |k, v|
       self[k] = v
     end
   end
 end
-
-class FakePlayer < Hash  # Mimic a player dict.
-  def initialize(d)
-    d.each do |k, v|
-      self[k] = v
-    end
-  end
-end
-
+FakeMap = FakePlayer = FakeScore = Fake
 
 def template_sub!(template, map, mods)
   pp_nomod = get_pp(map['beatmap_id'], '').split(' &#124; ')
@@ -88,7 +80,7 @@ class TestLinkerBot < Test::Unit::TestCase
 
   def test_search
     # Todo
-    events = File.open("#{TEST_DIR}/events.json") {|f| JSON.parse(f.read)}
+    user = File.open("#{TEST_DIR}/user.json") {|f| JSON.parse(f.read)}
     recents = File.open("#{TEST_DIR}/recents.json") {|f| JSON.parse(f.read)}
   end
 
@@ -165,12 +157,12 @@ class TestLinkerBot < Test::Unit::TestCase
         'accuracy' => '99.05836486816406',
       }
     )
-    top_score = FakeScore(
+    top_score = FakeScore.new(
       {
         'artist' => '',
         'title' => '',
         'version' => '',
-        'pp', => '',
+        'pp' => '',
       }
     )
 
@@ -241,60 +233,60 @@ class TestLinkerBot < Test::Unit::TestCase
     end
   end
 
-  def test_gen_comment
-    post = FakePost.new('Player | Song - Artist [Diff]', false)
-    map = FakeMap.new(
-      {
-        'beatmap_id' => '297663',
-        'difficultyrating' => '4.539580345153809',
-        'diff_approach' => '9',
-        'diff_size' => '4',
-        'diff_drain' => '8',
-        'diff_overall' => '8',
-        'total_length' => '180',
-        'bpm' => '174',
-        'version' => 'Another',
-        'playcount' => '-1',  # Impossible to hardcode.
-        'creator' => 'galvenize',
-        'title' => 'Nightmare (Maxin Remix)',
-        'artist' => 'SirensCeol',
-      }
-    )
+  # def test_gen_comment
+  #   post = FakePost.new('Player | Song - Artist [Diff]', false)
+  #   map = FakeMap.new(
+  #     {
+  #       'beatmap_id' => '297663',
+  #       'difficultyrating' => '4.539580345153809',
+  #       'diff_approach' => '9',
+  #       'diff_size' => '4',
+  #       'diff_drain' => '8',
+  #       'diff_overall' => '8',
+  #       'total_length' => '180',
+  #       'bpm' => '174',
+  #       'version' => 'Another',
+  #       'playcount' => '-1',  # Impossible to hardcode.
+  #       'creator' => 'galvenize',
+  #       'title' => 'Nightmare (Maxin Remix)',
+  #       'artist' => 'SirensCeol',
+  #     }
+  #   )
 
-    # The map is mutated by adjust_bpm_length! so we need to undo it.
-    revert_bpm_length = Proc.new do |map|
-      map['total_length'] = '180'
-      map['bpm'] = '174'
-    end
+  #   # The map is mutated by adjust_bpm_length! so we need to undo it.
+  #   revert_bpm_length = Proc.new do |map|
+  #     map['total_length'] = '180'
+  #     map['bpm'] = '174'
+  #   end
 
-    t = File.open("#{TEST_DIR}/nomod.txt") {|f| f.read}
-    mods = ""
-    template_sub!(t, map, mods)
-    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+  #   t = File.open("#{TEST_DIR}/nomod.txt") {|f| f.read}
+  #   mods = ""
+  #   template_sub!(t, map, mods)
+  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
 
 
-    post = FakePost.new('Player | Song - Artist [Diff] +FLNF', false)
-    t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
-    mods = "+FLNF"
-    template_sub!(t, map, mods)
-    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+  #   post = FakePost.new('Player | Song - Artist [Diff] +FLNF', false)
+  #   t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
+  #   mods = "+FLNF"
+  #   template_sub!(t, map, mods)
+  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
 
-    post = FakePost.new('Player | Song - Artist [Diff] +HDDT', false)
-    t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
-    mods = "+HDDT"
-    template_sub!(t, map, mods)
-    revert_bpm_length.call(map)
-    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
-    revert_bpm_length.call(map)
+  #   post = FakePost.new('Player | Song - Artist [Diff] +HDDT', false)
+  #   t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
+  #   mods = "+HDDT"
+  #   template_sub!(t, map, mods)
+  #   revert_bpm_length.call(map)
+  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+  #   revert_bpm_length.call(map)
 
-    post = FakePost.new('Player | Song - Artist [Diff] +HT', false)
-    t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
-    mods = "+HT"
-    template_sub!(t, map, mods)
-    revert_bpm_length.call(map)
-    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+  #   post = FakePost.new('Player | Song - Artist [Diff] +HT', false)
+  #   t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
+  #   mods = "+HT"
+  #   template_sub!(t, map, mods)
+  #   revert_bpm_length.call(map)
+  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
 
-  end
+  # end
 
   def test_convert_s
     assert_equal(convert_s(1), '0:01')
