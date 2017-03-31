@@ -5,12 +5,12 @@ if __FILE__ == $0
     osu = get_sub
   rescue
     msg = "Reddit initialization failed.\n"
-    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
+    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
   else
     c = 0
     for post in osu.new
       if is_score_post(post) &&
-         !post.comments.any? {|comment| comment.author.name == 'map-linker-bot'}
+         !post.comments.any? {|comment| comment.author.name == 'osu-bot'}
         player, map = search(post.title)
         if map != nil
           post.reply(gen_comment(post.title, map, player))
@@ -20,6 +20,6 @@ if __FILE__ == $0
       end
     end
     msg = "Made #{c} comment#{c == 0 || c > 1 ? 's' : ''}.\n"
-    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
+    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
   end
 end

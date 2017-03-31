@@ -1,9 +1,9 @@
-# osu!-map-linker-bot
+# osu!-bot
 
-[![Build Status](https://travis-ci.org/christopher-dG/osu-map-linker-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-map-linker-bot)
-[![codecov](https://codecov.io/gh/christopher-dG/osu-map-linker-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-map-linker-bot)
+[![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
+[![codecov](https://codecov.io/gh/christopher-dG/osu-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot)
 
-[/u/map-linker-bot](https://reddit.com/u/map-linker-bot) is a Reddit bot to comment on [/r/osugame](https://reddit.com/r/osugame) score posts with beatmap information.
+[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to comment on [/r/osugame](https://reddit.com/r/osugame) score posts with beatmap information.
 
 ## To score posters
 
@@ -37,4 +37,4 @@ ___
 
 Credit for mod calculations goes to [Francesco149](https://github.com/Francesco149/oppai) and [ThePooN](https://github.com/ThePooN/osu-ModPropertiesCalculator).
 
-If you have comments or suggestions for the bot, feel free to [open an issue](https://github.com/christopher-dG/osu-map-linker-bot/issues/new) or [message me on Reddit](https://reddit.com/u/PM_ME_DOG_PICS_PLS).
+If you have comments or suggestions for the bot, feel free to [open an issue](https://github.com/christopher-dG/osu-bot/issues/new) or [message me on Reddit](https://reddit.com/u/PM_ME_DOG_PICS_PLS).

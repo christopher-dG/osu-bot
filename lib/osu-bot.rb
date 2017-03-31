@@ -3,12 +3,14 @@
 require 'httparty'
 require 'redd'
 
-DIR = File.expand_path(File.dirname(__FILE__))  # Absolute path to file folder.
-KEY = File.open("#{DIR}/key").read.chomp  # osu! API key.
-PASSWORD = File.open("#{DIR}/pass").read.chomp  # Reddit password.
-SECRET = File.open("#{DIR}/secret").read.chomp  # Reddit app secret.
-LOG_PATH = "#{DIR}/../logs"  # Path to log files.
+SECRETS_DIR = File.expand_path("#{File.dirname(__FILE__)}/../secrets")
+OPPAI_PATH = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
 URL = 'https://osu.ppy.sh'  # Base for API requests.
+KEY = File.open("#{SECRETS_DIR}/key").read.chomp
+PASSWORD = File.open("#{SECRETS_DIR}/pass").read.chomp
+SECRET = File.open("#{SECRETS_DIR}/secret").read.chomp
+CLIENT_ID=File.open("#{SECRETS_DIR}/client").read.chomp
+LOG_DIR = File.expand_path("#{File.dirname(__FILE__)}/../logs")
 MODS = [
   'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
   'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
@@ -87,7 +89,7 @@ def search(title, test_set={})
     return player, beatmap
   rescue
     msg = "Map retrieval failed for \'#{title}\'.\n"
-    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
+    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
     return nil, nil
   end
 end
@@ -125,10 +127,10 @@ def get_diff_info(map, mods)
   begin
     url = "#{URL}/osu/#{map['beatmap_id']}"
     `curl #{url} > map.osu`
-    oppai = `#{DIR}/../oppai/oppai map.osu #{mods}`
+    oppai = `#{OPPAI_PATH} map.osu #{mods}`
   rescue
     msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
-    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
+    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
     return_nomod.call
   ensure
     File.delete('map.osu')
@@ -219,7 +221,7 @@ def get_pp(id, mods)
     pp = []
     for acc in ['95%', '98%', '99%', '100%']
       pp.push(
-        `#{DIR}/../oppai/oppai map.osu #{acc} #{mods}`.
+        `#{OPPAI_PATH} map.osu #{acc} #{mods}`.
           split("\n")[-1][0..-3].to_f.round(0)
       )
       $? != 0 && raise
@@ -310,7 +312,7 @@ def gen_comment(title, map, player)
     top_md = "[#{map_name}](#{URL}/b/#{top_play['beatmap_id']}) (#{top_pp}pp)"
   rescue
     msg = "Fetching user information failed for \'#{player['username']}}\'.\n"
-    File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
+    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
   else
     text += "Player|Rank|pp|Acc|Playcount|Top Play\n"
     text += ":-:|:-:|:-:|:-:|:-:|:-:\n"
@@ -359,7 +361,7 @@ end
 def get_sub
   Redd.it(
     user_agent: 'Redd:osu!-bot:v0.0.0',
-    client_id: 'OxznkS-LjaEH3A',
+    client_id: CLIENT_ID,
     secret: SECRET,
     username: 'osu-bot',
     password: PASSWORD,
