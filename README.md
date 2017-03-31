@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
 [![codecov](https://codecov.io/gh/christopher-dG/osu-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot)
 
-[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to comment on [/r/osugame](https://reddit.com/r/osugame) score posts with beatmap information.
+[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to Post beatmap and player information to /r/osugame score posts
 
 ## To score posters
 
@@ -33,6 +33,9 @@ Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP REC
 If you don't do this and the song or artist contains a `-`, the bot won't work.
 
 In general, you can't go wrong with [/r/osugame](https://reddit.com/r/osugme)'s well-established posting format
+
+#### What's in it for me?
+The bot will upvote your post as soon as it comments. Isn't that enough?
 ___
 
 Credit for mod calculations goes to [Francesco149](https://github.com/Francesco149/oppai) and [ThePooN](https://github.com/ThePooN/osu-ModPropertiesCalculator).
