@@ -84,6 +84,9 @@ class TestLinkerBot < Test::Unit::TestCase
     recents = File.open("#{TEST_DIR}/recents.json") {|f| JSON.parse(f.read)}
   end
 
+  def test_get_bitwise_mods
+  end
+
   def test_split_title
     assert_equal(
       split_title('Player | Artist - Song [Diff] Other'),

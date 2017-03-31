@@ -1,7 +1,6 @@
 # osu!-bot
 
 [![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
-[![codecov](https://codecov.io/gh/christopher-dG/osu-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot)
 
 [/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to Post beatmap and player information to /r/osugame score posts
 
