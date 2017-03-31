@@ -1,4 +1,4 @@
-require_relative 'linker-bot'
+require_relative 'osu-bot'
 
 if __FILE__ == $0
   begin

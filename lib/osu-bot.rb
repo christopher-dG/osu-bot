@@ -260,7 +260,7 @@ def gen_comment(title, map, player)
   map_md = "[#{link_label}](#{link_url})"
   creator_url = "#{URL}/u/#{map['creator']}"
   creator_md = "[#{map['creator']}](#{creator_url})"
-  gh_url = 'https://github.com/christopher-dG/osu-map-linker-bot'
+  gh_url = 'https://github.com/christopher-dG/osu-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
   mods = get_mods(title)
   map_id = map['beatmap_id']
@@ -358,10 +358,10 @@ end
 #   /r/osugame subreddit.
 def get_sub
   Redd.it(
-    user_agent: 'Redd:osu!-map-linker-bot:v0.0.0',
+    user_agent: 'Redd:osu!-bot:v0.0.0',
     client_id: 'OxznkS-LjaEH3A',
     secret: SECRET,
-    username: 'map-linker-bot',
+    username: 'osu-bot',
     password: PASSWORD,
   ).subreddit('osugame')
 end

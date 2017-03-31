@@ -5,7 +5,7 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
-require_relative File.join('..', 'lib', 'linker-bot')
+require_relative File.join('..', 'lib', 'osu-bot')
 require 'test/unit'
 require 'date'
 require 'json'
