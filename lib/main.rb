@@ -15,6 +15,7 @@ if __FILE__ == $0
         if map != nil
           puts(gen_comment(post.title, map))
           post.reply(gen_comment(post.title, map))
+          post.upvote
           c += 1
         end
       end

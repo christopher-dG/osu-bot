@@ -32,27 +32,53 @@ class FakeMap < Hash  # Mimic a beatmap dict.
   end
 end
 
-def template_sub!(template, map)
+def template_sub!(template, map, mods)
+  pp_nomod = get_pp(map['beatmap_id'], '').split(' &#124; ')
+  pp_mods = get_pp(map['beatmap_id'], mods).split(' &#124; ')
+  diff = get_diff_info(map, mods)
+  status = get_status(map['beatmap_id'])
+  length = convert_s(map['total_length'].to_i)
+
   template.gsub!('$BEATMAP_ID', map['beatmap_id'])
   template.gsub!('$ARTIST', map['artist'])
   template.gsub!('$TITLE', map['title'])
   template.gsub!('$DIFF', map['version'])
   template.gsub!('$CREATOR', map['creator'])
-  template.gsub!('$LENGTH', convert_s(map['total_length'].to_i))
+  template.gsub!('$LENGTH', length)
   template.gsub!('$BPM', map['bpm'])
   template.gsub!('$PLAYS', map['playcount'])
-  template.gsub!('$CS', map['diff_size'])
-  template.gsub!('$AR', map['diff_approach'])
-  template.gsub!('$OD', map['diff_overall'])
-  template.gsub!('$HP', map['diff_drain'])
-  template.gsub!('$SR', map['difficultyrating'].to_f.round(2).to_s)
+  template.gsub!('$CS', diff['CS'][0])
+  template.gsub!('$AR', diff['AR'][0])
+  template.gsub!('$OD', diff['OD'][0])
+  template.gsub!('$HP', diff['HP'][0])
+  template.gsub!('$SR', diff['SR'][0])
+  template.gsub!('$PP95', pp_nomod[0])
+  template.gsub!('$PP98', pp_nomod[1])
+  template.gsub!('$PP99', pp_nomod[2])
+  template.gsub!('$PP100', pp_nomod[3])
+  template.gsub!('$STATUS', status)
+  if diff['SR'].length == 2
+    template.gsub!('$MODS', mods)
+    m_bpm, m_length = adjust_bpm_length(map['bpm'], map['total_length'].to_i, mods)
+    m_length = convert_s(m_length.to_i)
+    template.gsub!('$M_LENGTH', m_length)
+    template.gsub!('$M_BPM', m_bpm)
+    template.gsub!('$M_CS', diff['CS'][1])
+    template.gsub!('$M_AR', diff['AR'][1])
+    template.gsub!('$M_OD', diff['OD'][1])
+    template.gsub!('$M_HP', diff['HP'][1])
+    template.gsub!('$M_SR', diff['SR'][1])
+    template.gsub!('$M_PP95', pp_mods[0])
+    template.gsub!('$M_PP98', pp_mods[1])
+    template.gsub!('$M_PP99', pp_mods[2])
+    template.gsub!('$M_PP100', pp_mods[3])
+  end
 end
 
 class TestLinkerBot < Test::Unit::TestCase
 
   def test_search
-    # I'm not sure that I can test this, since it needs for a map
-    # to be in the given user's recent plays.
+    # Todo
     events = File.open("#{TEST_DIR}/events.json") {|f| JSON.parse(f.read)}
     recents = File.open("#{TEST_DIR}/recents.json") {|f| JSON.parse(f.read)}
   end
@@ -124,10 +150,10 @@ class TestLinkerBot < Test::Unit::TestCase
       get_diff_info(map, ''),
       {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
     )
-    assert_equal(
-      get_diff_info(map, '+FL'),
-      {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
-    )
+    # assert_equal(
+    #   get_diff_info(map, '+FL'),
+    #   {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
+    # )
 
     assert_equal(
       get_diff_info(map, '+DT'),
@@ -163,6 +189,18 @@ class TestLinkerBot < Test::Unit::TestCase
     assert_equal(get_mods('p | a - s [d] x HDHR x x +HDDT'), '+HDDT')
   end
 
+  def test_get_status
+    # Todo
+  end
+
+  def test_get_pp
+    # Todo
+  end
+
+  def test_adjust_bpm_length
+    # Todo
+  end
+
   def test_get_sub
     begin
       osu = get_sub
@@ -194,9 +232,30 @@ class TestLinkerBot < Test::Unit::TestCase
         'artist' => 'SirensCeol',
       }
     )
+
     t = File.open("#{TEST_DIR}/nomod.txt") {|f| f.read}
-    template_sub!(t, map)
+    mods = ""
+    template_sub!(t, map, mods)
     assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+
+    post = FakePost.new('Player | Song - Artist [Diff] +FLNF', false)
+    t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
+    mods = "+FLNF"
+    template_sub!(t, map, mods)
+    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+
+    post = FakePost.new('Player | Song - Artist [Diff] +HDDT', false)
+    t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
+    mods = "+HDDT"
+    template_sub!(t, map, mods)
+    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+
+    post = FakePost.new('Player | Song - Artist [Diff] +HT', false)
+    t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
+    mods = "+HT"
+    template_sub!(t, map, mods)
+    assert_equal(gen_comment(post.title, map).chomp, t.chomp)
+
   end
 
   def test_convert_s

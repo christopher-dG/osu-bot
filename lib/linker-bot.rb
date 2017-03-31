@@ -13,7 +13,8 @@ MODS = [
   'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
   'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
 ]  # All mods.
-IGNORE = ['HD', 'NF', 'SD', 'PF', 'SO', 'FL', 'AP', 'RL']  # Mods that don't affect difficulty.
+# Mods that either don't give affect difficulty or don't give pp.
+IGNORE = ['SD', 'PF', 'AP', 'RL']
 
 # Get player name, song artist and title, and diff name from a post title.
 # Arguments:
@@ -121,11 +122,12 @@ def get_diff_info(map, mods)
     url = "#{URL}/osu/#{map['beatmap_id']}"
     `curl #{url} > map.osu`
     oppai = `#{DIR}/../oppai/oppai map.osu #{mods}`
-    File.delete('map.osu')
   rescue
     msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
     File.open("#{LOG_PATH}/#{now}", 'a') {|f| f.write(msg)}
     return_nomod.call
+  ensure
+    File.delete('map.osu')
   end
 
   parse_oppai = Proc.new do |target, text|
@@ -188,6 +190,63 @@ def get_mods(title)
   return ''
 end
 
+# Get the status of a beatmap, and the effective date of that status.
+# Arguments:
+#   map: Beatmap being examined.
+# Returns:
+#   Map status, and effective date if the map is qualified, ranked, or loved.
+def get_status(map)
+  status = {'1' => 'Ranked', '3' => 'Qualified', '4' => 'Loved'}
+  status.key?(map['approved']) ?
+    "#{status[map['approved']]} (#{map['approved_date'][0..9]})" : 'Unranked'
+end
+
+# Get pp values for 95%, 98%, 99%, and 100% acc.
+# Arguments:
+#   id: Beatmap id.
+#   mods: Mods to be applied.
+# Returns:
+#   'pp95 | pp98 | pp99 | pp100' with all values rounded to the nearest integer,
+#   or an empty string if anything fails.
+def get_pp(id, mods)
+  begin
+    url = "#{URL}/osu/#{id}"
+    `curl #{url} > map.osu`
+    pp = []
+    for acc in ['95%', '98%', '99%', '100%']
+      pp.push(
+        `#{DIR}/../oppai/oppai map.osu #{acc} #{mods}`.
+          split("\n")[-1][0..-3].to_f.round(0)
+      )
+      $? != 0 && raise
+    end
+  rescue
+    pp = []
+  ensure
+    File.delete('map.osu')
+  end
+  pp.join(' &#124; ')
+end
+
+# Adjust the BPM and length of a map for HT/DT/NC.
+# Arguments:
+#   bpm: Map's bpm.
+#   length: Map's length in seconds.
+#   mods: Active mods.
+# Returns:
+#   [adjusted_bpm, adjusted_length (in seconds)]
+def adjust_bpm_length(bpm, length, mods)
+  adjusted_bpm, adjusted_length = bpm, length
+  if mods =~ /DT|NC/
+    adjusted_bpm = (bpm * 1.5).to_f.round(0).to_s
+    adjusted_length = (length * 0.66).to_f.round(0).to_s
+  elsif mods =~ /HT/
+    adjusted_bpm = (bpm * 0.66).to_f.round(0).to_s
+    adjusted_length = (length * 1.5).to_f.round(0).to_s
+  end
+  [adjusted_bpm, adjusted_length]
+end
+
 # Generate the text to be commented.
 # Arguments:
 #   title: Reddit post title.
@@ -195,30 +254,37 @@ end
 # Returns:
 #   Comment text.
 def gen_comment(title, map)
-  text = ""
-  link_url = "#{URL}/b/#{map['beatmap_id']})"
+  link_url = "#{URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
+  map_md = "[#{link_label}](#{link_url})"
   creator_url = "#{URL}/u/#{map['creator']}"
+  creator_md = "[#{map['creator']}](#{creator_url})"
   gh_url = 'https://github.com/christopher-dG/osu-map-linker-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
+  text = "#{map_md} by #{creator_md} | #{get_status(map)} | #{map['playcount']} plays\n\n"
+
   mods = get_mods(title)
   diff = get_diff_info(map, mods)
-  len = convert_s(map['total_length'].to_i)
+  length = convert_s(map['total_length'].to_i)
 
-  text += "Beatmap: [#{link_label}](#{link_url} by [#{map['creator']}](#{creator_url})\n\n"
-  text += "Length: #{len} - BPM: #{map['bpm']} - Plays: #{map['playcount']}\n\n"
-  text += "CS: #{diff['CS'][0]} - AR: #{diff['AR'][0]} - OD: #{diff['OD'][0]} "
-  text += "- HP: #{diff['HP'][0]} - SR: #{diff['SR'][0]}\n\n"
+  has_mods = diff['SR'].length == 2
+  text += "#{has_mods ? ' | ' : ''}CS | AR | OD | HP | SR | BPM | "
+  text += "Length | pp (95% &#124; 98% &#124; 99% &#124; 100%)\n"
+  text += "#{has_mods ? '- | ' : ''}- | - | - | - | - | - | - | -\n"
+  text += "#{has_mods ? 'NoMod | ' : ''}#{diff['CS'][0]} | #{diff['AR'][0]} | "
+  text += "#{diff['OD'][0]} | #{diff['HP'][0]} | #{diff['SR'][0]} | "
+  text += "#{map['bpm']} | #{length} | #{get_pp(map['beatmap_id'], '')}\n"
 
-  if diff['SR'].length == 2
-    text += "#{mods}:\n\n"
-    if /(DT|NC)/ =~ mods
-      len = convert_s((map['total_length'].to_i * 0.66).to_i)
-      text += "Length: #{len} - BPM: #{(map['bpm'].to_i * 1.5).to_i}\n\n"
-    end
-    text += "CS: #{diff['CS'][1]} - AR: #{diff['AR'][1]} - OD: #{diff['OD'][1]} "
-    text += "- HP: #{diff['HP'][1]} - SR: #{diff['SR'][1]}\n\n"
+  if has_mods
+    # Todo: Can probably just pass the dict and mutate it.
+    map['bpm'], map['total_length'] = adjust_bpm_length(map['bpm'], map['total_length'].to_i, mods)
+    length = convert_s(map['total_length'].to_i)
+    text += "#{mods} | #{diff['CS'][1]} | #{diff['AR'][1]} | #{diff['OD'][1]} | "
+    text += "#{diff['HP'][1]} | #{diff['SR'][1]} | #{map['bpm']} | "
+    text += "#{length} | #{get_pp(map['beatmap_id'], mods)}\n\n"
+  else
+    text += "\n"
   end
 
   text += "***\n\n"
