@@ -2,11 +2,15 @@ language: ruby
 dist: trusty
 
 before_script:
-  - echo $REDDIT_PW > lib/pass
-  - echo $REDDIT_SECRET > lib/secret
-  - echo $OSU_API_KEY > lib/key
+  - mkdir secrets logs
+  - echo $REDDIT_PW > secrets/pass
+  - echo $REDDIT_SECRET > secrets/secret
+  - echo REDDIT_CLIENT_ID > secrets/client
+  - echo $OSU_API_KEY > secrets/key
   - cd oppai; ./build.sh; cd ..
-  - mkdir logs
+
+after_script:
+  - rm -r secrets
 
 rvm:
   - 2.4.0
