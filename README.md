@@ -1,8 +1,8 @@
-# osu!-bot
+P# osu!-bot
 
 [![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
 
-[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to Post beatmap and player information to /r/osugame score posts
+[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to post beatmap and player information to /r/osugame score posts
 
 ## To score posters
 
@@ -40,3 +40,5 @@ ___
 Credit for mod/pp calculations goes to [Francesco149](https://github.com/Francesco149/oppai) and [ThePooN](https://github.com/ThePooN/osu-ModPropertiesCalculator).
 
 If you have comments or suggestions for the bot, feel free to [open an issue](https://github.com/christopher-dG/osu-bot/issues/new) or [message me on Reddit](https://reddit.com/u/PM_ME_DOG_PICS_PLS).
+
+And if you want to thank me in some way, I'll happily accept [the gift of supporter](https://new.ppy.sh/u/3172543).

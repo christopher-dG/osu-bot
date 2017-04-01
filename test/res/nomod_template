@@ -1,0 +1,13 @@
+##### **[$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID) by [$CREATOR](https://osu.ppy.sh/u/$CREATOR) | $STATUS | $PLAYCOUNT**
+
+CS|AR|OD|HP|SR|BPM|Length|pp (95% &#124; 98% &#124; 99% &#124; 100%)
+:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:
+$CS|$AR|$OD|$HP|$SR|$BPM|$LENGTH|$PP95 &#124; $PP98 &#124; $PP99 &#124; $PP100
+
+Player|Rank|pp|Acc|Playcount|Top Play
+:-:|:-:|:-:|:-:|:-:|:-:
+[$PLAYER_NAME](https://osu.ppy.sh/u/$PLAYER_ID)|#$PLAYER_RANK|$PLAYER_PP|$PLAYER_ACC%|$PLAYER_PLAYCOUNT|[$TOP_ARTIST - $TOP_TITLE [$TOP_DIFF]](https://osu.ppy.sh/b/$TOP_ID) $TOP_MODS($TOP_PPpp)
+
+***
+
+^(I'm a bot. )[^Source](https://github.com/christopher-dG/osu-bot)^( | )[^Developer](https://reddit.com/u/PM_ME_DOG_PICS_PLS)

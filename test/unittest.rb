@@ -24,67 +24,27 @@ class FakePost  # Mimic a Reddit post.
   end
 end
 
-class Fake < Hash  # Mimic a beatmap dict.
-  def initialize(d)
-    d.each do |k, v|
-      self[k] = v
-    end
-  end
-end
-FakeMap = FakePlayer = FakeScore = Fake
-
-def template_sub!(template, map, mods)
-  pp_nomod = get_pp(map['beatmap_id'], '').split(' &#124; ')
-  pp_mods = get_pp(map['beatmap_id'], mods).split(' &#124; ')
-  diff = get_diff_info(map, mods)
-  status = get_status(map['beatmap_id'])
-  length = convert_s(map['total_length'].to_i)
-
-  template.gsub!('$BEATMAP_ID', map['beatmap_id'])
-  template.gsub!('$ARTIST', map['artist'])
-  template.gsub!('$TITLE', map['title'])
-  template.gsub!('$DIFF', map['version'])
-  template.gsub!('$CREATOR', map['creator'])
-  template.gsub!('$LENGTH', length)
-  template.gsub!('$BPM', map['bpm'])
-  template.gsub!('$PLAYS', map['playcount'])
-  template.gsub!('$CS', diff['CS'][0])
-  template.gsub!('$AR', diff['AR'][0])
-  template.gsub!('$OD', diff['OD'][0])
-  template.gsub!('$HP', diff['HP'][0])
-  template.gsub!('$SR', diff['SR'][0])
-  template.gsub!('$PP95', pp_nomod[0])
-  template.gsub!('$PP98', pp_nomod[1])
-  template.gsub!('$PP99', pp_nomod[2])
-  template.gsub!('$PP100', pp_nomod[3])
-  template.gsub!('$STATUS', status)
-  if diff['SR'].length == 2
-    template.gsub!('$MODS', mods)
-    adjust_bpm_length!(map, mods)
-    m_length = convert_s(map['total_length'].to_i)
-    template.gsub!('$M_LENGTH', m_length)
-    template.gsub!('$M_BPM', map['bpm'])
-    template.gsub!('$M_CS', diff['CS'][1])
-    template.gsub!('$M_AR', diff['AR'][1])
-    template.gsub!('$M_OD', diff['OD'][1])
-    template.gsub!('$M_HP', diff['HP'][1])
-    template.gsub!('$M_SR', diff['SR'][1])
-    template.gsub!('$M_PP95', pp_mods[0])
-    template.gsub!('$M_PP98', pp_mods[1])
-    template.gsub!('$M_PP99', pp_mods[2])
-    template.gsub!('$M_PP100', pp_mods[3])
-  end
-end
-
-class TestLinkerBot < Test::Unit::TestCase
+class TestOsuBot < Test::Unit::TestCase
 
   def test_search
-    # Todo
-    user = File.open("#{TEST_DIR}/user.json") {|f| JSON.parse(f.read)}
-    recents = File.open("#{TEST_DIR}/recents.json") {|f| JSON.parse(f.read)}
+    # Todo: dump user and beatmap data at some instance and test on that.
   end
 
   def test_get_bitwise_mods
+    assert_equal(get_bitwise_mods(0), '')
+    assert_equal(get_bitwise_mods(1), '+NF ')
+    assert_equal(get_bitwise_mods(2), '+EZ ')
+    assert_equal(get_bitwise_mods(3), '+EZNF ')
+    assert_equal(get_bitwise_mods(8), '+HD ')
+    assert_equal(get_bitwise_mods(9), '+HDNF ')
+    assert_equal(get_bitwise_mods(16), '+HR ')
+    assert_equal(get_bitwise_mods(24), '+HDHR ')
+    assert_equal(get_bitwise_mods(72), '+HDDT ')
+    assert_equal(get_bitwise_mods(576), '+NC ')
+    assert_equal(get_bitwise_mods(584), '+HDNC ')
+    assert_equal(get_bitwise_mods(1048), '+HDHRFL ')
+    assert_equal(get_bitwise_mods(16384), '+PF ')
+    assert_equal(get_bitwise_mods(16385), '+NFPF ')
   end
 
   def test_split_title
@@ -100,84 +60,50 @@ class TestLinkerBot < Test::Unit::TestCase
       split_title('Player|Artist-Song[Diff]Other'),
       ['Player', 'Artist - Song', '[Diff]'],
     )
-    assert_equal(
-      split_title('p (x) | a - s [d] x'),
-      ['p', 'a - s', '[d]'],
-    )
-    assert_equal(
-      split_title('p(x) | a - s [d] x'),
-      ['p', 'a - s', '[d]'],
-    )
-    assert_equal(
-      split_title('p | a [x] - s [d] x'),
-      ['p', 'a [x] - s', '[d]'],
-    )
-    assert_equal(
-      split_title('p | a - s [x] [d] x'),
-      ['p', 'a - s [x]', '[d]'],
-    )
-    assert_equal(
-      split_title('p | a - s [x][d] x'),
-      ['p', 'a - s [x]', '[d]'],
-    )
-    assert_equal(
-      split_title('[p] | a - s [d] x'),
-      ['[p]', 'a - s', '[d]'],
-    )
-    assert_equal(
-      split_title('p [x] | a - s [d] x'),
-      ['p [x]', 'a - s', '[d]'],
-    )
-
-
+    assert_equal(split_title('p (x) | a - s [d] x'), ['p', 'a - s', '[d]'])
+    assert_equal(split_title('p(x) | a - s [d] x'), ['p', 'a - s', '[d]'])
+    assert_equal(split_title('p | a [x] - s [d] x'), ['p', 'a [x] - s', '[d]'])
+    assert_equal(split_title('p | a - s [x] [d] x'), ['p', 'a - s [x]', '[d]'])
+    assert_equal(split_title('p | a - s [x][d] x'), ['p', 'a - s [x]', '[d]'])
+    assert_equal(split_title('[p] | a - s [d] x'), ['[p]', 'a - s', '[d]'])
+    assert_equal(split_title('p [x] | a - s [d] x'), ['p [x]', 'a - s', '[d]'])
   end
 
   def test_get_diff_info
-    map = FakeMap.new(
-      {
-        'beatmap_id' => '297663',
-        'difficultyrating' => '4.539580345153809',
-        'diff_approach' => '9',
-        'diff_size' => '4',
-        'diff_drain' => '8',
-        'diff_overall' => '8',
-        'total_length' => '180',
-        'bpm' => '174',
-        'version' => 'Another',
-        'playcount' => '-1',  # Impossible to hardcode.
-        'creator' => 'galvenize',
-        'title' => 'Nightmare (Maxin Remix)',
-        'artist' => 'SirensCeol',
-      }
-    )
-    player = FakePlayer.new(
-      {
-        'user_id' => '84841',
-        'username' => 'CXu',
-        'pp_rank' => '21',
-        'playcount' => '105093',
-        'pp_raw' => '10683.9',
-        'accuracy' => '99.05836486816406',
-      }
-    )
-    top_score = FakeScore.new(
-      {
-        'artist' => '',
-        'title' => '',
-        'version' => '',
-        'pp' => '',
-      }
-    )
+    map = {
+      'beatmap_id' => '297663',
+      'difficultyrating' => '4.539580345153809',
+      'diff_approach' => '9',
+      'diff_size' => '4',
+      'diff_drain' => '8',
+      'diff_overall' => '8',
+      'total_length' => '180',
+      'bpm' => '174',
+      'version' => 'Another',
+      'playcount' => '-1',  # Impossible to hardcode.
+      'creator' => 'galvenize',
+      'title' => 'Nightmare (Maxin Remix)',
+      'artist' => 'SirensCeol',
+    }
+    player = {
+      'user_id' => '84841',
+      'username' => 'CXu',
+      'pp_rank' => '21',
+      'playcount' => '105093',
+      'pp_raw' => '10683.9',
+      'accuracy' => '99.05836486816406',
+    }
+    top_score = {
+      'artist' => '',
+      'title' => '',
+      'version' => '',
+      'pp' => '',
+    }
 
     assert_equal(
       get_diff_info(map, ''),
       {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
     )
-    # assert_equal(
-    #   get_diff_info(map, '+FL'),
-    #   {'SR' => ['4.54'], 'CS' => ['4'], 'AR' => ['9'], 'OD' => ['8'], 'HP' => ['8']}
-    # )
-
     assert_equal(
       get_diff_info(map, '+DT'),
       {
@@ -226,70 +152,106 @@ class TestLinkerBot < Test::Unit::TestCase
 
   def test_get_sub
     begin
-      osu = get_sub
+      sub = get_sub(true)
     rescue  # In case of Reddit maintenance.
       return
     else
-      assert_equal(osu.class, Redd::Models::Subreddit)
-      assert_equal(osu.display_name, 'osugame')
-      assert(osu.respond_to?('new'))
+      assert_equal(sub.class, Redd::Models::Subreddit)
+      assert_equal(sub.display_name, 'osubottesting')
+      assert(sub.respond_to?('new'))
     end
   end
 
-  # def test_gen_comment
-  #   post = FakePost.new('Player | Song - Artist [Diff]', false)
-  #   map = FakeMap.new(
-  #     {
-  #       'beatmap_id' => '297663',
-  #       'difficultyrating' => '4.539580345153809',
-  #       'diff_approach' => '9',
-  #       'diff_size' => '4',
-  #       'diff_drain' => '8',
-  #       'diff_overall' => '8',
-  #       'total_length' => '180',
-  #       'bpm' => '174',
-  #       'version' => 'Another',
-  #       'playcount' => '-1',  # Impossible to hardcode.
-  #       'creator' => 'galvenize',
-  #       'title' => 'Nightmare (Maxin Remix)',
-  #       'artist' => 'SirensCeol',
-  #     }
-  #   )
+  def template_sub(template, map, player, mods)
+    text = template
+    pp_nomod = get_pp(map['beatmap_id'], '').split(' &#124; ')
+    pp_mods = get_pp(map['beatmap_id'], mods).split(' &#124; ')
+    diff = get_diff_info(map, mods)
+    status = get_status(map)
+    length = convert_s(map['total_length'].to_i)
+    top_play = request('user_best', {'u' => player['user_id']})
+    top_map = request('beatmaps', {'b' => top_play['beatmap_id']})
 
-  #   # The map is mutated by adjust_bpm_length! so we need to undo it.
-  #   revert_bpm_length = Proc.new do |map|
-  #     map['total_length'] = '180'
-  #     map['bpm'] = '174'
-  #   end
+    text.gsub!('$BEATMAP_ID', map['beatmap_id'])
+    text.gsub!('$ARTIST', map['artist'])
+    text.gsub!('$TITLE', map['title'])
+    text.gsub!('$DIFF', map['version'])
+    text.gsub!('$CREATOR', map['creator'])
+    text.gsub!('$LENGTH', length)
+    text.gsub!('$BPM', map['bpm'])
+    text.gsub!('$PLAYCOUNT', "#{map['playcount']} plays")
+    text.gsub!('$CS', diff['CS'][0])
+    text.gsub!('$AR', diff['AR'][0])
+    text.gsub!('$OD', diff['OD'][0])
+    text.gsub!('$HP', diff['HP'][0])
+    text.gsub!('$SR', diff['SR'][0])
+    text.gsub!('$PP95', pp_nomod[0])
+    text.gsub!('$PP98', pp_nomod[1])
+    text.gsub!('$PP99', pp_nomod[2])
+    text.gsub!('$PP100', pp_nomod[3])
+    text.gsub!('$STATUS', status)
+    text.gsub!('$PLAYER_NAME', player['username'])
+    text.gsub!('$PLAYER_ID', player['user_id'])
+    text.gsub!('$PLAYER_RANK', player['pp_rank'])
+    text.gsub!('$PLAYER_PP', player['pp_raw'])
+    text.gsub!('$PLAYER_ACC', player['accuracy'].to_f.round(2).to_s)
+    text.gsub!('$PLAYER_PLAYCOUNT', player['playcount'])
+    text.gsub!('$TOP_ID', top_map['beatmap_id'])
+    text.gsub!('$TOP_TITLE', top_map['title'])
+    text.gsub!('$TOP_ARTIST', top_map['artist'])
+    text.gsub!('$TOP_DIFF', top_map['version'])
+    text.gsub!('$TOP_MODS', get_bitwise_mods(top_play['enabled_mods'].to_i))
+    text.gsub!('$TOP_PP', top_play['pp'].to_f.round(0).to_s)
+    if diff['SR'].length == 2
+      text.gsub!('$MODS', mods)
+      adjust_bpm_length!(map, mods)
+      m_length = convert_s(map['total_length'].to_i)
+      text.gsub!('$M_LENGTH', m_length)
+      text.gsub!('$M_BPM', map['bpm'])
+      text.gsub!('$M_CS', diff['CS'][1])
+      text.gsub!('$M_AR', diff['AR'][1])
+      text.gsub!('$M_OD', diff['OD'][1])
+      text.gsub!('$M_HP', diff['HP'][1])
+      text.gsub!('$M_SR', diff['SR'][1])
+      text.gsub!('$M_PP95', pp_mods[0])
+      text.gsub!('$M_PP98', pp_mods[1])
+      text.gsub!('$M_PP99', pp_mods[2])
+      text.gsub!('$M_PP100', pp_mods[3])
+    end
+    return text
+  end
 
-  #   t = File.open("#{TEST_DIR}/nomod.txt") {|f| f.read}
-  #   mods = ""
-  #   template_sub!(t, map, mods)
-  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
-
-
-  #   post = FakePost.new('Player | Song - Artist [Diff] +FLNF', false)
-  #   t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
-  #   mods = "+FLNF"
-  #   template_sub!(t, map, mods)
-  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
-
-  #   post = FakePost.new('Player | Song - Artist [Diff] +HDDT', false)
-  #   t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
-  #   mods = "+HDDT"
-  #   template_sub!(t, map, mods)
-  #   revert_bpm_length.call(map)
-  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
-  #   revert_bpm_length.call(map)
-
-  #   post = FakePost.new('Player | Song - Artist [Diff] +HT', false)
-  #   t = File.open("#{TEST_DIR}/mod.txt") {|f| f.read}
-  #   mods = "+HT"
-  #   template_sub!(t, map, mods)
-  #   revert_bpm_length.call(map)
-  #   assert_equal(gen_comment(post.title, map).chomp, t.chomp)
-
-  # end
+  def test_gen_comment
+    nomod = File.open("#{TEST_DIR}/res/nomod_template") {|f| f.read.chomp}
+    mod = File.open("#{TEST_DIR}/res/mod_template") {|f| f.read.chomp}
+    player = {
+      'user_id' => '123',
+      'username' => 'Test Player',
+      'playcount' => '123',
+      'pp_raw' => '123',
+      'pp_rank' => '123',
+      'accuracy' => '12.3456789',
+    }
+    map = {
+      'beatmap_id' => '123',
+      'title' => 'Test Map',
+      'artist' => 'Test Artist',
+      'version' => 'Test Diff',
+      'bpm' => '123',
+      'total_length' => '123',
+      'creator' => 'Test Creator',
+      'playcount' => '123',
+      'approved' => '1',
+      'approved_date' => '2013-07-02 01:01:12"',
+      'difficultyrating' => '4.58394',
+      'diff_approach' => '8',
+      'diff_size' => '4',
+      'diff_drain' => '6',
+      'diff_overall' => '9',
+    }
+    assert_equal(gen_comment(map, player, ''), template_sub(nomod, map, player, ''))
+    assert_equal(gen_comment(map, player, '+HDHR'), template_sub(mod, map, player, '+HDHR'))
+  end
 
   def test_convert_s
     assert_equal(convert_s(1), '0:01')
@@ -339,6 +301,24 @@ class TestLinkerBot < Test::Unit::TestCase
     t1 = now
     t2 = DateTime.now.to_s
     assert_equal(t1, "#{t2[5..9]}-#{t2[0..3]}_#{t2[11..15]}")
+  end
+
+  def test_request
+    puts("Test player: Doomsday")
+    puts("Test beatmap: xi - FREEDOM DiVE [FOUR DIMENSIONS]")
+    user_id = '18983'
+    username = 'Doomsday'
+    artist = 'xi'
+    title = 'FREEDOM DiVE'
+    diff = 'FOUR DIMENSIONS'
+    result = request('user_recent', {'u' => '3219026'})
+    if result.empty?
+      puts('WARNING: results from `request` are empty.')
+    else
+      play = result[0]
+      assert(play.keys.include?('beatmap_id'))
+      assert_equal(play['user_id'], id)
+    end
   end
 
 end

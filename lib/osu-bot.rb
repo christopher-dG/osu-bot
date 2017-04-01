@@ -2,50 +2,29 @@
 
 require 'httparty'
 require 'redd'
-
-SECRETS_DIR = File.expand_path("#{File.dirname(__FILE__)}/../secrets")
-OPPAI_PATH = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
-URL = 'https://osu.ppy.sh'  # Base for API requests.
-KEY = File.open("#{SECRETS_DIR}/key").read.chomp
-PASSWORD = File.open("#{SECRETS_DIR}/pass").read.chomp
-SECRET = File.open("#{SECRETS_DIR}/secret").read.chomp
-CLIENT_ID=File.open("#{SECRETS_DIR}/client").read.chomp
-LOG_DIR = File.expand_path("#{File.dirname(__FILE__)}/../logs")
-MODS = [
-  'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
-  'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
-]  # All mods.
-# Mods that either don't give affect difficulty or don't give pp.
-IGNORE = ['SD', 'PF', 'AP', 'RL']
-BITWISE_MODS = {
-  0 => '',
-  1 => 'NF',
-  2 => 'EZ',
-  8 => 'HD',
-  16 => 'HR',
-  32 => 'SD',
-  64 => 'DT',
-  128 => 'RL',
-  256 => 'HT',
-  512 => 'NC',
-  1024 => 'FL',
-  2048 => 'AT',
-  4096 => 'SO',
-  8192 => 'AT',
-  16384 => 'PF',
-}
+require_relative 'consts'
 
 # Get the mod combination from an integer.
 # Arguments:
-#   mods: integer representing modstring.
+#   mods: integer representing modstrin.g
 # Returns:
 #   Modstring from `mods`.
 def get_bitwise_mods(mods)
   cur = mods
   mod_list = []
   for mod in BITWISE_MODS.keys.reverse
-    if cur == 0
-      return !mod_list.empty? ? " +#{mod_list.reverse.join('')} " : ''
+
+    if cur == 0 && !mod_list.empty?
+      mod_list.include?('NC') && mod_list.delete('DT')
+      order = [
+        'EZ', 'HD', 'HR', 'DT', 'NC', 'HR', 'FL',
+        'NF', 'SD', 'PF', 'RL', 'AP', 'AT', 'SO',
+      ]
+      for m in order.reverse
+        mod_list.delete(m) && mod_list.push(m)
+      end
+      return "+#{mod_list.reverse.join('')} "
+
     elsif mod <= cur
       mod_list.push(BITWISE_MODS[mod])
       cur -= mod
@@ -84,48 +63,52 @@ end
 def search(title, test_set={})
   begin
     player_name, song, diff = split_title(title)
-    url = "#{URL}/api/get_user?k=#{KEY}&u=#{player_name}&type=string"
-    response = HTTParty.get(url)
-
-    full_name = "#{song} #{diff}".gsub('&', '&amp;').downcase  # Artist - Title [Diff Name]
+    full_name = "#{song} #{diff}".gsub('&', '&amp;')  # Artist - Title [Diff Name]
 
     map_id = -1
     # Use the player's recent events. Score posts are likely to be at least top
     # 50 on the map, and this method takes less time than looking through recents.
-    player = test_set.empty? ? response.parsed_response[0] : test_set['user']
-    events = test_set.empty? ? response.parsed_response[0]['events'] : test_set['user']['events']
+    player = test_set.empty? ?
+               request('user', {'u' => player_name, 't' => 'string'}) :
+               test_set['user']
+    events = test_set.empty? ? player['events'] : test_set['user']['events']
+
     for event in events
-      if event['display_html'].downcase.include?(full_name)
+      if event['display_html'].downcase.include?(full_name.downcase)
         map_id = event['beatmap_id']
       end
     end
 
     if map_id == -1  # Use player's recent plays as a backup. This takes significantly longer.
-      url = "#{URL}/api/get_user_recent?k=#{KEY}&u=#{player['user_id']}&type=id&limit=50"
-      response = HTTParty.get(url)
-      recents = response.parsed_response
+      seen_ids = []  # Avoid making duplicate API calls.
+      t = Time.now  # Log how long this takes.
+      for play in request('user_recent', {'u' => player['user_id']})
+        seen_ids.include?(play['beatmap_id']) && next
+        seen_ids.push(play['beatmap_id'])
 
-      for play in recents
         id = play['beatmap_id']
-        url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{id}"
-        response = HTTParty.get(url)
-        btmp = response.parsed_response[0]
+        btmp = request('beatmaps', {'b' => id})
 
-        if "#{btmp['artist']} - #{btmp['title']} [#{btmp['version']}]".downcase == full_name
+        compare = "#{btmp['artist']} - #{btmp['title']} [#{btmp['version']}]"
+        if full_name.downcase == compare.downcase
           map_id = id
           break
         end
       end
+
+      msg = "Iterating over recents took #{Time.now - t} seconds. "
+      msg += "Map was #{map_id == -1 ? 'not ' : ''}found."
+      log(msg)
+
+      map_id == -1 && raise
+      # "http://osusearch.com/api/search?key=&title=Freedom+Dive&artist=xi&diff_name=FOUR+DIMENSIONS&order=play_count"
     end
 
-    url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{map_id}"
-    response = HTTParty.get(url)
-    beatmap = response.parsed_response[0]
+    beatmap = request('beatmaps', vars={'b' => map_id})
     beatmap.empty? && raise
     return player, beatmap
   rescue
-    msg = "Map retrieval failed for \'#{title}\'.\n"
-    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
+    log("Map retrieval failed for '#{title}'.\n")
     return nil, nil
   end
 end
@@ -165,8 +148,7 @@ def get_diff_info(map, mods)
     `curl #{url} > map.osu`
     oppai = `#{OPPAI_PATH} map.osu #{mods}`
   rescue
-    msg = "\`Downloading or analyzing the file at #{url}\` failed.\n"
-    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
+    log("\`Downloading or analyzing the file at #{url}\` failed.\n")
     return_nomod.call
   ensure
     File.delete('map.osu')
@@ -275,7 +257,7 @@ end
 # Arguments:
 #   map: Map being adjusted..
 def adjust_bpm_length!(map, mods)
-  bpm = map['bpm'].to_i
+  bpm = map['bpm'].to_f.round(0)
   length = map['total_length'].to_i
   if mods =~ /DT|NC/
     map['bpm'] = (bpm * 1.5).to_f.round(0).to_s
@@ -293,7 +275,7 @@ end
 #   player: Player data.
 # Returns:
 #   Comment text.
-def gen_comment(title, map, player)
+def gen_comment(map, player, mods)
   link_url = "#{URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
   map_md = "[#{link_label}](#{link_url})"
@@ -301,9 +283,7 @@ def gen_comment(title, map, player)
   creator_md = "[#{map['creator']}](#{creator_url})"
   gh_url = 'https://github.com/christopher-dG/osu-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
-  mods = get_mods(title)
-  map_id = map['beatmap_id']
-  bpm = map['bpm']
+  bpm = map['bpm'].to_f.round(0)
   length = convert_s(map['total_length'].to_i)
   status = get_status(map)
   pc = "#{map['playcount']} plays"
@@ -339,18 +319,15 @@ def gen_comment(title, map, player)
     p_pc = player['playcount']
     p_pp = player['pp_raw'].to_f.round(0)
     p_acc = "#{player['accuracy'].to_f.round(2)}%"
-1
-    url = "#{URL}/api/get_user_best?k=#{KEY}&u=#{p_id}&type=id&limit=1"
-    top_play = HTTParty.get(url).parsed_response[0]
+
+    top_play = request('user_best', {'u' => p_id})
     top_pp = top_play['pp'].to_f.round(0)
-    url = "#{URL}/api/get_beatmaps?k=#{KEY}&b=#{top_play['beatmap_id']}&type=id"
-    top_map = HTTParty.get(url).parsed_response[0]
+    top_map = request('beatmaps', {'b' => top_play['beatmap_id']})
     map_name = "#{top_map['artist']} - #{top_map['title']} [#{top_map['version']}]"
     top_mods = get_bitwise_mods(top_play['enabled_mods'].to_i)
     top_md = "[#{map_name}](#{URL}/b/#{top_play['beatmap_id']}) #{top_mods}(#{top_pp}pp)"
   rescue
-    msg = "Fetching user information failed for \'#{player['username']}}\'.\n"
-    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
+    log("Fetching user information failed for '#{player['username']}}'.\n")
   else
     text += "Player|Rank|pp|Acc|Playcount|Top Play\n"
     text += ":-:|:-:|:-:|:-:|:-:|:-:\n"
@@ -361,6 +338,46 @@ def gen_comment(title, map, player)
   text += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
 
   return text
+end
+
+def log(msg='', n=10)
+  if msg.empty?
+    for file in `ls #{LOG_DIR} | tail -#{n}`.split("\n")
+      File.open(File.expand_path("#{LOG_DIR}/#{file}")) {|f| puts("#{file}:\n#{f.read}----")}
+    end
+  else
+    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
+  end
+end
+
+def request(request, vars)
+  suffix = "k=#{KEY}"
+  if request == 'user_recent'
+    suffix += "&u=#{vars['u']}&type=id&limit=50"
+    is_list = true
+  elsif request == 'beatmaps'
+    suffix += "&b=#{vars['b']}"
+    is_list = false
+  elsif request == 'user_best'
+    suffix += "&u=#{vars['u']}&type=id&limit=1"
+    is_list = false
+  elsif request == 'user'
+    suffix += "&u=#{vars['u']}&event_days=31"
+    if vars.keys.include?('t') && !['string', 'id'].include?(vars['t'])
+      suffix += "&type=#{vars['type']}"
+    end
+    is_list = false
+  end
+  begin
+    url = "#{URL}/api/get_#{request}?#{suffix}"
+    puts url.sub(KEY, '$private_key')
+    response = HTTParty.get(url).parsed_response
+  rescue
+    log("An HTTP request failed for '#{url}'.\n")
+    return nil
+  else
+    return is_list ? response : response[0]
+  end
 end
 
 # Convert seconds to mm:ss.
@@ -393,15 +410,17 @@ def is_score_post(post)
   return post.title.strip =~ /[ -\]\[\w]{3,}\|.*\S.*-.*\S.*\[.*\S.*\]/ && !post.is_self
 end
 
-# Get the /r/osugame subreddit.
+# Get either /r/osugame or /r/osubottesting subreddit.
+# Arguments:
+#   test=false: Whether or not we are testing.
 # Returns:
-#   /r/osugame subreddit.
-def get_sub
+#   /r/osugame subreddit, or /r/osubottesting if testing.
+def get_sub(test=false)
   Redd.it(
     user_agent: 'Redd:osu!-bot:v0.0.0',
     client_id: CLIENT_ID,
     secret: SECRET,
     username: 'osu-bot',
     password: PASSWORD,
-  ).subreddit('osugame')
+  ).subreddit(test ? 'osubottesting' : 'osugame')
 end
