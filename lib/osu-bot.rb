@@ -97,7 +97,7 @@ def search(title, test_set={})
       end
 
       msg = "Iterating over recents took #{Time.now - t} seconds. "
-      msg += "Map was #{map_id == -1 ? 'not ' : ''}found."
+      msg += "Map was #{map_id == -1 ? 'not ' : ''}found.\n"
       log(msg)
 
       map_id == -1 && raise
