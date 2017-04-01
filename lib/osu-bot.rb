@@ -145,7 +145,7 @@ def get_diff_info(map, mods)
 
   begin
     url = "#{URL}/osu/#{map['beatmap_id']}"
-    `curl #{url} > map.osu`
+    `curl #{url} > map.osu 2> /dev/null`
     oppai = `#{OPPAI_PATH} map.osu #{mods}`
   rescue
     log("\`Downloading or analyzing the file at #{url}\` failed.\n")
@@ -236,7 +236,7 @@ end
 def get_pp(id, mods)
   begin
     url = "#{URL}/osu/#{id}"
-    `curl #{url} > map.osu`
+    `curl #{url} > map.osu 2> /dev/null`
     pp = []
     for acc in ['95%', '98%', '99%', '100%']
       pp.push(
