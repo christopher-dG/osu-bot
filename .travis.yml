@@ -7,6 +7,7 @@ before_script:
   - echo $REDDIT_SECRET > secrets/secret
   - echo REDDIT_CLIENT_ID > secrets/client
   - echo $OSU_API_KEY > secrets/key
+  - echo $OSUSEARCH_KEY > secrets/search_key
   - cd oppai; ./build.sh; cd ..
 
 after_script:
