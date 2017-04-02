@@ -1,3 +1,4 @@
+def now() `date +"%m-%d-%Y_%H:%M"`.chomp end
 SECRETS_DIR = File.expand_path("#{File.dirname(__FILE__)}/../secrets")
 OPPAI_PATH = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
 URL = 'https://osu.ppy.sh'  # Base for API requests.
@@ -6,7 +7,7 @@ PASSWORD = File.open("#{SECRETS_DIR}/pass").read.chomp
 SECRET = File.open("#{SECRETS_DIR}/secret").read.chomp
 CLIENT_ID = File.open("#{SECRETS_DIR}/client").read.chomp
 OSUSEARCH_KEY = File.open("#{SECRETS_DIR}/search_key").read.chomp
-LOG_DIR = File.expand_path("#{File.dirname(__FILE__)}/../logs")
+LOG = File.expand_path("#{File.dirname(__FILE__)}/../logs/#{now}#{ARGV.length > 0 ? -ARGV[0] : ''}")
 # All mods.
 MODS = [
   'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
@@ -31,3 +32,4 @@ BITWISE_MODS = {
   8192 => 'AT',
   16384 => 'PF',
 }
+BAR = '&#124;'  # Vertical line delimiter that won't break Markdown tables.

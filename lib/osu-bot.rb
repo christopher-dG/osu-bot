@@ -6,7 +6,7 @@ require_relative 'consts'
 
 # Get the mod combination from an integer.
 # Arguments:
-#   mods: integer representing modstrin.g
+#   mods: integer representation of enabled mods.
 # Returns:
 #   Modstring from `mods`.
 def get_bitwise_mods(mods)
@@ -37,7 +37,7 @@ end
 # Arguments:
 #   title: Reddit post title.
 # Returns:
-#   'player name', 'artist - title', '[diff name]' or nil if there are errors.
+#   ['player name', 'artist - title', 'diff name'] or nil if there are errors.
 def split_title(title)
   tokens = title.split('|')
   player = tokens[0]
@@ -50,39 +50,43 @@ def split_title(title)
   if song.count('-') == 1
     /\s-\s/ !~ song && song.sub!('-', ' - ')
   end
-  diff = map[map.rindex('[')..map.rindex(']')]  # [Diff Name]
+  diff = map[map.rindex('[') + 1...map.rindex(']')].strip
   return player, song, diff
 end
 
 # Use a Reddit post title to search for a beatmap.
 # Arguments:
 #   title: Reddit post title
-#   test_set={}: List of precomputed API results to test with.
+#   test_set: {}: List of precomputed API results to test with.
 # Returns:
 #   Dictionary with beatmap data, or nil in case of an error.
-def search(title, test_set={})
+def search(title, test_set: {})
   begin
     player_name, song, diff = split_title(title)
-    full_name = "#{song} #{diff}".gsub('&', '&amp;')  # Artist - Title [Diff Name]
+    full_name = "#{song} [#{diff}]".gsub('&', '&amp;')  # Artist - Title [Diff Name]
 
-    map_id = -1
+    if test_set.empty?
+      player = request('user', {'u' => player_name, 'type' => 'string'})
+      events = player['events']
+    else
+      player = test_set['player']
+      events = player['events']
+    end
+
     # Use the player's recent events. Score posts are likely to be at least top
     # 50 on the map, and this method takes less time than looking through recents.
-    player = test_set.empty? ?
-               request('user', {'u' => player_name, 't' => 'string'}) :
-               test_set['user']
-    events = test_set.empty? ? player['events'] : test_set['user']['events']
-
+    map_id = -1
     for event in events
       if event['display_html'].downcase.include?(full_name.downcase)
         map_id = event['beatmap_id']
+        break
       end
     end
 
     if map_id == -1  # Use player's recent plays as a backup. This takes significantly longer.
       seen_ids = []  # Avoid making duplicate API calls.
       t = Time.now  # Log how long this takes.
-      for play in request('user_recent', {'u' => player['user_id']})
+      for play in request('user_recent', {'u' => player['user_id'], 'type' => 'id'})
         seen_ids.include?(play['beatmap_id']) && next
         seen_ids.push(play['beatmap_id'])
 
@@ -96,19 +100,20 @@ def search(title, test_set={})
         end
       end
 
-      msg = "Iterating over recents took #{Time.now - t} seconds. "
+      l = recents.length
+      msg = "Iterating over #{l} recent#{l != 1 ? 's' : ''} took #{Time.now - t} seconds. "
       msg += "Map was #{map_id == -1 ? 'not ' : ''}found.\n"
-      log(msg)
+      log(msg: msg)
 
       map_id == -1 && raise
       # "http://osusearch.com/api/search?key=&title=Freedom+Dive&artist=xi&diff_name=FOUR+DIMENSIONS&order=play_count"
     end
 
-    beatmap = request('beatmaps', vars={'b' => map_id})
+    beatmap = request('beatmaps', {'b' => map_id})
     beatmap.empty? && raise
     return player, beatmap
   rescue
-    log("Map retrieval failed for '#{title}'.\n")
+    log(msg: "Map retrieval failed for '#{title}'.\n")
     return nil, nil
   end
 end
@@ -148,7 +153,7 @@ def get_diff_info(map, mods)
     `curl #{url} > map.osu 2> /dev/null`
     oppai = `#{OPPAI_PATH} map.osu #{mods}`
   rescue
-    log("\`Downloading or analyzing the file at #{url}\` failed.\n")
+    log(msg: "\`Downloading or analyzing the file at #{url}\` failed.\n")
     return_nomod.call
   ensure
     File.delete('map.osu')
@@ -250,44 +255,36 @@ def get_pp(id, mods)
   ensure
     File.delete('map.osu')
   end
-  return pp.join(' &#124; ')
+  return pp.join(" #{BAR} ")
 end
 
 # Adjust the BPM and length of a map for HT/DT/NC.
 # Arguments:
-#   map: Map being adjusted..
-def adjust_bpm_length!(map, mods)
-  bpm = map['bpm'].to_f.round(0)
-  length = map['total_length'].to_i
+#   bpm: Map BPM (int)
+#   length: Map length in seconds (int).
+# Returns, [adjusted bpm, adjusted length]
+def adjust_bpm_length(bpm, length, mods)
+  adj_bpm, adj_length = bpm, length
   if mods =~ /DT|NC/
-    map['bpm'] = (bpm * 1.5).to_f.round(0).to_s
-    map['total_length'] = (length * 0.66).to_f.round(0).to_s
+    adj_bpm = (bpm * 1.5).to_f.round(0)
+    adj_length = (length * 0.66).to_f.round(0)
   elsif mods =~ /HT/
-    map['bpm'] = (bpm * 0.66).to_f.round(0).to_s
-    map['total_length'] = (length * 1.5).to_f.round(0).to_s
+    adj_bpm = (bpm * 0.66).to_f.round(0)
+    adj_length = (length * 1.5).to_f.round(0)
   end
+  return adj_bpm.to_i, adj_length.to_i
 end
 
-# Generate the text to be commented.
-# Arguments:
-#   title: Reddit post title.
-#   map: Beatmap data.
-#   player: Player data.
-# Returns:
-#   Comment text.
-def gen_comment(map, player, mods)
+def gen_beatmap_md(map, mods)
   link_url = "#{URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
-  map_md = "[#{link_label}](#{link_url})"
+  link_md = "[#{link_label}](#{link_url})"
   creator_url = "#{URL}/u/#{map['creator']}"
   creator_md = "[#{map['creator']}](#{creator_url})"
-  gh_url = 'https://github.com/christopher-dG/osu-bot'
-  dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
   bpm = map['bpm'].to_f.round(0)
   length = convert_s(map['total_length'].to_i)
   status = get_status(map)
   pc = "#{map['playcount']} plays"
-  d = '&#124;'  # Inline HTML delimiter.
   diff = get_diff_info(map, mods)
   m = diff['SR'].length == 2  # Whether or not the map has mods.
   cs, m_cs = diff['CS']
@@ -295,23 +292,58 @@ def gen_comment(map, player, mods)
   od, m_od = diff['OD']
   hp, m_hp = diff['HP']
   sr, m_sr = diff['SR']
-  pp = get_pp(map['beatmap_id'], '')
-
-  text = "##### **#{map_md} by #{creator_md} | #{status} | #{pc}**\n\n"
-  text += "#{m ? ' |' : ''}CS|AR|OD|HP|SR|BPM|Length|pp (95% #{d} 98% #{d} 99% #{d} 100%)\n"
-  text += "#{m ? ':-:|' : ''}:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n"
-  text += "#{m ? 'NoMod|' : ''}#{cs}|#{ar}|#{od}|#{hp}|#{sr}|#{bpm}|#{length}|#{pp}\n"
+  begin
+    pp = get_pp(map['beatmap_id'], '')
+  rescue
+    log(msg: 'oppai exited with non-zero exit code.')
+    return nil
+  end
+  combo = map['max_combo']
+  map_md = "##### **#{link_md} by #{creator_md}**\n\n"
+  map_md += "**#{combo}x | #{status} | #{pc}**\n\n"
+  map_md += "***\n\n"
+  map_md += "#{m ? ' |' : ''}CS|AR|OD|HP|SR|BPM|Length|pp (95% #{BAR} 98% #{BAR} 99% #{BAR} 100%)\n"
+  map_md += "#{m ? ':-:|' : ''}:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:\n"
+  map_md += "#{m ? 'NoMod|' : ''}#{cs}|#{ar}|#{od}|#{hp}|#{sr}|#{bpm}|#{length}|#{pp}\n"
 
   if m
-    adjust_bpm_length!(map, mods)
-    bpm = map['bpm']
+    bpm, length = adjust_bpm_length(bpm.to_i, map['total_length'].to_i, mods)
+    length = convert_s(length)
     m_pp = get_pp(map['beatmap_id'], mods)
-    length = convert_s(map['total_length'].to_i)
-    text += "#{mods}|#{m_cs}|#{m_ar}|#{m_od}|#{m_hp}|#{m_sr}|#{bpm}|#{length}|#{m_pp}\n\n"
+    map_md += "#{mods}|#{m_cs}|#{m_ar}|#{m_od}|#{m_hp}|#{m_sr}|#{bpm}|#{length}|#{m_pp}\n\n"
   else
-    text += "\n"
+    map_md += "\n"
   end
+  return map_md
+end
 
+# Generate the Markdown text to be commented.
+# Arguments:
+#   map: Beatmap data.
+#   player: Player data.
+#   mods: Mods that were added to the play.
+#   mode='0': Gamemode played. 0 => standard, 1 => taiko, 2 => catch, 3 => mania.
+# Returns:
+#   Comment text.
+def gen_comment(map, player, mods, mode: '0')
+  text = gen_beatmap_md(map, mods)
+  player_md = gen_player_md(player, mode: mode)
+  player_md != nil && text += player_md
+
+  gh_url = 'https://github.com/christopher-dG/osu-bot'
+  dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
+  text += "***\n\n"
+  text += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
+
+  return text
+end
+
+# Get the player portion of a Reddit comment.
+# Arguments:
+#   player: Player data.
+# Returns:
+#   Markdown string.
+def gen_player_md(player, mode: '0')
   begin
     p_id = player['user_id']
     p_md = "[#{player['username']}](#{URL}/u/#{p_id})"
@@ -320,61 +352,82 @@ def gen_comment(map, player, mods)
     p_pp = player['pp_raw'].to_f.round(0)
     p_acc = "#{player['accuracy'].to_f.round(2)}%"
 
-    top_play = request('user_best', {'u' => p_id})
+    top_play = request('user_best', {'u' => p_id, 'type' => 'id', 'm' => mode})
     top_pp = top_play['pp'].to_f.round(0)
     top_map = request('beatmaps', {'b' => top_play['beatmap_id']})
     map_name = "#{top_map['artist']} - #{top_map['title']} [#{top_map['version']}]"
     top_mods = get_bitwise_mods(top_play['enabled_mods'].to_i)
-    top_md = "[#{map_name}](#{URL}/b/#{top_play['beatmap_id']}) #{top_mods}(#{top_pp}pp)"
+    top_score = request(
+      'scores',
+      {'b' => top_map['beatmap_id'], 'u' => p_id, 'type' => 'id', 'm' => mode},
+    )
+    top_acc = get_acc(top_play)
+    top_maxcombo = top_score['maxcombo']
+    top_fc = top_play['countmiss'] == '0' ? 'FC ' : ''
+    top_pf = top_play['perfect'] == '1'
+    top_combo = top_pf ? '' : "(#{top_maxcombo}/#{top_map['max_combo']})"
+
+    top_md = "[#{map_name}](#{URL}/b/#{top_play['beatmap_id']}) #{top_mods} "
+    top_md += "#{top_fc}#{BAR} #{top_acc}% #{top_combo}(#{top_pp}pp)"
   rescue
-    log("Fetching user information failed for '#{player['username']}}'.\n")
+    log(msg: "Fetching user information failed for '#{player['username']}}'.\n")
+    return nil
   else
-    text += "Player|Rank|pp|Acc|Playcount|Top Play\n"
-    text += ":-:|:-:|:-:|:-:|:-:|:-:\n"
-    text += "#{p_md}|#{p_rank}|#{p_pp}|#{p_acc}|#{p_pc}|#{top_md}\n\n"
+    player_md = "Player|Rank|pp|Acc|Playcount|Top Play\n"
+    player_md += ":-:|:-:|:-:|:-:|:-:|:-:\n"
+    player_md += "#{p_md}|#{p_rank}|#{p_pp}|#{p_acc}|#{p_pc}|#{top_md}\n\n"
+    return player_md
   end
-
-  text += "***\n\n"
-  text += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
-
-  return text
 end
 
-def log(msg='', n=10)
-  if msg.empty?
-    for file in `ls #{LOG_DIR} | tail -#{n}`.split("\n")
-      File.open(File.expand_path("#{LOG_DIR}/#{file}")) {|f| puts("#{file}:\n#{f.read}----")}
-    end
-  else
-    File.open("#{LOG_DIR}/#{now}", 'a') {|f| f.write(msg)}
-  end
+
+# Get a score's percentage accuracy.
+# Arguments:
+#   score: Score whose accuracy we are calculating.
+# Returns:
+#   Accuracy percentage rounded to two decimal places.
+def get_acc(score)
+  c = {
+    300 => score['count300'].to_i, 100 => score['count100'].to_i,
+    50 => score['count50'].to_i, 0 => score['countmiss'].to_i
+  }
+  o = c.values.sum.to_f  # Total objects.
+  return ([c[300] / o, c[100] / o * 1/3.to_f, c[50] / o * 1/6.to_f].sum * 100).round(2)
 end
 
 def request(request, vars)
   suffix = "k=#{KEY}"
   if request == 'user_recent'
-    suffix += "&u=#{vars['u']}&type=id&limit=50"
+    suffix += "&u=#{vars['u']}&limit=50"
     is_list = true
   elsif request == 'beatmaps'
-    suffix += "&b=#{vars['b']}"
+    suffix += "&b=#{vars['b']}&limit=1"
     is_list = false
   elsif request == 'user_best'
-    suffix += "&u=#{vars['u']}&type=id&limit=1"
+    suffix += "&u=#{vars['u']}&limit=1"
     is_list = false
   elsif request == 'user'
     suffix += "&u=#{vars['u']}&event_days=31"
-    if vars.keys.include?('t') && !['string', 'id'].include?(vars['t'])
-      suffix += "&type=#{vars['type']}"
-    end
+    is_list = false
+  elsif request == 'scores'
+    suffix += "&u=#{vars['u']}&b=#{vars['b']}&limit=1"
     is_list = false
   end
+  if vars.keys.include?('t') && !['string', 'id'].include?(vars['t'])
+    suffix += "&type=#{vars['type']}"
+  end
+  if vars.keys.include?('m') && vars['m'].to_i >= 0 && vars['m'].to_i <= 3
+    suffix += "&m=#{vars['m']}&a=1"
+  end
+
+
   begin
     url = "#{URL}/api/get_#{request}?#{suffix}"
     puts url.sub(KEY, '$private_key')
     response = HTTParty.get(url).parsed_response
   rescue
-    log("An HTTP request failed for '#{url}'.\n")
-    return nil
+    log(msg: "HTTP request failed for '#{url}'.\n")
+    raise
   else
     return is_list ? response : response[0]
   end
@@ -394,33 +447,26 @@ def convert_s(s)
   return "#{h}:#{m}"
 end
 
-# Format the current date and time.
-# Returns:
-#   "MM-DD-YYYY hh:mm"
-def now
-  return `date +"%m-%d-%Y_%H:%M"`.chomp
-end
-
 # Compares a post against some criteria for being classified as a score post.
 # Arguments:
 #   post: Reddit post.
 # Returns:
 #  Whether or not the post is considerd a score post.
 def is_score_post(post)
-  return post.title.strip =~ /[ -\]\[\w]{3,}\|.*\S.*-.*\S.*\[.*\S.*\]/ && !post.is_self
+  return post.title.strip =~ /[\w\- \[\]]{3,}.*\|.*\S.*-.*\S.*\[.*\S.*\]/ && !post.is_self
 end
 
 # Get either /r/osugame or /r/osubottesting subreddit.
 # Arguments:
-#   test=false: Whether or not we are testing.
+#   unittest: false: Whether or not we are testing.
 # Returns:
 #   /r/osugame subreddit, or /r/osubottesting if testing.
-def get_sub(test=false)
+def get_sub(unittest: false)
   Redd.it(
     user_agent: 'Redd:osu!-bot:v0.0.0',
     client_id: CLIENT_ID,
     secret: SECRET,
     username: 'osu-bot',
     password: PASSWORD,
-  ).subreddit(test ? 'osubottesting' : 'osugame')
+  ).subreddit(unittest ? 'osubottesting' : 'osugame')
 end

@@ -50,23 +50,23 @@ class TestOsuBot < Test::Unit::TestCase
   def test_split_title
     assert_equal(
       split_title('Player | Artist - Song [Diff] Other'),
-      ['Player', 'Artist - Song', '[Diff]'],
+      ['Player', 'Artist - Song', 'Diff'],
     )
     assert_equal(
       split_title('Player Name | Artist Name - Song Name [Diff Name]'),
-      ['Player Name', 'Artist Name - Song Name', '[Diff Name]'],
+      ['Player Name', 'Artist Name - Song Name', 'Diff Name'],
     )
     assert_equal(
       split_title('Player|Artist-Song[Diff]Other'),
-      ['Player', 'Artist - Song', '[Diff]'],
+      ['Player', 'Artist - Song', 'Diff'],
     )
-    assert_equal(split_title('p (x) | a - s [d] x'), ['p', 'a - s', '[d]'])
-    assert_equal(split_title('p(x) | a - s [d] x'), ['p', 'a - s', '[d]'])
-    assert_equal(split_title('p | a [x] - s [d] x'), ['p', 'a [x] - s', '[d]'])
-    assert_equal(split_title('p | a - s [x] [d] x'), ['p', 'a - s [x]', '[d]'])
-    assert_equal(split_title('p | a - s [x][d] x'), ['p', 'a - s [x]', '[d]'])
-    assert_equal(split_title('[p] | a - s [d] x'), ['[p]', 'a - s', '[d]'])
-    assert_equal(split_title('p [x] | a - s [d] x'), ['p [x]', 'a - s', '[d]'])
+    assert_equal(split_title('p (x) | a - s [d] x'), ['p', 'a - s', 'd'])
+    assert_equal(split_title('p(x) | a - s [d] x'), ['p', 'a - s', 'd'])
+    assert_equal(split_title('p | a [x] - s [d] x'), ['p', 'a [x] - s', 'd'])
+    assert_equal(split_title('p | a - s [x] [d] x'), ['p', 'a - s [x]', 'd'])
+    assert_equal(split_title('p | a - s [x][d] x'), ['p', 'a - s [x]', 'd'])
+    assert_equal(split_title('[p] | a - s [d] x'), ['[p]', 'a - s', 'd'])
+    assert_equal(split_title('p [x] | a - s [d] x'), ['p [x]', 'a - s', 'd'])
   end
 
   def test_get_diff_info
@@ -171,12 +171,14 @@ class TestOsuBot < Test::Unit::TestCase
     length = convert_s(map['total_length'].to_i)
     top_play = request('user_best', {'u' => player['user_id']})
     top_map = request('beatmaps', {'b' => top_play['beatmap_id']})
+    top_combo = "(#{top_play['maxcombo']}/#{top_map['max_combo']})"
 
     text.gsub!('$BEATMAP_ID', map['beatmap_id'])
     text.gsub!('$ARTIST', map['artist'])
     text.gsub!('$TITLE', map['title'])
     text.gsub!('$DIFF', map['version'])
     text.gsub!('$CREATOR', map['creator'])
+    text.gsub!('$MAX_COMBO', map['max_combo'])
     text.gsub!('$LENGTH', length)
     text.gsub!('$BPM', map['bpm'])
     text.gsub!('$PLAYCOUNT', "#{map['playcount']} plays")
@@ -202,12 +204,16 @@ class TestOsuBot < Test::Unit::TestCase
     text.gsub!('$TOP_DIFF', top_map['version'])
     text.gsub!('$TOP_MODS', get_bitwise_mods(top_play['enabled_mods'].to_i))
     text.gsub!('$TOP_PP', top_play['pp'].to_f.round(0).to_s)
+    text.gsub!('$TOP_ACC', get_acc(top_play).to_s)
+    text.gsub!('$TOP_FC', map['perfect'] == '1' ? 'FC ' : '')
+    text.gsub!('$TOP_COMBO', map['perfect'] == '1' ? '' : top_combo)
+
     if diff['SR'].length == 2
       text.gsub!('$MODS', mods)
-      adjust_bpm_length!(map, mods)
-      m_length = convert_s(map['total_length'].to_i)
+      m_bpm, m_length = adjust_bpm_length(map['bpm'].to_i, map['total_length'].to_i, mods)
+      m_length = convert_s(m_length)
       text.gsub!('$M_LENGTH', m_length)
-      text.gsub!('$M_BPM', map['bpm'])
+      text.gsub!('$M_BPM', m_bpm.to_s)
       text.gsub!('$M_CS', diff['CS'][1])
       text.gsub!('$M_AR', diff['AR'][1])
       text.gsub!('$M_OD', diff['OD'][1])
@@ -222,6 +228,7 @@ class TestOsuBot < Test::Unit::TestCase
   end
 
   def test_gen_comment
+    # Todo: other game modes.
     nomod = File.open("#{TEST_DIR}/res/nomod_template") {|f| f.read.chomp}
     mod = File.open("#{TEST_DIR}/res/mod_template") {|f| f.read.chomp}
     player = {
@@ -237,6 +244,7 @@ class TestOsuBot < Test::Unit::TestCase
       'title' => 'Test Map',
       'artist' => 'Test Artist',
       'version' => 'Test Diff',
+      'max_combo' => '123',
       'bpm' => '123',
       'total_length' => '123',
       'creator' => 'Test Creator',
@@ -311,13 +319,13 @@ class TestOsuBot < Test::Unit::TestCase
     artist = 'xi'
     title = 'FREEDOM DiVE'
     diff = 'FOUR DIMENSIONS'
-    result = request('user_recent', {'u' => '3219026'})
+    result = request('user_recent', {'u' => user_id})
     if result.empty?
       puts('WARNING: results from `request` are empty.')
     else
       play = result[0]
       assert(play.keys.include?('beatmap_id'))
-      assert_equal(play['user_id'], id)
+      assert_equal(play['user_id'], user_id)
     end
   end
 
