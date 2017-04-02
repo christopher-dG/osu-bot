@@ -1,6 +1,5 @@
-def now() `date +"%m-%d-%Y_%H:%M"`.chomp end
 SECRETS_DIR = File.expand_path("#{File.dirname(__FILE__)}/../secrets")
-OPPAI_PATH = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
+OPPAI = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
 URL = 'https://osu.ppy.sh'  # Base for API requests.
 KEY = File.open("#{SECRETS_DIR}/key").read.chomp
 PASSWORD = File.open("#{SECRETS_DIR}/pass").read.chomp
@@ -14,7 +13,7 @@ MODS = [
   'NC', 'HD', 'FL', 'RL', 'AP', 'SO'
 ]
 # Mods that either don't give affect difficulty or don't give pp.
-IGNORE = ['SD', 'PF', 'AP', 'RL']
+NO_DIFF_MODS = ['SD', 'PF', 'AP', 'RL']
 BITWISE_MODS = {
   0 => '',
   1 => 'NF',
