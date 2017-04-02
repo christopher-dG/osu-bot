@@ -1,10 +1,6 @@
 require_relative 'osu-bot'
 
-if __FILE__ == $0
-  main
-end
-
-def main(test: false)
+def run(test: false)
   c = 0
   begin
     osu = get_sub(unittest: ARGV.to_s == '["test"]')
@@ -70,3 +66,6 @@ def log(msg: '',  n: 10)
   end
   return nil
 end
+
+
+__FILE__ == $0 && run
