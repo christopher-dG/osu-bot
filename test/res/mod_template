@@ -1,6 +1,6 @@
-##### **[$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID) by [$CREATOR](https://osu.ppy.sh/u/$CREATOR)**
+##### **[$ARTIST - $TITLE [$DIFF]](https://osu.ppy.sh/b/$BEATMAP_ID) ([$DL_LINK](⇓)) by [$CREATOR](https://osu.ppy.sh/u/$CREATOR)**
 
-**$MAX_COMBOx | $STATUS | $PLAYCOUNT**
+**$MAX_COMBO | $STATUS | $PLAYCOUNT**
 
 ***
 

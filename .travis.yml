@@ -2,7 +2,7 @@ language: ruby
 dist: trusty
 
 before_script:
-  - mkdir secrets logs
+  - mkdir -p secrets logs/maps
   - echo $REDDIT_PW > secrets/pass
   - echo $REDDIT_SECRET > secrets/secret
   - echo REDDIT_CLIENT_ID > secrets/client

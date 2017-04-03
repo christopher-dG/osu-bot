@@ -1,2 +1,3 @@
-# Rightmost set of square brackets is not the diff name.
+# Rightmost set of square brackets is not the diff name, nothing to do about this except using osusearch.com
+# to search for anything that looks like a diff name. Not worth it, add automated reminder comments instead.
 Vaxei | kradness&Reol - Remote Control [Max Control!] +HDDT FC 99.49% #1 813pp 113UR [8.05★] (Cookiezi snipe)
