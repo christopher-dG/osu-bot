@@ -9,7 +9,7 @@ OSU_URL = 'https://osu.ppy.sh'
 
 # Log file.
 LOG = File.expand_path(
-  "#{File.dirname(__FILE__)}/../logs/#{`date +"%m-%d-%Y_%H:%M"`.chomp}"
+  "#{File.dirname(__FILE__)}/../logs/#{`date +"%m-%d-%Y_%H:%M"`.chomp}.log"
 )
 
 # Modes to run in.
@@ -29,8 +29,8 @@ OSUSEARCH_KEY = File.open("#{SECRETS}/search_key").read.chomp
 
 # All mods.
 MODS = [
-  'EZ', 'NF', 'HT', 'HR', 'SD', 'PF', 'DT',
-  'NC', 'HD', 'FL', 'RL', 'AP', 'SO', 'AT',
+  'EZ', 'HD', 'HT', 'DT', 'NC', 'HR', 'FL',
+  'SD', 'PF', 'NF', 'RL', 'SO', 'AP', 'AT',
 ]
 
 # Mods that don't affect difficulty values.

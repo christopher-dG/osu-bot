@@ -73,7 +73,7 @@ def beatmap_search(map_name, player)
   DEBUG && log('Searching player\'s recent plays')
   # Use player's recent plays as a backup. This takes significantly longer.
   seen_ids = []  # Avoid making duplicate API calls.
-  DEBUG && t = Time.now
+  DEBUG && time = Time.now
   begin
     recents = request('user_recent', u: player['user_id'], t: 'id')
   rescue
@@ -91,15 +91,15 @@ def beatmap_search(map_name, player)
       if bleach_cmp("#{map['artist']} - #{map['title']} [#{map['version']}]", map_name)
         DEBUG && log("Found beatmap match '#{map['beatmap_id']}' in recents")
         DEBUG && msg = "Iterating over #{recents.length} recent play#{plur(l)} took "
-        DEBUG && msg += "#{Time.now - t} seconds, map was not retrieved"
+        DEBUG && msg += "#{Time.now - time} seconds, map was not retrieved"
         DEBUG && log(msg)
         return map
       end
     end
   end
 
-  msg = "Iterating over #{recents.length} recent play#{plur(l)} took "
-  msg += "#{Time.now - t} seconds, map was not retrieved"
+  msg = "Iterating over #{recents.length} recent play#{plur(recents.length)} took "
+  msg += "#{Time.now - time} seconds, map was not retrieved"
   DEBUG && log(msg)
 
   map_id == -1 && log('Map was not found.')
@@ -112,33 +112,41 @@ end
 
 # Run the bot.
 def run
-  c = 0
+  comments, c = [], 0
   begin
     osu = get_sub
   rescue
     log("Reddit initialization failed.") && exit
   end
-  osu.post_stream.each do |p|
+  osu.new.each do |p|
     DEBUG && log("Post title: #{p.title}")
     if should_comment(p)
       post = ScorePost.new(p.title)
       if !post.error
+        c += 1
         comment = markdown(post)
         if !comment.empty?
           log("Commenting on '#{post.title}'")
-          c += 1
           if !DRY
             post.reply(comment).distinguish(:sticky)
             post.upvote
           end
           log("Commented:\n#{comment}\n---")
+          comments.push([post.title, comment])
         else
-          log("Markdown genreation failed for post: '#{post.title}'")
+          log("Markdown generation failed for post: '#{post.title}'")
         end
       end
     end
   end
-  log("Made #{c} comment#{plur(c)}.")
+  if c > 0
+    log("\n.--------------------SUMMARY--------------------")
+    log("\nMade #{c}/#{comments.length} attempted comment#{plur(comments.length)}")
+    !comments.empty? && comments.each {|cmt| log("\n#{cmt[0]}\n#{cmt[1]}")}
+  else
+    log('Attempted 0 comments')
+  end
+
 end
 
 if __FILE__ == $0

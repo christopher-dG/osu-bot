@@ -20,7 +20,7 @@ def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
 # Get a subreddit, /r/osugame by default.
 def get_sub
   sub = TEST ? 'osubottesting' : 'osugame'
-  DEBUG && log("Getting subreddit: #{sub}")
+  DEBUG && log("Getting subreddit '#{sub}'")
   for i in 0..3
     begin
       reddit = Redd.it(
@@ -57,7 +57,7 @@ end
 # t: user type ('string', 'id')
 # m: mode (0=standard)
 def request(request, u: '', b: '', t: '', m: '')
-  DEBUG && log("Making request with u: '#{u}', b: '#{b}', t: '#{b}', m: '#{m}'")
+  DEBUG && log("Making request with u: '#{u}', b: '#{b}', t: '#{t}', m: '#{m}'")
   time = Time.now
   suffix = "k=#{OSU_KEY}"
   if request == 'user_recent'
@@ -84,7 +84,7 @@ def request(request, u: '', b: '', t: '', m: '')
   end
 
   url = "#{OSU_URL}/api/get_#{request}?#{suffix}"
-  DEBUG && log("Requesting data from #{url}")
+  DEBUG && log("Requesting data from #{url.sub(OSU_KEY, '$private_key')}")
   response = HTTParty.get(url).parsed_response
   DEBUG && log("Request from #{url} took #{Time.now - time} seconds")
   return is_list ? response : response[0]
@@ -93,7 +93,7 @@ end
 # If 'msg' is supplied, write it to a log file. Otherwise, print out 'n' recent logs.
 def log(msg='',  n: 10)
   if msg.empty?
-    `ls #{File.dirname(LOG)} | tail -#{n}`.split("\n").each do |file|
+    `ls #{File.dirname(LOG)} *.log | tail -#{n}`.split("\n").each do |file|
       File.open(File.expand_path("#{File.dirname(LOG)}/#{file}")) do |f|
         puts("#{file}:\n#{f.read}----")
       end

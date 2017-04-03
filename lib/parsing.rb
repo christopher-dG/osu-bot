@@ -59,6 +59,7 @@ def mods_from_string(title)
     string = string.match(/[[A-Z],]+/).to_s
     list = string.include?(',') ? string.split(',') : string.scan(/[A-Z]{1,2}/)
     if is_mods.call(list)
+      MODS.each {|m| list.delete(m) && list.push(m)}
       DEBUG && log("Mods: #{list}")
       return list
     end
@@ -68,6 +69,7 @@ def mods_from_string(title)
   tokens.each do |token|
     list = token.gsub(',', '').scan(/[A-z]{1,2}/)
     if is_mods.call(list)
+      MODS.each {|m| list.delete(m) && list.push(m)}
       DEBUG && log("Mods: #{list}")
       return list
     end
@@ -95,7 +97,7 @@ def diff_vals(map, mods)
 
   # If the mods won't change the values: don't return the mod
   if modded.nil? || mods.all? {|m| NO_DIFF_MODS.include?(m)}
-    DEBUG && log('Mods were ignored, returning nomod values')
+    DEBUG && log('Mods were empty or ignored, returning nomod values')
     return nomod
   end
 
@@ -105,11 +107,11 @@ def diff_vals(map, mods)
 
   # Oppai does not handle HP drain.
   if mods.include?('EZ')
-    m_hp = round(hp * ez_hp_scalar, 2)
+    m_hp = round(nomod['HP'][0].to_f * ez_hp_scalar), 2
     m_hp = m_hp.to_i == m_hp ? m_hp.to_i.to_s : m_hp.to_s
   elsif mods.include?('HR')
-    m_hp = round(hp.to_f * hr_hp_scalar, 2)
-    m_hp = m_hp > hp_max ?
+    m_hp = round(nomod['HP'][0].to_f * hr_hp_scalar, 2)
+    m_hp = m_hp.to_f > hp_max ?
              hp_max.to_s : m_hp.to_i == m_hp ? m_hp.to_i.to_s : m_hp.to_s
   else
     m_hp = nomod['HP'][0]
@@ -117,9 +119,9 @@ def diff_vals(map, mods)
 
   DEBUG && log("Manually calculated HP value: #{m_hp}")
   vals = {
-    'CS' => [nomod['CS'][0], modded['cs']], 'AR' => [nomo['AR'][0], modded['ar']],
-    'OD' => [nomod['OD'][0], modded['od']], 'HP' => [hp, modded['hp']],
-    'SR' => [sr, moddded['sr']]
+    'CS' => [nomod['CS'][0], modded['CS']], 'AR' => [nomod['AR'][0], modded['AR']],
+    'OD' => [nomod['OD'][0], modded['OD']], 'HP' => [nomod['HP'][0], modded['HP']],
+    'SR' => [nomod['SR'][0], modded['SR']]
   }
   DEBUG && log("Final diff values: #{vals}")
   return vals
@@ -174,12 +176,11 @@ end
 # Get pp data from oppai for the map stored in 'map.osu' with some given mods.
 def oppai_pp(mods, nomod_vals: [])
   DEBUG && log("Getting pp from oppai for mods +#{mods.join} with nomod values: #{nomod_vals}")
-  mod_list = mods[1..-1].scan(/../)
-  if !nomod.empty? && mod_list.all? {|m| NO_PP_MODS.include?(m)}
+  if !nomod_vals.empty? && mod_list.all? {|m| NO_PP_MODS.include?(m)}
     # If the mods won't change the pp values, return the nomod value.
     DEBUG && log('Mods  don\'t change  pp, returning nomod values')
-    return nomod
-  elsif mods_list.any? {|m| ZERO_PP_MODS.include?(m)}
+    return nomod_vals
+  elsif mods.any? {|m| ZERO_PP_MODS.include?(m)}
     # If any of the mods cancel out pp, return zeros.
     DEBUG && log('Mods give no pp, returning zeroed values')
     return [0] * 4
@@ -187,13 +188,16 @@ def oppai_pp(mods, nomod_vals: [])
 
   result = []
   begin
+    modstring = !mods.empty? ? "+#{mods.join}" : ''
     ['95%', '98%', '99%', '100%'].each do |acc|
-      pp = round(`#{OPPAI} map.osu #{acc} #{mods}`.split("\n")[-1][0..-3])
+      DEBUG && log("Running command \`#{OPPAI} map.osu #{acc} +#{mods.join}\`")
+      pp = round(`#{OPPAI} map.osu #{acc} #{mostring}`.split("\n")[-1][0..-3])
+      DEBUG && log("pp result from oppai: #{pp}")
       $? != 0 && raise
       result.push(format_num(pp))
     end
   rescue
-    log('Modded pp calculations failed for mods')
+    log('Modded pp calculations failed.')
     return nil
   end
 
@@ -263,19 +267,19 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [])
   begin
     result = nil
     if mode == 'pp'
-      result = oppai_pp(mods, nomod_vals: nomod)
+      result = oppai_pp(mods, nomod_vals: nomod_vals)
     elsif mode == 'diff'
       result = oppai_diff(mods)
     end
   rescue
     FileUtils.cp('map.osu', "#{File.dirname(LOG)}/maps/#{map_id}.osu")
-    log("oppai failed in #{mode} mode: saved map to logs/maps/#{map_id}.osu")
+    log("oppai failed in '#{mode}' mode: saved map to logs/maps/#{map_id}.osu")
     return nil
   ensure
     DEBUG && log('Deleting map.osu')
     File.file?('map.osu') && File.delete('map.osu')
   end
 
-  DEBUG && log("Result: #{result}")
+  DEBUG && log("oppai final result: #{result}")
   return result
 end
