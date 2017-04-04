@@ -5,9 +5,6 @@ def bleach(string) string.downcase.gsub(/\s/, '') end
 # Compare two strings by bleaching them first.
 def bleach_cmp(x, y) bleach(x) == bleach(y) end
 
-# Round 'n' to 'd' decimal places as a string.
-def round(n, d=0) n.to_f.round(d).to_s end
-
 # Insert commas into large numbers.
 def format_num(n) round(n).reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse end
 
@@ -16,6 +13,13 @@ def plur(n) n == 1 ? '' : 's' end
 
 # Format a map's title information.
 def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
+
+# Round 'n' to 'd' decimal places as a string.
+def round(n, d=0)
+  n = n.to_f.round(d)
+  return (n.to_i == n ? n.to_i : n).to_s
+end
+
 
 # Get a subreddit, /r/osugame by default.
 def get_sub

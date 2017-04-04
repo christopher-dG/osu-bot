@@ -11,7 +11,7 @@ def beatmap_markdown(post)
   rank_one = "#1: [#{top_play['username']}](#{OSU_URL}/u/#{top_play['username']}) ("
   rank_one_mods = mods_from_int(top_play['enabled_mods'])
   !rank_one_mods.empty? && rank_one += "+#{rank_one_mods.join} - "
-  rank_one += "#{accuracy(top_play)} - #{top_play['pp']}pp)"
+  rank_one += "#{accuracy(top_play)} - #{round(top_play['pp'])}pp)"
 
   link_url = "#{OSU_URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
@@ -29,7 +29,6 @@ def beatmap_markdown(post)
   length = [map['total_length']]
   pp = [oppai(map['beatmap_id'], mode: 'pp').join(" #{BAR} ")]
 
-  show_pp = false
   m = diff['SR'].length == 2  # Whether the table will include modded values.
   DEBUG && log("Diff contains nomod#{m ? ' and modded' : ''} values")
   if m
@@ -37,8 +36,9 @@ def beatmap_markdown(post)
     bpm.push(adj_bpm)
     length.push(timestamp(adj_length))
     modded_pp = oppai(map['beatmap_id'], mods: mods, mode: 'pp')
-    !modded_pp.nil? && pp.push(modded_pp.join(" #{BAR} ")) && show_pp = true
+    !modded_pp.nil? && pp.push(modded_pp.join(" #{BAR} "))
   end
+  show_pp = pp != nil && (!m || !modded_pp.nil?)
 
   DEBUG && m && !show_pp && log('oppai modded pp calculation failed: not displaying pp')
   length[0] = timestamp(length[0])
@@ -54,7 +54,7 @@ def beatmap_markdown(post)
   show_pp && headers.push("pp (95% #{BAR} 98% #{BAR} 99% #{BAR} 100%)") && cols.push(pp)
 
   map_md = "##### **#{link_md} #{dl_md} by #{creator_md}**\n\n"
-  map_md += "**#{combo} || #{rank_one} || #{status} || #{pc}**\n\n"
+  map_md += "**#{rank_one} || #{combo} || #{status} || #{pc}**\n\n"
   map_md += "***\n\n"
   map_md += table(headers, cols)
 
@@ -127,7 +127,7 @@ def top_play(player, mode)
 
   mods = mods_from_int(play['enabled_mods'])
   mods = mods.empty? ? '' : "+#{mods.join}"
-  combo = play['perfect'] == '1' ? '' : "(#{play['maxcombo']}/#{map['max_combo']}) "
+  combo = play['countmiss'] != '0' ? "(#{play['maxcombo']}/#{map['max_combo']}) " : ''
   md = "[#{map_string(map)}](#{OSU_URL}/b/#{id}) #{mods} "
   md += "#{play['countmiss'] == '0' ? 'FC ' : ''}#{BAR} "
   # If the map Markdown is too long, split the top play into two lines. Need to

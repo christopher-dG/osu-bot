@@ -65,9 +65,9 @@ def oppai_diff(map_id, mods)
   diff_line = 12
   star_line = 19
   diff = {
-    'CS' => round(result[diff_line].match(/cs[^ ]+/).to_s[2..-1], 2),
-    'AR' => round(result[diff_line].match(/ar[^ ]+/).to_s[2..-1], 2),
-    'OD' => round(result[diff_line].match(/od[^ ]+/).to_s[2..-1], 2),
+    'CS' => round(result[diff_line].match(/cs[^ ]+/).to_s[2..-1], 1),
+    'AR' => round(result[diff_line].match(/ar[^ ]+/).to_s[2..-1], 1),
+    'OD' => round(result[diff_line].match(/od[^ ]+/).to_s[2..-1], 1),
     'SR' => round(result[star_line].match(/[^ ]+/).to_s, 2),
   }
   DEBUG && log("Modded diff values: #{diff}")
