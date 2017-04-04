@@ -159,7 +159,7 @@ def run
     log("\nMade #{c}/#{comments.length} attempted comment#{plur(comments.length)}")
     !comments.empty? && comments.each {|cmt| log("\n#{cmt[0]}\n#{cmt[1]}")}
   else
-    log('Attempted 0 comments')
+    log('\nAttempted 0 comments')
   end
   return nil
 end
@@ -171,4 +171,9 @@ if __FILE__ == $0
     raise("Invalid command line arguments: valid run modes are  #{RUN_MODES}")
   end
   run
+  File.open("#{File.dirname(LOG)}/rolling.log", 'a') do |rolling|
+    File.open(LOG) do |f|
+      rolling.write("#{`date`}\n\n#{f.read}\n\n")
+    end
+  end
 end
