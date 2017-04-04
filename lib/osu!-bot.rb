@@ -106,8 +106,8 @@ def beatmap_search(map_name, player)
     end
   end
 
-  msg = "Iterating over #{l} recent play#{plur(l)} "
-  msg += "took #{round(Time.now - time,  5)} seconds, map was not retrieved"
+  DEBUG && msg = "Iterating over #{l} recent play#{plur(l)} "
+  DEBUG && msg += "took #{round(Time.now - time,  5)} seconds, map was not retrieved"
   DEBUG && log(msg)
 
   map_id == -1 && log('Map was not found.')
