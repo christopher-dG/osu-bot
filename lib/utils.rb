@@ -84,19 +84,18 @@ def request(request, u: '', b: '', t: '', m: '')
   end
 
   url = "#{OSU_URL}/api/get_#{request}?#{suffix}"
-  DEBUG && log("Requesting data from #{url.sub(OSU_KEY, '$private_key')}")
+  safe_url = url.sub(OSU_KEY, '$private_key')
+  DEBUG && log("Requesting data from #{safe_url}")
   response = HTTParty.get(url).parsed_response
-  DEBUG && log("Request from #{url} took #{Time.now - time} seconds")
+  DEBUG && log("Request from #{safe_url} took #{round(Time.now - time, 5)} seconds")
   return is_list ? response : response[0]
 end
 
 # If 'msg' is supplied, write it to a log file. Otherwise, print out 'n' recent logs.
 def log(msg='',  n: 10)
   if msg.empty?
-    `ls #{File.dirname(LOG)} *.log | tail -#{n}`.split("\n").each do |file|
-      File.open(File.expand_path("#{File.dirname(LOG)}/#{file}")) do |f|
-        puts("#{file}:\n#{f.read}----")
-      end
+    `ls #{File.dirname(LOG)}/*.log | tail -#{n}`.split("\n").each do |file|
+      File.open(file){|f| puts("#{file}:\n#{f.read}----")}
     end
   else
     msg = msg.end_with?('.') ? msg : "#{msg}."
@@ -107,24 +106,32 @@ def log(msg='',  n: 10)
 end
 
 # Manually comment on an arbitrarily named Reddit post. Useful when a post has
-# a bad title or when beatmap_search isn't working. 'type' indicates the type
-# of player_id: 'string' or 'id'. If no modlist is given, one will be created
-# from the title. 'limit' indicates how far to look into /new.
-def manual_comment(title, map_name, map_id, player_id, type: 'string', mods: '', lim: 25)
+# a bad title or when beatmap_search isn't working. 'player' and 'map' values
+# should be obtained via 'request'. 'limit' indicates how far to look into /new.
+# Example:
+# => title = "Cookiezi | kradness&Reol - Remote Control [Max Control!] +HDDT
+# => player = request('user', u: "Cookiezi")
+# => map = request('beatmaps', b: '774965')
+# => mods = ['HD', 'DT']
+# => manual_comment(title: title, player: player, map: map, mods: mods)
+def manual_comment(title:, player:, map:, mods:, lim: 25)
+  # Sanity checks.
+  (title.class != String || player.class != Hash || map.class != Hash ||
+   mods.class != Array) && raise('Arguments are of the wrong type')
+
   osu = get_sub
-  osu.new.each do |post|
-    if bleach_cmp(post.title, title)
-      map = request('beatmaps', {'b' => map_id})
-      player = request('user', {'u' => player_id, 'type' => type})
+  osu.new.each do |p|
+    if bleach_cmp(p.title, title)
       post = ScorePost.new(
-        title, mods: mods, manual: true, map: map, player: player, map_name: map_name
+        title: title, manual: true, player: player, map: map, mods: mods
       )
       comment = markdown(post)
-      puts("Post comment to '#{tile}'?")
+      puts("Comment:\n\n#{comment}\n\n")
+      puts("Post comment to '#{title}'?\n(y) to post: ")
       confirm = gets
       if confirm.downcase.chomp == 'y'
-        post.reply(comment).distinguish(:sticky)
-        post.upvote
+        p.reply(comment).distinguish(:sticky)
+        p.upvote
       end
       break
     end

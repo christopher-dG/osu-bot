@@ -5,10 +5,16 @@ if ENV['CI'] == 'true'
   SimpleCov.formatter = SimpleCov::Formatter::Codecov
 end
 
-require_relative File.join('..', 'lib', 'osu-bot')
+require_relative File.join('..', 'lib', 'osu!-bot')
 require 'test/unit'
 
-assert_equal(1 + 1, 2)
+class TestOsuBot < Test::Unit::TestCase
+
+  def test_dummy
+    assert_equal(1 + 1, 2)
+  end
+
+end
 
 # require 'date'
 # require 'json'

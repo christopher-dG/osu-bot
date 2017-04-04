@@ -5,27 +5,27 @@ require 'redd'
 
 require_relative 'consts'
 require_relative 'utils'
+require_relative 'oppai'
 require_relative 'parsing'
 require_relative 'markdown'
 
 class ScorePost
 
   attr_accessor :title  # String
-  attr_accessor :mods  # Array
   attr_accessor :player  # Hash: https://github.com/ppy/osu-api/wiki#user
   attr_accessor :map  # Hash: https://github.com/ppy/osu-api/wiki#beatmap
-  attr_accessor :map_name  # String: 'Artist - Title [Diff]'
+  attr_accessor :mods  # Array
   attr_accessor :bad_title  # String: Key indicating why the title sucks (todo).
   attr_accessor :error  # Bool
 
-  def initialize(title, mods: '', manual: false, player: '', map: '', map_name: '')
+  def initialize(title:, manual: false, player: {}, map: {}, mods: [])
     @bad_title = ''
 
     if manual
       @title = title
       @mods = mods
       @player = player
-      @map_name = map_name
+      @map = map
       @error = false
       return
     end
@@ -33,7 +33,6 @@ class ScorePost
     player_name, song_name, diff_name = split_title(title)
     @title = title
     @mods = mods_from_string(@title)
-    @map_name = "#{song_name} [#{diff_name}]"
     begin
       @player = request('user', u: player_name, t: 'string')
     rescue
@@ -41,8 +40,16 @@ class ScorePost
       @error = true
       return
     end
-    @map = beatmap_search(@map_name, @player)
+    @map = beatmap_search("#{song_name} [#{diff_name}]", @player)
     @error = @map.nil?
+  end
+
+  def inspect
+    text = "ScorePost\n  "
+    text += "title: #{@title}}\n  player: #{@player['username']}\n  "
+    text += "map: #{map_string(@map)}\n  mods: #{@mods}\n  "
+    text += "bad_title: #{@bad_title}\n  error: #{@error}"
+    return text
   end
 
 end
@@ -76,6 +83,7 @@ def beatmap_search(map_name, player)
   DEBUG && time = Time.now
   begin
     recents = request('user_recent', u: player['user_id'], t: 'id')
+    l = recents.length
   rescue
     log('Fetching player\'s recent plays failed')
   else
@@ -90,16 +98,16 @@ def beatmap_search(map_name, player)
       end
       if bleach_cmp("#{map['artist']} - #{map['title']} [#{map['version']}]", map_name)
         DEBUG && log("Found beatmap match '#{map['beatmap_id']}' in recents")
-        DEBUG && msg = "Iterating over #{recents.length} recent play#{plur(l)} took "
-        DEBUG && msg += "#{Time.now - time} seconds, map was not retrieved"
+        DEBUG && msg = "Iterating over #{l} recent play#{plur(l)} took "
+        DEBUG && msg += "#{round(Time.now - time, 5)} seconds, map was not retrieved"
         DEBUG && log(msg)
         return map
       end
     end
   end
 
-  msg = "Iterating over #{recents.length} recent play#{plur(recents.length)} took "
-  msg += "#{Time.now - time} seconds, map was not retrieved"
+  msg = "Iterating over #{l} recent play#{plur(l)} "
+  msg += "took #{round(Time.now - time,  5)} seconds, map was not retrieved"
   DEBUG && log(msg)
 
   map_id == -1 && log('Map was not found.')
@@ -119,17 +127,18 @@ def run
     log("Reddit initialization failed.") && exit
   end
   osu.new.each do |p|
-    DEBUG && log("Post title: #{p.title}")
+    DEBUG && log("\nPost title: #{p.title}")
     if should_comment(p)
-      post = ScorePost.new(p.title)
+      post = ScorePost.new(title: p.title)
       if !post.error
+        DEBUG && log(post.inspect)
         c += 1
         comment = markdown(post)
         if !comment.empty?
           log("Commenting on '#{post.title}'")
           if !DRY
-            post.reply(comment).distinguish(:sticky)
-            post.upvote
+            p.reply(comment).distinguish(:sticky)
+            p.upvote
           end
           log("Commented:\n#{comment}\n---")
           comments.push([post.title, comment])
@@ -139,14 +148,20 @@ def run
       end
     end
   end
+
   if c > 0
-    log("\n.--------------------SUMMARY--------------------")
+    log("\n.=============================.")  # RIP symmetry.
+    log(".=============================.")
+    log(".========== SUMMARY ==========.")
+    log(".=============================.")
+    log(".=============================.")
+
     log("\nMade #{c}/#{comments.length} attempted comment#{plur(comments.length)}")
     !comments.empty? && comments.each {|cmt| log("\n#{cmt[0]}\n#{cmt[1]}")}
   else
     log('Attempted 0 comments')
   end
-
+  return nil
 end
 
 if __FILE__ == $0

@@ -6,34 +6,41 @@ def beatmap_markdown(post)
   DEBUG && log("Generating beatmap Markdown for #{post.title}")
   map, mods = post.map, post.mods
 
+  # Get rank 1 on this map.
+  top_play = request('scores', b: map['beatmap_id'])
+  rank_one = "#1: [#{top_play['username']}](#{OSU_URL}/u/#{top_play['username']}) ("
+  rank_one_mods = mods_from_int(top_play['enabled_mods'])
+  !rank_one_mods.empty? && rank_one += "+#{rank_one_mods.join} - "
+  rank_one += "#{accuracy(top_play)} - #{top_play['pp']}pp)"
+
   link_url = "#{OSU_URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
-  link_md = "[#{post.map_name}](#{link_url})"
+  link_md = "[#{map_string(post.map)}](#{link_url})"
   dl_md = "[(⇓)](#{OSU_URL}/osu/#{map['beatmap_id']})"
-
   creator_url = "#{OSU_URL}/u/#{map['creator']}"
   creator_md = "[#{map['creator']}](#{creator_url})"
+
   combo = "#{map['max_combo']}x max combo"
   status = ranked_status(map)
-  pc = "#{map['playcount']} plays"
+  pc = "#{format_num(map['playcount'])} plays"
 
   diff = diff_vals(map, mods)  # {key => [nomod, modded]}
   bpm = [round(map['bpm']).to_i]
   length = [map['total_length']]
-  pp = [oppai(map['beatmap_id'], mode: 'pp')]
+  pp = [oppai(map['beatmap_id'], mode: 'pp').join(" #{BAR} ")]
 
-  show_pp = true
+  show_pp = false
   m = diff['SR'].length == 2  # Whether the table will include modded values.
-  DEBUG && log("Diff contains nomod#{m ? 'and modded' : ''} values")
+  DEBUG && log("Diff contains nomod#{m ? ' and modded' : ''} values")
   if m
     adj_bpm, adj_length = adjusted_timing(bpm[0], length[0], mods)
     bpm.push(adj_bpm)
     length.push(timestamp(adj_length))
     modded_pp = oppai(map['beatmap_id'], mods: mods, mode: 'pp')
-    (modded_pp.nil? || pp.push(modded_pp.join(" #{BAR} "))) && show_pp = false
+    !modded_pp.nil? && pp.push(modded_pp.join(" #{BAR} ")) && show_pp = true
   end
 
-  DEBUG && !show_pp && log('oppai modded pp calculation failed: not displaying pp')
+  DEBUG && m && !show_pp && log('oppai modded pp calculation failed: not displaying pp')
   length[0] = timestamp(length[0])
 
   if m
@@ -47,73 +54,12 @@ def beatmap_markdown(post)
   show_pp && headers.push("pp (95% #{BAR} 98% #{BAR} 99% #{BAR} 100%)") && cols.push(pp)
 
   map_md = "##### **#{link_md} #{dl_md} by #{creator_md}**\n\n"
-  # Todo: Add map rank #1 to the second line.
-  map_md += "**#{combo} | #{status} | #{pc}**\n\n"
+  map_md += "**#{combo} || #{rank_one} || #{status} || #{pc}**\n\n"
   map_md += "***\n\n"
   map_md += table(headers, cols)
 
-  map_md += "\n"
-  # ???
-  # if m
-  #   map_md += mods_md
-  # else
-  #   map_md += "\n"
-  # end
-
   DEBUG && log("Generated:\n'#{map_md}")
   return map_md
-end
-
-# Generate a Markdown string to be commented.
-# mode is the game mode: 0 => standard, 1 => taiko, 2 => catch, 3 => mania.
-def markdown(post)
-  DEBUG && log("Generating comment Markdown for '#{post.title}'")
-  md = beatmap_markdown(post)
-  player_md = player_markdown(post.player, mode: post.map['mode'])
-  if !player_md.empty?
-    md += "\n#{player_md}"
-  else
-    log('Player markdown response was empty')
-  end
-  gh_url = 'https://github.com/christopher-dG/osu-bot'
-  dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
-  md += "\n***\n\n"
-  md += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
-  DEBUG && log("Generated full comment:\n#{md}")
-  return md
-end
-
-# Get a Markdown string for a player's top ranked play.
-def top_play(player, mode)
-  DEBUG && log("Generating Markdown for top play of #{player['username']} (mode=#{mode})")
-  # Todo: clean this up.
-  begin
-    play = request('user_best', u: player['user_id'], t: 'id', m: mode)
-  rescue
-    log('Request failed for player\'s top play')
-    return nil
-  end
-  id = play['beatmap_id']
-  begin
-    map = request('beatmaps', b: id)
-  rescue
-    log('Request failed for map of top play')
-    return nil
-  # begin
-  #   score = request('scores', b: id, u: p_id, t: 'id', m: mode)
-  # rescue
-  #   log('Request failed for player\'s score on top play')
-  # end
-  end
-
-  mods = mods_from_int(play['enabled_mods'])
-  mods = mods.empty? ? '' : "+#{mods.join}"
-  combo = play['perfect'] == '1' ? '' : "(#{play['maxcombo']}/#{map['max_combo']}) "
-  md = "[#{map_string(map)}](#{OSU_URL}/b/#{id}) #{mods} "
-  md += "#{play['countmiss'] == '0' ? 'FC ' : ''}#{BAR} "
-  md += "#{accuracy(play)}% #{combo}#{BAR} #{format_num(round(play['pp']))}pp"
-  DEBUG && log("Generated:\n#{md}")
-  return md
 end
 
 # Generate a Markdown string with player information. Return empty string upon failure.
@@ -143,6 +89,54 @@ def player_markdown(player, mode: '0')
   return table(headers, cols)
 end
 
+# Generate a Markdown string to be commented.
+# mode is the game mode: 0 => standard, 1 => taiko, 2 => catch, 3 => mania.
+def markdown(post)
+  DEBUG && log("Generating comment Markdown for '#{post.title}'")
+  md = beatmap_markdown(post)
+  player_md = player_markdown(post.player, mode: post.map['mode'])
+  if !player_md.empty?
+    md += "\n\n#{player_md}"
+  else
+    log('Player markdown response was empty')
+  end
+  gh_url = 'https://github.com/christopher-dG/osu-bot'
+  dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
+  md += "\n***\n\n"
+  md += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
+  DEBUG && log("Generated full comment:\n#{md}")
+  return md
+end
+
+# Get a Markdown string for a player's top ranked play.
+def top_play(player, mode)
+  DEBUG && log("Generating Markdown for top play of #{player['username']} (mode=#{mode})")
+  begin
+    play = request('user_best', u: player['user_id'], t: 'id', m: mode)
+  rescue
+    log('Request failed for player\'s top play')
+    return nil
+  end
+  id = play['beatmap_id']
+  begin
+    map = request('beatmaps', b: id)
+  rescue
+    log('Request failed for map of top play')
+    return nil
+  end
+
+  mods = mods_from_int(play['enabled_mods'])
+  mods = mods.empty? ? '' : "+#{mods.join}"
+  combo = play['perfect'] == '1' ? '' : "(#{play['maxcombo']}/#{map['max_combo']}) "
+  md = "[#{map_string(map)}](#{OSU_URL}/b/#{id}) #{mods} "
+  md += "#{play['countmiss'] == '0' ? 'FC ' : ''}#{BAR} "
+  # If the map Markdown is too long, split the top play into two lines. Need to
+  # write a function to determine the length of rendered Markdown.
+  md += "#{accuracy(play)} #{combo}#{BAR} #{format_num(round(play['pp']))}pp"
+  DEBUG && log("Generated:\n#{md}")
+  return md
+end
+
 # Generate a Markdown table. headers and cols are one and two dimensional
 # arrays, respectively. Pass align: 'l' for left alignment and 'r' for right
 # alignment, otherwise cells will be centered. The data must represent a full
@@ -164,8 +158,13 @@ def table(headers, cols, align: '')
     cols.each {|c| row += "#{c[i]}|"}
     row = row[0...-1]  # Remove trailing '|'.
     DEBUG && log("Row: #{row}")
-    table += "#{row}"
+    table += "#{row}\n"
   end
+
+  table = table.chomp
   DEBUG && log("Generated table:\n#{table}")
   return table
 end
+
+# Todo: get the length of some markdown text after it's rendered.
+def rendered_length(text) end
