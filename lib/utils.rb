@@ -23,7 +23,6 @@ def round(n, d=0)
   return (n.to_i == n ? n.to_i : n).to_s
 end
 
-
 # Get a subreddit, /r/osugame by default.
 def get_sub
   sub = TEST ? 'osubottesting' : 'osugame'
@@ -94,7 +93,7 @@ def request(request, u: '', b: '', t: '', m: '')
   safe_url = url.sub(OSU_KEY, '$private_key')
   log("Requesting data from #{safe_url}")
   response = HTTParty.get(url).parsed_response
-  log("Request from #{safe_url} took #{round(Time.now - time, 5)} seconds")
+  log("Request took #{round(Time.now - time, 3)} seconds")
   return is_list ? response : response[0]
 end
 

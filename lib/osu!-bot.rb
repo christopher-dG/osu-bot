@@ -120,6 +120,7 @@ end
 
 # Run the bot.
 def run
+  DEBUG && start_time = Time.now
   comments, c = [], 0
   begin
     osu = get_sub
@@ -161,6 +162,7 @@ def run
   else
     log("\nAttempted 0 comments")
   end
+  log("Complete run took #{round(Time.now - start_time, 3)} seconds")
   return nil
 end
 
