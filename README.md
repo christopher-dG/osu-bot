@@ -2,7 +2,7 @@
 
 [/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to post beatmap and player information to /r/osugame score posts
 
-## To score posters
+## To Score Posters
 
 The bot depends on you to properly format your title! The beginning of your post title should look something like this:
 ```
@@ -15,7 +15,7 @@ For example:
 Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP RECORD*
 ```
 
-### Detailed guidelines:
+### Detailed Guidelines
 
 * The text before the first `|` must begin with the player name. Extra text can be added in `(parentheses)` like so:
   ```Player Name (#1 global) | ...```
@@ -29,7 +29,14 @@ Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP REC
 
 In general, you can't go wrong with [/r/osugame](https://reddit.com/r/osugame)'s well-established posting format.
 
-### What's in it for me?
+### Reporting Errors
+
+If you see a mistake anywhere in a comment, post a reply beginning with `!error` to open an issue (no GitHub account required).
+
+For example: ```!error AR9 + DT is 10.3, not 10```
+
+#### What's in it for me?
+
 The bot will upvote your post as soon as it comments. Isn't that enough?
 
 ***

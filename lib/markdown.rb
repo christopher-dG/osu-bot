@@ -103,7 +103,9 @@ def markdown(post)
   gh_url = 'https://github.com/christopher-dG/osu-bot'
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
   md += "\n***\n\n"
-  md += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
+  md += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})\n\n"
+  md += '^(Notice a mistake? Make a reply to this comment '
+  md += 'beginning with "!error" describing it.)'
   log("Generated full comment:\n#{md}")
   return md
 end

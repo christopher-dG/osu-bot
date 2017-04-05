@@ -120,29 +120,39 @@ end
 
 # Run the bot.
 def run
+  File.open(LOG, 'a') {|f| f.write("#{`date`}\n")}
   DEBUG && start_time = Time.now
-  comments, c = [], 0
+  comments, titles, c = [], [], 0
   begin
     osu = get_sub
   rescue
     !log("Reddit initialization failed.") && exit
   end
+
   osu.new.each do |p|
     log("\nPost title: #{p.title}")
+
     if should_comment(p)
+      c += 1
+      titles.push([p.title, 'fail'])
       post = ScorePost.new(title: p.title)
+
       if !post.error
         log(post.inspect)
-        c += 1
         comment = markdown(post)
+
         if !comment.empty?
+          titles[-1][1] = 'success'
           log("Commenting on '#{post.title}'")
+
           if !DRY
             p.reply(comment).distinguish(:sticky)
             p.upvote
           end
+
           log("Commented:\n#{comment}\n---")
           comments.push([post.title, comment])
+
         else
           log("Markdown generation failed for post: '#{post.title}'")
         end
@@ -163,6 +173,17 @@ def run
     log("\nAttempted 0 comments")
   end
   log("Complete run took #{round(Time.now - start_time, 3)} seconds")
+
+  if !DEBUG  # Simplified summary when not debugging.
+    if c > 0
+      text = "Made #{c}/#{comments.length} attempted comment#{plur(comments.length)}\n\n"
+      titles.each {|t, success| text += "#{t}: #{success}\n"}
+      File.open(LOG, 'w') {|f| f.write(text)}
+    else
+      File.open(LOG, 'w') {|f| f.write('Attempted 0 comments')}
+    end
+  end
+
   return nil
 end
 
@@ -172,10 +193,10 @@ if __FILE__ == $0
   elsif !ARGV.empty?
     raise("Invalid command line arguments: valid run modes are  #{RUN_MODES}")
   end
+
   run
+
   File.open("#{File.dirname(LOG)}/rolling.log", 'a') do |rolling|
-    File.open(LOG) do |f|
-      rolling.write("#{`date`}\n\n#{f.read}\n\n")
-    end
+    File.open(LOG) {|f| rolling.write("\n\n#{f.read}")}
   end
 end
