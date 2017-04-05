@@ -21,11 +21,12 @@ TEST = ARGV.include?("TEST")
 
 # Secret files.
 SECRETS = File.expand_path("#{File.dirname(__FILE__)}/../secrets")
-OSU_KEY = File.open("#{SECRETS}/key").read.chomp
-REDDIT_PASSWORD = File.open("#{SECRETS}/pass").read.chomp
-REDDIT_SECRET = File.open("#{SECRETS}/secret").read.chomp
-REDDIT_CLIENT_ID = File.open("#{SECRETS}/client").read.chomp
+OSU_KEY = File.open("#{SECRETS}/osu_key").read.chomp
+REDDIT_PASSWORD = File.open("#{SECRETS}/reddit_pass").read.chomp
+REDDIT_SECRET = File.open("#{SECRETS}/reddit_secret").read.chomp
+REDDIT_CLIENT_ID = File.open("#{SECRETS}/reddit_client").read.chomp
 OSUSEARCH_KEY = File.open("#{SECRETS}/search_key").read.chomp
+GITHUB_PASSWORD = File.open("#{SECRETS}/github_pass").read.chomp
 
 # All mods.
 MODS = %w(EZ HD HT DT NC HR FL SD PF NF RL SO AP AT)
