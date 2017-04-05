@@ -159,7 +159,7 @@ def run
     log("\nMade #{c}/#{comments.length} attempted comment#{plur(comments.length)}")
     !comments.empty? && comments.each {|cmt| log("\n#{cmt[0]}\n#{cmt[1]}")}
   else
-    log('\nAttempted 0 comments')
+    log("\nAttempted 0 comments")
   end
   return nil
 end

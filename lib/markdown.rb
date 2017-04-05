@@ -16,7 +16,7 @@ def beatmap_markdown(post)
   link_url = "#{OSU_URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
   link_md = "[#{map_string(post.map)}](#{link_url})"
-  dl_md = "[(⇓)](#{OSU_URL}/osu/#{map['beatmap_id']})"
+  dl_md = "[(⇓)](#{OSU_URL}/d/#{map['beatmapset_id']})"
   creator_url = "#{OSU_URL}/u/#{map['creator']}"
   creator_md = "[#{map['creator']}](#{creator_url})"
 
