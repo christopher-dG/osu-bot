@@ -9,7 +9,7 @@ OSU_URL = 'https://osu.ppy.sh'
 
 # Log file.
 LOG = File.expand_path(
-  "#{File.dirname(__FILE__)}/../logs/#{`env TZ=America/Winnipeg date +"%m-%d-%Y_%H:%M"`.chomp}.log"
+  "#{File.dirname(__FILE__)}/../logs/#{`date +"%m-%d-%Y_%H:%M:%S"`.chomp}.log"
 )
 
 # Modes to run in.

@@ -3,11 +3,12 @@ dist: trusty
 
 before_script:
   - mkdir -p secrets logs/maps
-  - echo $REDDIT_PW > secrets/pass
-  - echo $REDDIT_SECRET > secrets/secret
-  - echo REDDIT_CLIENT_ID > secrets/client
-  - echo $OSU_API_KEY > secrets/key
+  - echo $REDDIT_PW > secrets/reddit_pass
+  - echo $REDDIT_SECRET > secrets/reddit_secret
+  - echo REDDIT_CLIENT_ID > secrets/reddit_client
+  - echo $OSU_API_KEY > secrets/osu_key
   - echo $OSUSEARCH_KEY > secrets/search_key
+  - echo $GITHUB_PW > secrets/github_pass
   - cd oppai; ./build.sh; cd ..
 
 after_script:

@@ -5,6 +5,7 @@ require_relative 'consts'
 require_relative'utils'
 
 if __FILE__ == $0
+  start_time = Time.now
   LOG = "#{File.dirname(LOG)}/github.log"
   issues = Github::Client::Issues.new(
     basic_auth: "christopher-dG:#{GITHUB_PASSWORD}",
@@ -19,11 +20,13 @@ if __FILE__ == $0
     password: REDDIT_PASSWORD,
   ).me
 
+  c = 0
+  
   me.comments.each do |comment|
     comment.reload.replies.each do |r|
 
       if r.body.start_with?("!error") &&
-         !me.saved.any? {|c| c.id == r.id && c.link_id == r.link_id}
+         !me.saved.any? {|c| c.id == r.id}
         # Generate the issue title and text.
         reply_text = "> #{r.body[6..-1].split("\n").join("\n> ")}".strip
         # URL not working yet.
@@ -39,7 +42,18 @@ if __FILE__ == $0
         # Open the issue.
         !DRY && issues.create(title: title, body: body)
         r.save
+        c += 1
       end
     end
   end
+
+  File.open("#{File.dirname(LOG)}/rolling.log", 'a') do |f|
+    f.write("Opened #{c} GitHub issue#{plur(c)}\n")
+    if DEBUG
+      f.write("GitHub bot took #{round(Time.now - start_time, 3)} seconds\n\n")
+    else
+      f.write("\n")
+    end
+  end
+  
 end

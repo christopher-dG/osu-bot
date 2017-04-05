@@ -121,7 +121,7 @@ end
 # Run the bot.
 def run
   File.open(LOG, 'a') {|f| f.write("#{`date`}\n")}
-  DEBUG && start_time = Time.now
+  start_time = Time.now
   comments, titles, c = [], [], 0
   begin
     osu = get_sub
@@ -167,36 +167,35 @@ def run
     log(".=============================.")
     log(".=============================.")
 
-    log("\nMade #{c}/#{comments.length} attempted comment#{plur(comments.length)}")
+    log("\nMade #{c}/#{comments.length} attempted comment#{plur(comments.length)}\n")
     !comments.empty? && comments.each {|cmt| log("\n#{cmt[0]}\n#{cmt[1]}")}
   else
     log("\nAttempted 0 comments")
   end
-  log("Complete run took #{round(Time.now - start_time, 3)} seconds")
+  log("Complete run took #{round(Time.now - start_time, 3)} seconds\n\n")
 
   if !DEBUG  # Simplified summary when not debugging.
     if c > 0
       text = "Made #{c}/#{comments.length} attempted comment#{plur(comments.length)}\n\n"
       titles.each {|t, success| text += "#{t}: #{success}\n"}
-      File.open(LOG, 'w') {|f| f.write(text)}
+      File.open(LOG, 'a') {|f| f.write("#{text}\n\n")}
     else
-      File.open(LOG, 'w') {|f| f.write('Attempted 0 comments')}
+      File.open(LOG, 'a') {|f| f.write("Attempted 0 comments\n\n")}
     end
   end
-
   return nil
 end
 
 if __FILE__ == $0
-  if !ARGV.empty? && ARGV.all? {|a| RUN_MODES.include?(a)}
-    ARGV.each {|a| global_variables.push(a)}
-  elsif !ARGV.empty?
+  if !ARGV.empty? && !ARGV.all {|a| RUN_MODS.include?(a)}
     raise("Invalid command line arguments: valid run modes are  #{RUN_MODES}")
   end
-
+  
   run
 
+  # Append the single-run results to the rolling log.
   File.open("#{File.dirname(LOG)}/rolling.log", 'a') do |rolling|
-    File.open(LOG) {|f| rolling.write("\n\n#{f.read}")}
+    File.open(LOG) {|f| rolling.write("#{f.read}")}
   end
 end
+
