@@ -14,7 +14,7 @@ LOG = File.expand_path(
 
 # Modes to run in.
 # 'DEBUG' -> Enable extra logging (todo), 'DRY' -> dry run, 'TEST' -> testing.
-RUN_MODES = ['DEBUG', 'DRY', 'TEST']
+RUN_MODES = %w(DEBUG DRY TEST)
 DEBUG = ARGV.include?("DEBUG")
 DRY = ARGV.include?("DRY")
 TEST = ARGV.include?("TEST")
@@ -28,35 +28,20 @@ REDDIT_CLIENT_ID = File.open("#{SECRETS}/client").read.chomp
 OSUSEARCH_KEY = File.open("#{SECRETS}/search_key").read.chomp
 
 # All mods.
-MODS = [
-  'EZ', 'HD', 'HT', 'DT', 'NC', 'HR', 'FL',
-  'SD', 'PF', 'NF', 'RL', 'SO', 'AP', 'AT',
-]
+MODS = %w(EZ HD HT DT NC HR FL SD PF NF RL SO AP AT)
 
 # Mods that don't affect difficulty values.
-NO_DIFF_MODS = ['SD', 'PF', 'AP', 'RL']
+NO_DIFF_MODS = %w(SD PF AP RL)
 
 # Mods that don't affect pp values.
-NO_PP_MODS = ['SD', 'PF']
+NO_PP_MODS = %w(SD PF)
 
 # Mods that don't give any pp.
-ZERO_PP_MODS = ['RL', 'AP', 'AT']
+ZERO_PP_MODS = %w(RL AP AT)
 
 # Integer mods according to: https://github.com/ppy/osu-api/wiki#mods
 BITWISE_MODS = {
-  0 => '',
-  1 => 'NF',
-  2 => 'EZ',
-  8 => 'HD',
-  16 => 'HR',
-  32 => 'SD',
-  64 => 'DT',
-  128 => 'RL',
-  256 => 'HT',
-  512 => 'NC',  # Always includes DT as well: NC = 576.
-  1024 => 'FL',
-  2048 => 'AT',
-  4096 => 'SO',
-  8192 => 'AT',
-  16384 => 'PF',
+  0 => '', 1 => 'NF', 2 => 'EZ', 8 => 'HD', 16 => 'HR', 32 => 'SD', 64 => 'DT',
+  128 => 'RL', 256 => 'HT', 512 => 'NC', 1024 => 'FL', 2048 => 'AT',
+  4096 => 'SO', 8192 => 'AT', 16384 => 'PF',
 }

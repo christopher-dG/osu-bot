@@ -3,7 +3,7 @@
 # Generate a markdown string with beatmap information.
 # Returns an empty string if something goes wrong.
 def beatmap_markdown(post)
-  DEBUG && log("Generating beatmap Markdown for #{post.title}")
+  log("Generating beatmap Markdown for #{post.title}")
   map, mods = post.map, post.mods
 
   # Get rank 1 on this map.
@@ -30,7 +30,7 @@ def beatmap_markdown(post)
   pp = [oppai(map['beatmap_id'], mode: 'pp').join(" #{BAR} ")]
 
   m = diff['SR'].length == 2  # Whether the table will include modded values.
-  DEBUG && log("Diff contains nomod#{m ? ' and modded' : ''} values")
+  log("Diff contains nomod#{m ? ' and modded' : ''} values")
   if m
     adj_bpm, adj_length = adjusted_timing(bpm[0], length[0], mods)
     bpm.push(adj_bpm)
@@ -40,7 +40,7 @@ def beatmap_markdown(post)
   end
   show_pp = pp != nil && (!m || !modded_pp.nil?)
 
-  DEBUG && m && !show_pp && log('oppai modded pp calculation failed: not displaying pp')
+  m && !show_pp && log('oppai modded pp calculation failed: not displaying pp')
   length[0] = timestamp(length[0])
 
   if m
@@ -49,7 +49,7 @@ def beatmap_markdown(post)
     headers, cols = [], []
   end
 
-  headers += ['CS', 'AR', 'OD', 'HP', 'SR', 'BPM', 'Length']
+  headers += %w(CS AR OD HP SR BPM Length)
   cols += [diff['CS'], diff['AR'], diff['OD'], diff['HP'], diff['SR'], bpm, length]
   show_pp && headers.push("pp (95% #{BAR} 98% #{BAR} 99% #{BAR} 100%)") && cols.push(pp)
 
@@ -58,13 +58,13 @@ def beatmap_markdown(post)
   map_md += "***\n\n"
   map_md += table(headers, cols)
 
-  DEBUG && log("Generated:\n'#{map_md}")
+  log("Generated:\n'#{map_md}")
   return map_md
 end
 
 # Generate a Markdown string with player information. Return empty string upon failure.
 def player_markdown(player, mode: '0')
-  DEBUG && log("Generating player Markdown for '#{player['username']}'")
+  log("Generating player Markdown for '#{player['username']}'")
   begin
     top_md = top_play(player, mode)
     id = player['user_id']
@@ -85,14 +85,14 @@ def player_markdown(player, mode: '0')
     headers += ['Top Play']
     cols += [[top_md]]
   end
-  DEBUG && log('Generating table for player')
+  log('Generating table for player')
   return table(headers, cols)
 end
 
 # Generate a Markdown string to be commented.
 # mode is the game mode: 0 => standard, 1 => taiko, 2 => catch, 3 => mania.
 def markdown(post)
-  DEBUG && log("Generating comment Markdown for '#{post.title}'")
+  log("Generating comment Markdown for '#{post.title}'")
   md = beatmap_markdown(post)
   player_md = player_markdown(post.player, mode: post.map['mode'])
   if !player_md.empty?
@@ -104,13 +104,13 @@ def markdown(post)
   dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
   md += "\n***\n\n"
   md += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})"
-  DEBUG && log("Generated full comment:\n#{md}")
+  log("Generated full comment:\n#{md}")
   return md
 end
 
 # Get a Markdown string for a player's top ranked play.
 def top_play(player, mode)
-  DEBUG && log("Generating Markdown for top play of #{player['username']} (mode=#{mode})")
+  log("Generating Markdown for top play of #{player['username']} (mode=#{mode})")
   begin
     play = request('user_best', u: player['user_id'], t: 'id', m: mode)
   rescue
@@ -133,7 +133,7 @@ def top_play(player, mode)
   # If the map Markdown is too long, split the top play into two lines. Need to
   # write a function to determine the length of rendered Markdown.
   md += "#{accuracy(play)} #{combo}#{BAR} #{format_num(round(play['pp']))}pp"
-  DEBUG && log("Generated:\n#{md}")
+  log("Generated:\n#{md}")
   return md
 end
 
@@ -144,11 +144,11 @@ end
 # of cols as there are headers.
 # table({"a"=>[1, 2], "b"=>[3, 4], "c"=>[5, 6]}) => "a|b|c\n:-:|:-:|:-:\n1|3|5\n2|4|6"
 def table(headers, cols, align: '')
-  DEBUG && log("Creating table.\nheaders: #{headers}\ncols: #{cols}")
+  log("Creating table.\nheaders: #{headers}\ncols: #{cols}")
   # Sanity checks.
   error = headers.empty? || cols.empty? || cols.all? {|r| r.empty?} ||
           cols.any? {|r| r.length != cols[0].length}
-  error && DEBUG && log('Sanity checks failed')
+  error && log('Sanity checks failed')
 
   table = "#{headers.join('|')}\n"
   sep = align == 'l' ? ':-' : align == 'r' ? '-:' : ':-:'
@@ -157,12 +157,12 @@ def table(headers, cols, align: '')
     row = ''
     cols.each {|c| row += "#{c[i]}|"}
     row = row[0...-1]  # Remove trailing '|'.
-    DEBUG && log("Row: #{row}")
+    log("Row: #{row}")
     table += "#{row}\n"
   end
 
   table = table.chomp
-  DEBUG && log("Generated table:\n#{table}")
+  log("Generated table:\n#{table}")
   return table
 end
 

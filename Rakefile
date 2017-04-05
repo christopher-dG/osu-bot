@@ -1,5 +1,5 @@
 task default: %w[test]
 
 task :test do
-  ruby File.join('test', 'unittest.rb')
+  ruby 'test/unittest.rb'
 end

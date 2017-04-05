@@ -2,25 +2,25 @@
 # lenient because false positives are more of a problem then false negatives.
 def should_comment(post)
   is_score = post.title =~ /.*\|.*-.*\[.*\].*/ && !post.is_self
-  DEBUG && log("Post is #{is_score ? '' : 'not '}a score post")
+  log("Post is #{is_score ? '' : 'not '}a score post")
   if is_score && DRY
     return true
   elsif !is_score
     return false
   end
   commented = post.comments.any? {|c| c.author.name == 'osu-bot'}
-  DEBUG && log("Post has #{commented ? 'already' : 'not'} been commented on")
+  log("Post has #{commented ? 'already' : 'not'} been commented on")
   return !commented
 end
 
 # Split a title into relevant pieces: player, song, and diff names.
 def split_title(title)
-  DEBUG && log("Splitting title '#{title}'")
+  log("Splitting title '#{title}'")
   player, map = title.split('|', 2)
   player_name = player.match(/[\w\-\[\]][ \w\-\[\]]+[\w\-\[\]]/).to_s
   song_name = map[0...map.rindex('[')].strip  # Artist - Title
   diff_name = map[map.rindex('[') + 1...map.rindex(']')].strip
-  DEBUG && log("player: '#{player_name}', song: '#{song_name}', diff: '#{diff_name}'")
+  log("player: '#{player_name}', song: '#{song_name}', diff: '#{diff_name}'")
   return player_name, song_name, diff_name
 end
 
@@ -28,7 +28,7 @@ end
 # https://github.com/ppy/osu-api/wiki#mods
 # Returns '+Mod1Mod2Mod3' or an empty string.
 def mods_from_int(mods)
-  DEBUG && log("Parsing mods from integer: #{mods}")
+  log("Parsing mods from integer: #{mods}")
   i = mods.to_i
   mod_list = []
   BITWISE_MODS.keys.reverse.each do |mod|
@@ -36,21 +36,21 @@ def mods_from_int(mods)
       mod_list.include?('NC') && mod_list.delete('DT')
       # Set the order.
       MODS.each {|m| mod_list.delete(m) && mod_list.push(m)}
-      DEBUG && log("Mods: #{mod_list}")
+      log("Mods: #{mod_list}")
       return mod_list
     elsif mod <= i
       mod_list.push(BITWISE_MODS[mod])
       i -= mod
     end
   end
-  DEBUG && log('Did not find mods')
+  log('Did not find mods')
   return ''
 end
 
 # Get a modstring from a post title.
 # Returns an array of mods or an empty string if mods are not found.
 def mods_from_string(title)
-  DEBUG && log("Getting mods from string: '#{title}'")
+  log("Getting mods from string: '#{title}'")
   title = title.upcase
 
   is_mods = Proc.new {|list| list.all? {|m| MODS.include?(m)}}
@@ -65,7 +65,7 @@ def mods_from_string(title)
     list = string.include?(',') ? string.split(',') : string.scan(/[A-Z]{1,2}/)
     if is_mods.call(list)
       MODS.each {|m| list.delete(m) && list.push(m)}
-      DEBUG && log("Mods: #{list}")
+      log("Mods: #{list}")
       return list
     end
   end
@@ -75,11 +75,11 @@ def mods_from_string(title)
     list = token.gsub(',', '').scan(/[A-z]{1,2}/)
     if is_mods.call(list)
       MODS.each {|m| list.delete(m) && list.push(m)}
-      DEBUG && log("Mods: #{list}")
+      log("Mods: #{list}")
       return list
     end
   end
-  DEBUG && log('Did not find mods.')
+  log('Did not find mods.')
   return ''
 end
 
@@ -87,7 +87,7 @@ end
 # Returns a hash in the form: {'property' => ['nomod', 'modded']}. If there are
 #   no mods or the mods do not affect the difficulty, values are length-one arrays.
 def diff_vals(map, mods)
-  DEBUG && log("Getting diff values from #{map_string(map)} with mods '+#{mods.join}'")
+  log("Getting diff values from #{map_string(map)} with mods '+#{mods.join}'")
   nomod = {
     'CS' => [map['diff_size']],
     'AR' => [map['diff_approach']],
@@ -95,14 +95,14 @@ def diff_vals(map, mods)
     'HP' => [map['diff_drain']],
     'SR' => [round(map['difficultyrating'], 2)],
   }
-  DEBUG && log("Nomod values: #{nomod}")
+  log("Nomod values: #{nomod}")
 
   modded = !mods.empty? ? oppai(map['beatmap_id'], mods: mods, mode: 'diff') : nil
-  DEBUG && log("Modded values from oppai: #{modded}")
+  log("Modded values from oppai: #{modded}")
 
   # If the mods won't change the values: don't return the mod
   if modded.nil? || mods.all? {|m| NO_DIFF_MODS.include?(m)}
-    DEBUG && log('Mods were empty or ignored, returning nomod values')
+    log('Mods were empty or ignored, returning nomod values')
     return nomod
   end
 
@@ -122,27 +122,27 @@ def diff_vals(map, mods)
     m_hp = nomod['HP'][0]
   end
 
-  DEBUG && log("Manually calculated HP value: #{m_hp}")
+  log("Manually calculated HP value: #{m_hp}")
   vals = {
     'CS' => [nomod['CS'][0], modded['CS']], 'AR' => [nomod['AR'][0], modded['AR']],
     'OD' => [nomod['OD'][0], modded['OD']], 'HP' => [nomod['HP'][0], m_hp],
     'SR' => [nomod['SR'][0], modded['SR']]
   }
-  DEBUG && log("Final diff values: #{vals}")
+  log("Final diff values: #{vals}")
   return vals
 end
 
 # Get tthe ranked status of a beatmap.
 def ranked_status(map)
-  DEBUG && log("Getting ranked status for '#{map_string(map)}")
+  log("Getting ranked status for '#{map_string(map)}")
   # '2' => 'Approved' but that's equivalent to 'Ranked'.
   approvals = {'1' => 'Ranked', '2' => 'Ranked', '3' => 'Qualified', '4' => 'Loved'}
   if approvals.key?(map['approved'])
     status = "#{approvals[map['approved']]} (#{map['approved_date'][0..9]})"
-    DEBUG && log("Ranked status: #{status}")
+    log("Ranked status: #{status}")
     return status
   else
-    DEBUG && log('Ranked status: Unranked')
+    log('Ranked status: Unranked')
     return 'Unranked'
   end
 end
@@ -151,7 +151,7 @@ end
 # Length is the number of seconds as either an int or string.
 # Returns [adjusted bpm, adjusted length_seconds] as strings.
 def adjusted_timing(bpm, length, mods)
-  DEBUG && log("Getting adjusted timing, bpm: #{bpm}, length: #{length}, mods: +#{mods.join}")
+  log("Getting adjusted timing, bpm: #{bpm}, length: #{length}, mods: +#{mods.join}")
   bpm, length = bpm.to_i, length.to_i
   adj_bpm, adj_length = bpm, length
   if ['DT', 'NC'].any? {|m| mods.include?(m)}
@@ -161,19 +161,19 @@ def adjusted_timing(bpm, length, mods)
     adj_bpm = round(bpm * 0.66)
     adj_length = round(length * 1.5)
   end
-  DEBUG && log("Adjusted bpm, length: #{adj_bpm}, #{adj_length}")
+  log("Adjusted bpm, length: #{adj_bpm}, #{adj_length}")
   return adj_bpm, adj_length
 end
 
 # Get a score's percentage accuracy as a string.
 def accuracy(score)
-  DEBUG && log('Getting accuracy')
+  log('Getting accuracy')
   c = {
     300 => score['count300'].to_i, 100 => score['count100'].to_i,
     50 => score['count50'].to_i, 0 => score['countmiss'].to_i
   }
   o = c.values.sum.to_f  # Total objects.
   acc = "#{round([c[300] / o, c[100] / o * 1/3.to_f, c[50] / o * 1/6.to_f].sum * 100, 2)}%"
-  DEBUG && log("Accuracy: #{acc}")
+  log("Accuracy: #{acc}")
   return acc
 end

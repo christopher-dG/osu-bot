@@ -59,9 +59,9 @@ end
 # player: https://github.com/ppy/osu-api/wiki#response-1
 # Returns a beatmap: https://github.com/ppy/osu-api/wiki#response
 def beatmap_search(map_name, player)
-  DEBUG && log("Searching for '#{map_name}' with player '#{player['username']}'")
+  log("Searching for '#{map_name}' with player '#{player['username']}'")
   map_id = -1
-  DEBUG && log('Searching player\'s recent events')
+  log('Searching player\'s recent events')
   player['events'].each do |e|
     if bleach(e['display_html']).include?(bleach(map_name))
       map_id = e['beatmap_id']
@@ -70,17 +70,17 @@ def beatmap_search(map_name, player)
   end
   if map_id != -1
     begin
-      DEBUG && log("Found beatmap match '#{map_id}' in events")
+      log("Found beatmap match '#{map_id}' in events")
       return request('beatmaps', b: map_id)
     rescue
       log("Fetching beatmap data for '#{map_name}' from '#{map_id}' failed, continuing")
     end
   end
 
-  DEBUG && log('Searching player\'s recent plays')
+  log('Searching player\'s recent plays')
   # Use player's recent plays as a backup. This takes significantly longer.
   seen_ids = []  # Avoid making duplicate API calls.
-  DEBUG && time = Time.now
+  time = Time.now
   begin
     recents = request('user_recent', u: player['user_id'], t: 'id')
     l = recents.length
@@ -89,26 +89,26 @@ def beatmap_search(map_name, player)
   else
     recents.each do |play|
       id = play['beatmap_id']
-      seen_ids.include?(id) && ((DEBUG && log("Skipping duplicate: '#{id}'")) || true) && next
+      seen_ids.include?(id) && !log("Skipping duplicate: '#{id}'") && next
       seen_ids.push(id)
       begin
         map = request('beatmaps', b: id)
       rescue
-        log("Fetching beatmap data for '#{map_name}' failed, continuing")  && next
+        !log("Fetching beatmap data for '#{map_name}' failed, continuing")  && next
       end
       if bleach_cmp("#{map['artist']} - #{map['title']} [#{map['version']}]", map_name)
-        DEBUG && log("Found beatmap match '#{map['beatmap_id']}' in recents")
-        DEBUG && msg = "Iterating over #{l} recent play#{plur(l)} took "
-        DEBUG && msg += "#{round(Time.now - time, 5)} seconds, map was not retrieved"
-        DEBUG && log(msg)
+        log("Found beatmap match '#{map['beatmap_id']}' in recents")
+        msg = "Iterating over #{l} recent play#{plur(l)} took "
+        msg += "#{round(Time.now - time, 5)} seconds, map was not retrieved"
+        log(msg)
         return map
       end
     end
   end
 
-  DEBUG && msg = "Iterating over #{l} recent play#{plur(l)} "
-  DEBUG && msg += "took #{round(Time.now - time,  5)} seconds, map was not retrieved"
-  DEBUG && log(msg)
+  msg = "Iterating over #{l} recent play#{plur(l)} "
+  msg += "took #{round(Time.now - time,  5)} seconds, map was not retrieved"
+  log(msg)
 
   map_id == -1 && log('Map was not found.')
 
@@ -124,14 +124,14 @@ def run
   begin
     osu = get_sub
   rescue
-    log("Reddit initialization failed.") && exit
+    !log("Reddit initialization failed.") && exit
   end
   osu.new.each do |p|
-    DEBUG && log("\nPost title: #{p.title}")
+    log("\nPost title: #{p.title}")
     if should_comment(p)
       post = ScorePost.new(title: p.title)
       if !post.error
-        DEBUG && log(post.inspect)
+        log(post.inspect)
         c += 1
         comment = markdown(post)
         if !comment.empty?

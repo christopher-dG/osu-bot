@@ -14,6 +14,9 @@ def plur(n) n == 1 ? '' : 's' end
 # Format a map's title information.
 def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
 
+# Write 'msg' to a log file, only if 'DEBUG' is set. !log(msg) is always true.
+def log(msg) DEBUG && File.open(LOG, 'a') {|f| f.write("#{msg}\n")} && puts(msg) end
+
 # Round 'n' to 'd' decimal places as a string.
 def round(n, d=0)
   n = n.to_f.round(d)
@@ -24,7 +27,7 @@ end
 # Get a subreddit, /r/osugame by default.
 def get_sub
   sub = TEST ? 'osubottesting' : 'osugame'
-  DEBUG && log("Getting subreddit '#{sub}'")
+  log("Getting subreddit '#{sub}'")
   for i in 0..3
     begin
       reddit = Redd.it(
@@ -41,7 +44,7 @@ end
 
 # Convert a number of seconds to a 'mm:ss' timestamp. Can accept s as a string.
 def timestamp(n)
-  DEBUG && log("Converting #{n} seconds to timestamp")
+  log("Converting #{n} seconds to timestamp")
   s = n.to_i
   h = s / 60
   m = s % 60
@@ -50,7 +53,7 @@ def timestamp(n)
   else
     time = "#{h}:#{m}"
   end
-  DEBUG && log("Converted to #{time}")
+  log("Converted to #{time}")
   return time
 end
 
@@ -61,7 +64,7 @@ end
 # t: user type ('string', 'id')
 # m: mode (0=standard)
 def request(request, u: '', b: '', t: '', m: '')
-  DEBUG && log("Making request with u: '#{u}', b: '#{b}', t: '#{t}', m: '#{m}'")
+  log("Making request with u: '#{u}', b: '#{b}', t: '#{t}', m: '#{m}'")
   time = Time.now
   suffix = "k=#{OSU_KEY}"
   if request == 'user_recent'
@@ -89,24 +92,10 @@ def request(request, u: '', b: '', t: '', m: '')
 
   url = "#{OSU_URL}/api/get_#{request}?#{suffix}"
   safe_url = url.sub(OSU_KEY, '$private_key')
-  DEBUG && log("Requesting data from #{safe_url}")
+  log("Requesting data from #{safe_url}")
   response = HTTParty.get(url).parsed_response
-  DEBUG && log("Request from #{safe_url} took #{round(Time.now - time, 5)} seconds")
+  log("Request from #{safe_url} took #{round(Time.now - time, 5)} seconds")
   return is_list ? response : response[0]
-end
-
-# If 'msg' is supplied, write it to a log file. Otherwise, print out 'n' recent logs.
-def log(msg='',  n: 10)
-  if msg.empty?
-    `ls #{File.dirname(LOG)}/*.log | tail -#{n}`.split("\n").each do |file|
-      File.open(file){|f| puts("#{file}:\n#{f.read}----")}
-    end
-  else
-    msg = msg.end_with?('.') ? msg : "#{msg}."
-    File.open(LOG, 'a') {|f| f.write("#{msg}\n")}
-    DEBUG && puts(msg)
-  end
-  return true
 end
 
 # Manually comment on an arbitrarily named Reddit post. Useful when a post has
