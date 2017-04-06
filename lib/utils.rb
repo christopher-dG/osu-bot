@@ -28,14 +28,25 @@ end
 def get_sub
   sub = TEST ? 'osubottesting' : 'osugame'
   log("Getting subreddit '#{sub}'")
-  reddit = Redd.it(
+  return Redd.it(
     user_agent: 'osu!-bot',
     client_id: REDDIT_CLIENT_ID,
     secret: REDDIT_SECRET,
     username: 'osu-bot',
     password: REDDIT_PASSWORD,
   ).subreddit(sub)
-  return reddit
+end
+
+# Get the user, /u/osu-bot.
+def get_bot
+  log('Getting user /u/osu-bot')
+  return Redd.it(
+    user_agent: 'osu!-bot',
+    client_id: REDDIT_CLIENT_ID,
+    secret: REDDIT_SECRET,
+    username: 'osu-bot',
+    password: REDDIT_PASSWORD,
+  ).me
 end
 
 # Convert a number of seconds to a 'mm:ss' timestamp. Can accept s as a string.
@@ -61,7 +72,7 @@ end
 # t: user type ('string', 'id')
 # m: mode (0=standard)
 def request(request, u: '', b: '', s: '', t: '', m: '')
-  $request_count += 1
+  defined?($request_count) && $request_count += 1
   log("Making request with u: '#{u}', b: '#{b}', t: '#{t}', m: '#{m}'")
   time = Time.now
   suffix = "k=#{OSU_KEY}"
@@ -89,7 +100,7 @@ def request(request, u: '', b: '', s: '', t: '', m: '')
   if ['string', 'id'].include?(t)
     suffix += "&type=#{t}"
   end
-  if m.to_i >= 0 && m.to_i <= 3
+  if !m.empty? && m.to_i >= 0 && m.to_i <= 3
     suffix += "&m=#{m}&a=1"
   end
 

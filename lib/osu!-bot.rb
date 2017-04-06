@@ -161,11 +161,12 @@ def run
   end
 
   if c > 0
-    log("\n.=============================.")  # RIP symmetry.
-    log(".=============================.")
-    log(".========== SUMMARY ==========.")
-    log(".=============================.")
-    log(".=============================.")
+    log("\n")
+    log("===========================================")
+    log("===========================================")
+    log("================= SUMMARY =================")
+    log("===========================================")
+    log("===========================================")
 
     log("\nMade #{comments.length}/#{c} attempted comments\n")
     !comments.empty? && comments.each {|cmt| log("\n#{cmt[0]}\n#{cmt[1]}")}
@@ -173,7 +174,7 @@ def run
     log("\nAttempted 0 comments")
   end
   log("Complete run took #{round(Time.now - start_time, 3)} seconds")
-  log("Made #{$request_count} API requests.\n\n")
+  log("Made #{$request_count} API request#{plur($request_count)}\n\n")
 
   if !DEBUG  # Simplified summary when not debugging.
     if c > 0
