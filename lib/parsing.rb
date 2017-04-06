@@ -112,12 +112,10 @@ def diff_vals(map, mods)
 
   # Oppai does not handle HP drain.
   if mods.include?('EZ')
-    m_hp = round(nomod['HP'][0].to_f * ez_hp_scalar), 2
-    m_hp = m_hp.to_i == m_hp ? round(m_hp) : m_hp.to_s
+    m_hp = round(nomod['HP'][0].to_f * ez_hp_scalar, 2)
   elsif mods.include?('HR')
     m_hp = round(nomod['HP'][0].to_f * hr_hp_scalar, 2)
-    m_hp = m_hp.to_f > hp_max ?
-             hp_max.to_s : m_hp.to_i == m_hp ? round(m_hp) : m_hp.to_s
+    m_hp = m_hp.to_f > hp_max ? 10 : m_hp
   else
     m_hp = nomod['HP'][0]
   end
