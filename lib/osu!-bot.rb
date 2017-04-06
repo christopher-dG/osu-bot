@@ -35,6 +35,11 @@ class ScorePost
     @mods = mods_from_string(@title)
     begin
       @player = request('user', u: player_name, t: 'string')
+      if @player.nil?
+        log("Emptty API response for '#{player_name}'")
+        @error = true
+        return
+      end
     rescue
       log("Fetching player data for '#{player_name}' failed.")
       @error = true
