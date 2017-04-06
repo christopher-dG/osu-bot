@@ -63,7 +63,7 @@ def beatmap_search(map_name, player)
   map_id = -1
   log('Searching player\'s recent events')
   player['events'].each do |e|
-    if bleach(e['display_html']).include?(bleach(map_name))
+    if bleach(e['display_html']).include?(bleach(map_name.gsub('&', '&amp;')))
       map_id = e['beatmap_id']
       break
     end
@@ -96,7 +96,7 @@ def beatmap_search(map_name, player)
       rescue
         !log("Fetching beatmap data for '#{map_name}' failed, continuing")  && next
       end
-      if bleach_cmp("#{map['artist']} - #{map['title']} [#{map['version']}]", map_name)
+      if bleach_cmp(map_string(map), map_name)
         log("Found beatmap match '#{map['beatmap_id']}' in recents")
         msg = "Iterating over #{l} recent play#{plur(l)} took "
         msg += "#{round(Time.now - time, 5)} seconds, map was not retrieved"
@@ -172,7 +172,8 @@ def run
   else
     log("\nAttempted 0 comments")
   end
-  log("Complete run took #{round(Time.now - start_time, 3)} seconds\n\n")
+  log("Complete run took #{round(Time.now - start_time, 3)} seconds")
+  log("Made #{$request_count} API requests.\n\n")
 
   if !DEBUG  # Simplified summary when not debugging.
     if c > 0
@@ -191,6 +192,7 @@ if __FILE__ == $0
     raise("Invalid command line arguments: valid run modes are  #{RUN_MODES}")
   end
 
+  $request_count = 0
   run
 
   # Append the single-run results to the rolling log.

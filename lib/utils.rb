@@ -21,25 +21,21 @@ def log(msg) DEBUG && File.open(LOG, 'a') {|f| f.write("#{msg}\n")} && puts(msg)
 # places even if they are all zeroes.
 def round(n, d=0, force: false)
   n = n.to_f.round(d)
-  return (n.to_i == n && !force) ? n.to_i : n.to_s
+  return (n.to_i == n && !force) ? n.to_i.to_s : n.to_s
 end
 
 # Get a subreddit, /r/osugame by default.
 def get_sub
   sub = TEST ? 'osubottesting' : 'osugame'
   log("Getting subreddit '#{sub}'")
-  for i in 0..3
-    begin
-      reddit = Redd.it(
-        user_agent: 'osu!-bot',
-        client_id: REDDIT_CLIENT_ID,
-        secret: REDDIT_SECRET,
-        username: 'osu-bot',
-        password: REDDIT_PASSWORD,
-      ).subreddit(sub)
-      return reddit
-    end
-  end
+  reddit = Redd.it(
+    user_agent: 'osu!-bot',
+    client_id: REDDIT_CLIENT_ID,
+    secret: REDDIT_SECRET,
+    username: 'osu-bot',
+    password: REDDIT_PASSWORD,
+  ).subreddit(sub)
+  return reddit
 end
 
 # Convert a number of seconds to a 'mm:ss' timestamp. Can accept s as a string.
@@ -61,9 +57,11 @@ end
 # function should do its own error handling.
 # u: user name or id
 # b: beatmap id
+# s: beatmapset id
 # t: user type ('string', 'id')
 # m: mode (0=standard)
-def request(request, u: '', b: '', t: '', m: '')
+def request(request, u: '', b: '', s: '', t: '', m: '')
+  $request_count += 1
   log("Making request with u: '#{u}', b: '#{b}', t: '#{t}', m: '#{m}'")
   time = Time.now
   suffix = "k=#{OSU_KEY}"
@@ -71,7 +69,12 @@ def request(request, u: '', b: '', t: '', m: '')
     suffix += "&u=#{u}&limit=50"
     is_list = true
   elsif request == 'beatmaps'
-    suffix += "&b=#{b}&limit=1"
+    # 'b' and 's' should never both be set. If they are, just take 'b'.
+    if !b.empty?
+      suffix += "&b=#{b}&limit=1"
+    elsif !s.empty?
+      suffix += "&s=#{s}&limit=1"
+    end
     is_list = false
   elsif request == 'user_best'
     suffix += "&u=#{u}&limit=1"
