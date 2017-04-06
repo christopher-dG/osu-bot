@@ -6,12 +6,15 @@ def beatmap_markdown(post)
   log("Generating beatmap Markdown for #{post.title}")
   map, mods = post.map, post.mods
 
-  # Get rank 1 on this map.
-  top_play = request('scores', b: map['beatmap_id'])
-  rank_one = "#1: [#{top_play['username']}](#{OSU_URL}/u/#{top_play['username']}) ("
-  rank_one_mods = mods_from_int(top_play['enabled_mods'])
-  !rank_one_mods.empty? && rank_one += "+#{rank_one_mods.join} - "
-  rank_one += "#{accuracy(top_play)} - #{round(top_play['pp'])}pp)"
+  status = ranked_status(map)
+  if status != 'Unranked'
+    # Get rank 1 on this map.
+    top_play = request('scores', b: map['beatmap_id'])
+    rank_one = "#1: [#{top_play['username']}](#{OSU_URL}/u/#{top_play['username']}) ("
+    rank_one_mods = mods_from_int(top_play['enabled_mods'])
+    !rank_one_mods.empty? && rank_one += "+#{rank_one_mods.join} - "
+    rank_one += "#{accuracy(top_play)}% - #{round(top_play['pp'])}pp)"
+  end
 
   link_url = "#{OSU_URL}/b/#{map['beatmap_id']}"
   link_label = "#{map['artist']} - #{map['title']} [#{map['version']}]"
@@ -21,13 +24,15 @@ def beatmap_markdown(post)
   creator_md = "[#{map['creator']}](#{creator_url})"
 
   combo = "#{map['max_combo']}x max combo"
-  status = ranked_status(map)
+
   pc = "#{format_num(map['playcount'])} plays"
 
   diff = diff_vals(map, mods)  # {key => [nomod, modded]}
   bpm = [round(map['bpm']).to_i]
   length = [map['total_length']]
-  pp = [oppai(map['beatmap_id'], mode: 'pp').join(" #{BAR} ")]
+  acc = accuracy(request('scores', u: post.player['user_id'], t: 'id', b: map['beatmap_id']))
+
+  pp = [oppai(map['beatmap_id'], mode: 'pp', acc: acc).join(" #{BAR} ")]
 
   m = diff['SR'].length == 2  # Whether the table will include modded values.
   log("Diff contains nomod#{m ? ' and modded' : ''} values")
@@ -35,7 +40,7 @@ def beatmap_markdown(post)
     adj_bpm, adj_length = adjusted_timing(bpm[0], length[0], mods)
     bpm.push(adj_bpm)
     length.push(timestamp(adj_length))
-    modded_pp = oppai(map['beatmap_id'], mods: mods, mode: 'pp')
+    modded_pp = oppai(map['beatmap_id'], mods: mods, mode: 'pp', acc: acc)
     !modded_pp.nil? && pp.push(modded_pp.join(" #{BAR} "))
   end
   show_pp = pp != nil && (!m || !modded_pp.nil?)
@@ -51,10 +56,16 @@ def beatmap_markdown(post)
 
   headers += %w(CS AR OD HP SR BPM Length)
   cols += [diff['CS'], diff['AR'], diff['OD'], diff['HP'], diff['SR'], bpm, length]
-  show_pp && headers.push("pp (95% #{BAR} 98% #{BAR} 99% #{BAR} 100%)") && cols.push(pp)
+  accs = %W(95% 98% 99% 100% #{acc}%).sort_by(&:to_i).join(" #{BAR} ")
+
+  show_pp && headers.push("pp (#{accs})") && cols.push(pp)
 
   map_md = "##### **#{link_md} #{dl_md} by #{creator_md}**\n\n"
-  map_md += "**#{rank_one} || #{combo} || #{status} || #{pc}**\n\n"
+  if status != 'Unranked'
+    map_md += "**#{rank_one} || #{combo} || #{status} || #{pc}**\n\n"
+  else
+    map_md += "**#{combo} || #{status}**\n\n"
+  end
   map_md += "***\n\n"
   map_md += table(headers, cols)
 
@@ -134,7 +145,7 @@ def top_play(player, mode)
   md += "#{play['countmiss'] == '0' ? 'FC ' : ''}#{BAR} "
   # If the map Markdown is too long, split the top play into two lines. Need to
   # write a function to determine the length of rendered Markdown.
-  md += "#{accuracy(play)} #{combo}#{BAR} #{format_num(round(play['pp']))}pp"
+  md += "#{accuracy(play)}% #{combo}#{BAR} #{format_num(round(play['pp']))}pp"
   log("Generated:\n#{md}")
   return md
 end

@@ -17,10 +17,11 @@ def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
 # Write 'msg' to a log file, only if 'DEBUG' is set. !log(msg) is always true.
 def log(msg) DEBUG && File.open(LOG, 'a') {|f| f.write("#{msg}\n")} && puts(msg) end
 
-# Round 'n' to 'd' decimal places as a string.
-def round(n, d=0)
+# Round 'n' to 'd' decimal places as a string. If 'force' is true: round to 'd'
+# places even if they are all zeroes.
+def round(n, d=0, force: false)
   n = n.to_f.round(d)
-  return (n.to_i == n ? n.to_i : n).to_s
+  return (n.to_i == n && !force) ? n.to_i : n.to_s
 end
 
 # Get a subreddit, /r/osugame by default.

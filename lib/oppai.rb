@@ -21,7 +21,7 @@ def cmd(mods:, acc: '')
 end
 
 # Get pp data from oppai for the map stored in 'map.osu' with some given mods.
-def oppai_pp(map_id, mods, nomod_vals: [])
+def oppai_pp(map_id, acc, mods, nomod_vals: [])
   log("Getting pp from oppai for mods +#{mods.join} with nomod values: #{nomod_vals}")
   if !nomod_vals.empty? && mods.all? {|m| NO_PP_MODS.include?(m)}
     # If the mods won't change the pp values, return the nomod value.
@@ -35,7 +35,7 @@ def oppai_pp(map_id, mods, nomod_vals: [])
 
   result = []
   begin
-    %w(95 98 99 100).each do |acc|
+    %W(95 98 99 100 #{acc}).sort_by(&:to_i).each do |acc|
       pp = round(`#{cmd(mods: mods, acc: acc)}`.split("\n")[-1].match(/[^ p]+/).to_s)
       $? != 0 && raise
       log("pp result from oppai: #{pp}")
@@ -78,7 +78,7 @@ end
 # Returns a hash with relevant information.
 # If mode = 'pp', get pp data. If mode = 'diff', get diff values.
 # nomod_vals is a list of previously computed nomod pp values.
-def oppai(map_id, mode:, mods: [], nomod_vals: [])
+def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
   begin
     download_map(map_id)
   rescue
@@ -92,7 +92,7 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [])
 
     result = ''
     if mode == 'pp'
-      result = oppai_pp(map_id, mods, nomod_vals: nomod_vals)
+      result = oppai_pp(map_id, acc, mods, nomod_vals: nomod_vals)
     elsif mode == 'diff'
       result = oppai_diff(map_id, mods)
     end

@@ -173,7 +173,7 @@ def accuracy(score)
     50 => score['count50'].to_i, 0 => score['countmiss'].to_i
   }
   o = c.values.sum.to_f  # Total objects.
-  acc = "#{round([c[300] / o, c[100] / o * 1/3.to_f, c[50] / o * 1/6.to_f].sum * 100, 2)}%"
+  acc = "#{round([c[300] / o, c[100] / o * 1/3.to_f, c[50] / o * 1/6.to_f].sum * 100, 2, force: true)}"
   log("Accuracy: #{acc}")
   return acc
 end

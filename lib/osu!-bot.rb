@@ -167,7 +167,7 @@ def run
     log(".=============================.")
     log(".=============================.")
 
-    log("\nMade #{c}/#{comments.length} attempted comment#{plur(comments.length)}\n")
+    log("\nMade #{comments.length}/#{c} attempted comments\n")
     !comments.empty? && comments.each {|cmt| log("\n#{cmt[0]}\n#{cmt[1]}")}
   else
     log("\nAttempted 0 comments")
@@ -176,7 +176,7 @@ def run
 
   if !DEBUG  # Simplified summary when not debugging.
     if c > 0
-      text = "Made #{c}/#{comments.length} attempted comment#{plur(comments.length)}\n\n"
+      text = "Made #{comments.length}/#{c} attempted comments\n\n"
       titles.each {|t, success| text += "#{t}: #{success}\n"}
       File.open(LOG, 'a') {|f| f.write("#{text}\n\n")}
     else
@@ -187,10 +187,10 @@ def run
 end
 
 if __FILE__ == $0
-  if !ARGV.empty? && !ARGV.all {|a| RUN_MODS.include?(a)}
+  if !ARGV.empty? && !ARGV.all? {|a| RUN_MODES.include?(a)}
     raise("Invalid command line arguments: valid run modes are  #{RUN_MODES}")
   end
-  
+
   run
 
   # Append the single-run results to the rolling log.
@@ -198,4 +198,3 @@ if __FILE__ == $0
     File.open(LOG) {|f| rolling.write("#{f.read}")}
   end
 end
-
