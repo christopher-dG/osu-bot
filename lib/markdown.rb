@@ -178,14 +178,11 @@ def markdown(post)
 
   show_beatmap || show_player || log('Not enough info to display') || raise
 
-  gh_url = 'https://github.com/christopher-dG/osu-bot'
-  dev_url = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
-
   md = ''
   show_beatmap && md += "#{beatmap_md}\n"
   show_player && md += "\n#{player_md}\n"
   md += "***\n\n"
-  md += "^(I'm a bot. )[^Source](#{gh_url})^( | )[^Developer](#{dev_url})\n\n"
+  md += "^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})\n\n"
   md += '^(Notice a mistake? Make a reply to this comment '
   md += 'beginning with "!error" describing it.)'
 

@@ -4,8 +4,20 @@ OPPAI = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
 # Vertical line delimiter that won't break Markdown tables.
 BAR = '&#124;'
 
+# Star icon.
+STAR = '&#9733;'
+
+# Download icon.
+DOWNLOAD = '&#8659;'
+
 # Base for API requests.
 OSU_URL = 'https://osu.ppy.sh'
+
+# Repo URL.
+GH_URL = 'https://github.com/christopher-dg/osu-bot'
+
+# Reddit profile URL.
+DEV_URL = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
 # Log file.
 LOG = File.expand_path(

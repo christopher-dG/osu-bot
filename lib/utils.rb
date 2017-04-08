@@ -14,8 +14,10 @@ def plur(n) n == 1 ? '' : 's' end
 # Format a map's title information.
 def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
 
-# Write 'msg' to a log file, only if 'DEBUG' is set. Always returns false.
-def log(msg) DEBUG && File.open(LOG, 'a') {|f| f.write("#{msg}\n")} && puts(msg) end
+# Write 'msg' to a log file, only if 'DEBUG' or 'force' is set. Always returns false.
+def log(msg, force: false)
+  (DEBUG || force) && File.open(LOG, 'a') {|f| f.write("#{msg}\n")} && puts(msg)
+end
 
 # Round 'n' to 'd' decimal places as a string. If 'force' is true: round to 'd'
 # places even if they are all zeroes.
@@ -73,7 +75,10 @@ end
 # m: mode (0=standard)
 def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
   defined?($request_count) && $request_count += 1
-  log("Making request with u: '#{u}', b: '#{b}', t: '#{t}', m: '#{m}'")
+  msg = "Making request with u: '#{u}', b: '#{b}', "
+  msg += "s: '#{s}', t: '#{t}', m: '#{m}', l: '#{l}'"
+  log(msg)
+
   time = Time.now
   suffix = "k=#{OSU_KEY}"
   if request == 'user_recent'
@@ -83,10 +88,11 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
     # 'b' and 's' should never both be set. If they are, just take 'b'.
     if !b.empty?
       suffix += "&b=#{b}&limit=#{l}"
+      is_list = false
     elsif !s.empty?
-      suffix += "&s=#{s}&limit=#{l}"
+      suffix += "&s=#{s}"
+      is_list = true
     end
-    is_list = false
   elsif request == 'user_best'
     suffix += "&u=#{u}&limit=#{l}"
     is_list = false
