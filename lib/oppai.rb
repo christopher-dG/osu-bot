@@ -12,10 +12,10 @@ end
 
 # Generate a command to run oppai on 'map.osu' with given mods and acc.
 def cmd(mods:, acc: '')
-  acc = acc.empty? ? '' : "#{acc}%"
+  acc = acc.empty? ? '' : "#{acc}% "
   log("Constructing oppai command for mods: #{mods}, acc: #{acc}")
   cmd = "#{OPPAI} map.osu #{acc}"
-  !mods.empty? &&  cmd += " +#{mods.join}"
+  !mods.empty? &&  cmd += "+#{mods.join}"
   log("Command: #{cmd}")
   return cmd
 end
@@ -25,7 +25,7 @@ def oppai_pp(map_id, acc, mods, nomod_vals: [])
   log("Getting pp from oppai for mods +#{mods.join} with nomod values: #{nomod_vals}")
   if !nomod_vals.empty? && mods.all? {|m| NO_PP_MODS.include?(m)}
     # If the mods won't change the pp values, return the nomod value.
-    log('Mods  don\'t change  pp, returning nomod value')
+    log("Mods  don't change  pp, returning nomod value")
     return nomod_vals
   elsif mods.any? {|m| ZERO_PP_MODS.include?(m)}
     # If any of the mods cancel out pp, return zeros.
@@ -34,25 +34,19 @@ def oppai_pp(map_id, acc, mods, nomod_vals: [])
   end
 
   result = []
-  begin
-    %W(95 98 99 100 #{acc}).sort_by(&:to_i).each do |acc|
-      pp = `#{cmd(mods: mods, acc: acc)}`
-      if !bleach_cmp(pp, 'This gamemode is not supported')
-        pp = round(pp.split("\n")[-1].match(/[^ p]+/).to_s)
-        $? != 0 && raise
-        log("pp result from oppai: #{pp}")
-        result.push(format_num(pp))
-      else
-        !log('oppai is not supported for the current gamemode') && raise
-
-      end
+  %W(95 98 99 100 #{acc}).sort_by(&:to_i).each do |acc|
+    pp = `#{cmd(mods: mods, acc: acc)}`
+    $? == 0 || log('Something went wrong with oppai') || raise
+    if !bleach_cmp(pp, 'This gamemode is not supported')
+      pp = round(pp.split("\n")[-1].match(/[^ p]+/).to_s)
+      log("pp result from oppai: #{pp}")
+      result.push(format_num(pp))
+    else
+      log('oppai is not supported for the current gamemode') || raise
     end
-  rescue
-    log('Modded pp calculations failed.')
-    return nil
   end
 
-  log("Modded pp: #{result}")
+  log("pp: #{result}")
   return result
 end
 
@@ -61,10 +55,14 @@ end
 def oppai_diff(map_id, mods)
   log("Getting diff values from oppai for mods +#{mods.join}")
   begin
-    result = `#{cmd(mods: mods)}`.split("\n")
+    result = `#{cmd(mods: mods)}`
   rescue
-    log('Modded diff value calculations failed.')
-    return nil
+    log('Modded diff value calculations failed.') || raise
+  end
+  if !bleach_cmp(result, 'This gamemode is not supported')
+    result = result.split("\n")
+  else
+    log('oppai is not supported for the current gamemode') || raise
   end
 
   # Magic numbers. Review this if oppai ever gets updated.
@@ -76,7 +74,7 @@ def oppai_diff(map_id, mods)
     'OD' => round(result[diff_line].match(/od[^ ]+/).to_s[2..-1], 1),
     'SR' => round(result[star_line].match(/[^ ]+/).to_s, 2),
   }
-  log("Modded diff values: #{diff}")
+  log("Diff values: #{diff}")
   return diff
 end
 
@@ -88,15 +86,15 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
   begin
     download_map(map_id)
   rescue
-    log("Downloading beatmap failed for '#{map_id}'")
-    return nil
+    log("Downloading beatmap failed for '#{map_id}'") || raise
   end
-  begin
-    msg = "Running oppai in '#{mode}' mode for map_id '#{map_id}'"
-    msg += "and mods '+#{mods.join}' with nomod values: #{nomod_vals}"
-    log(msg)
 
-    result = ''
+  msg = "Running oppai in '#{mode}' mode for map_id '#{map_id}'"
+  msg += "and mods '+#{mods.join}' with nomod values: #{nomod_vals}"
+  log(msg)
+
+  result = ''
+  begin
     if mode == 'pp'
       result = oppai_pp(map_id, acc, mods, nomod_vals: nomod_vals)
     elsif mode == 'diff'
@@ -105,8 +103,11 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
   rescue
     FileUtils.cp('map.osu', "#{File.dirname(LOG)}/maps/#{map_id}.osu")
     log("oppai failed in '#{mode}' mode: saved map to logs/maps/#{map_id}.osu")
-    return nil
+    raise
   ensure
+    # Todo: Don't redownload the same map for each call to oppai.
+    # Could save to $map_id.osu and delete all .osu files afterwards, or even
+    # cache map files for reuse across runs.
     log('Deleting map.osu')
     File.file?('map.osu') && File.delete('map.osu')
   end

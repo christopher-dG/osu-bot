@@ -1,4 +1,5 @@
 # coding: utf-8
+
 require 'redd'
 
 require_relative 'consts'
@@ -65,6 +66,7 @@ if __FILE__ == $0
       end
     end
   end
+
   File.open(LOG, 'a') {|f| f.write("Posted #{count} beatmap link comment#{plur(count)}")}
   log("Made #{$request_count} API request#{plur($request_count)}")
 end

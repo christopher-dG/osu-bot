@@ -14,7 +14,7 @@ def plur(n) n == 1 ? '' : 's' end
 # Format a map's title information.
 def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
 
-# Write 'msg' to a log file, only if 'DEBUG' is set. !log(msg) is always true.
+# Write 'msg' to a log file, only if 'DEBUG' is set. Always returns false.
 def log(msg) DEBUG && File.open(LOG, 'a') {|f| f.write("#{msg}\n")} && puts(msg) end
 
 # Round 'n' to 'd' decimal places as a string. If 'force' is true: round to 'd'
@@ -71,7 +71,7 @@ end
 # s: beatmapset id
 # t: user type ('string', 'id')
 # m: mode (0=standard)
-def request(request, u: '', b: '', s: '', t: '', m: '')
+def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
   defined?($request_count) && $request_count += 1
   log("Making request with u: '#{u}', b: '#{b}', t: '#{t}', m: '#{m}'")
   time = Time.now
@@ -82,19 +82,19 @@ def request(request, u: '', b: '', s: '', t: '', m: '')
   elsif request == 'beatmaps'
     # 'b' and 's' should never both be set. If they are, just take 'b'.
     if !b.empty?
-      suffix += "&b=#{b}&limit=1"
+      suffix += "&b=#{b}&limit=#{l}"
     elsif !s.empty?
-      suffix += "&s=#{s}&limit=1"
+      suffix += "&s=#{s}&limit=#{l}"
     end
     is_list = false
   elsif request == 'user_best'
-    suffix += "&u=#{u}&limit=1"
+    suffix += "&u=#{u}&limit=#{l}"
     is_list = false
   elsif request == 'user'
     suffix += "&u=#{u}&event_days=31"
     is_list = false
   elsif request == 'scores'
-    suffix += "&u=#{u}&b=#{b}&limit=1"
+    suffix += "&u=#{u}&b=#{b}&limit=#{l}"
     is_list = false
   end
   if ['string', 'id'].include?(t)
@@ -108,6 +108,9 @@ def request(request, u: '', b: '', s: '', t: '', m: '')
   safe_url = url.sub(OSU_KEY, '$private_key')
   log("Requesting data from #{safe_url}")
   response = HTTParty.get(url).parsed_response
+  if response.empty?
+    log('Empty API response') || raise
+  end
   log("Request took #{round(Time.now - time, 3)} seconds")
   return is_list ? response : response[0]
 end

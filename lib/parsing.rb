@@ -3,14 +3,19 @@
 def should_comment(post)
   is_score = post.title =~ /.*\|.*-.*\[.*\].*/ && !post.is_self
   log("Post is #{is_score ? '' : 'not '}a score post")
-  if is_score && DRY
-    return true
-  elsif !is_score
+
+  # If we're doing a dry run, don't check if we've commented or not.
+  if DRY
+    return is_score
+  end
+
+  if is_score
+    commented = post.comments.any? {|c| c.author.name == 'osu-bot'}
+    log("Post has #{commented ? 'already' : 'not'} been commented on")
+    return !commented
+  else
     return false
   end
-  commented = post.comments.any? {|c| c.author.name == 'osu-bot'}
-  log("Post has #{commented ? 'already' : 'not'} been commented on")
-  return !commented
 end
 
 # Split a title into relevant pieces: player, song, and diff names.
@@ -85,7 +90,7 @@ end
 
 # Get difficulty values (not pp!) for a map with and without some given mods.
 # Returns a hash in the form: {'property' => ['nomod', 'modded']}. If there are
-#   no mods or the mods do not affect the difficulty, values are length-one arrays.
+# no mods or the mods do not affect the difficulty, values are length-one arrays.
 def diff_vals(map, mods)
   log("Getting diff values from #{map_string(map)} with mods '+#{mods.join}'")
   nomod = {
@@ -97,12 +102,18 @@ def diff_vals(map, mods)
   }
   log("Nomod values: #{nomod}")
 
-  modded = !mods.empty? ? oppai(map['beatmap_id'], mods: mods, mode: 'diff') : nil
-  log("Modded values from oppai: #{modded}")
+  # Modded values won't be calculated or displayed  when: the game mode
+  # is not standard, there are no mods, or the mods don't affect the values.
+  show_mods = map['mode'] == '0' && mods.all? {|m| !NO_DIFF_MODS.include?(m)}
+  if !show_mods
+    log('Returning nomod values')
+    return nomod
+  end
 
-  # If the mods won't change the values: don't return the mod
-  if modded.nil? || mods.all? {|m| NO_DIFF_MODS.include?(m)}
-    log('Mods were empty or ignored, returning nomod values')
+  begin
+    modded = oppai(map['beatmap_id'], mods: mods, mode: 'diff')
+  rescue
+    log('Returning nomod values')
     return nomod
   end
 
@@ -112,20 +123,21 @@ def diff_vals(map, mods)
 
   # Oppai does not handle HP drain.
   if mods.include?('EZ')
-    m_hp = round(nomod['HP'][0].to_f * ez_hp_scalar, 2)
+    modded['HP'] = round(nomod['HP'][0].to_f * ez_hp_scalar, 2)
   elsif mods.include?('HR')
-    m_hp = round(nomod['HP'][0].to_f * hr_hp_scalar, 2)
-    m_hp = m_hp.to_f > hp_max ? 10 : m_hp
+    modded['HP'] = round(nomod['HP'][0].to_f * hr_hp_scalar, 2)
+    modded['HP'] = modded['HP'].to_f > hp_max ? 10 : modded['HP']
   else
-    m_hp = nomod['HP'][0]
+    modded['HP'] = nomod['HP'][0]
   end
+  log("Manually calculated HP value: #{modded['HP']}")
 
-  log("Manually calculated HP value: #{m_hp}")
   vals = {
     'CS' => [nomod['CS'][0], modded['CS']], 'AR' => [nomod['AR'][0], modded['AR']],
-    'OD' => [nomod['OD'][0], modded['OD']], 'HP' => [nomod['HP'][0], m_hp],
+    'OD' => [nomod['OD'][0], modded['OD']], 'HP' => [nomod['HP'][0], modded['HP']],
     'SR' => [nomod['SR'][0], modded['SR']]
   }
+
   log("Final diff values: #{vals}")
   return vals
 end
@@ -164,6 +176,7 @@ def adjusted_timing(bpm, length, mods)
 end
 
 # Get a score's percentage accuracy as a string.
+# Todo: find out how this behaves with non-standard game modes.
 def accuracy(score)
   log('Getting accuracy')
   c = {
