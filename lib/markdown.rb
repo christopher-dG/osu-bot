@@ -3,13 +3,14 @@
 # Generate a markdown string with beatmap information.
 # Returns an empty string if something goes wrong.
 def beatmap_markdown(post)
+  # Todo: deal with other game modes. Maybe split this into different functions.
   log("Generating beatmap Markdown for #{post.title}")
   map, mods = post.map, post.mods
 
   status = ranked_status(map)
-  if status != 'Unranked'
+  if status != 'Unranked' && map['mode'] == '0'
     # Get rank 1 on this map.
-    top_play = request('scores', b: map['beatmap_id'])
+    top_play = request('scores', b: map['beatmap_id'], m: map['mode'])
     rank_one = "#1: [#{top_play['username']}](#{OSU_URL}/u/#{top_play['username']}) ("
     rank_one_mods = mods_from_int(top_play['enabled_mods'])
     !rank_one_mods.empty? && rank_one += "+#{rank_one_mods.join} - "
@@ -30,9 +31,11 @@ def beatmap_markdown(post)
   diff = diff_vals(map, mods)  # {key => [nomod, modded]}
   bpm = [round(map['bpm']).to_i]
   length = [map['total_length']]
-  acc = accuracy(request('scores', u: post.player['user_id'], t: 'id', b: map['beatmap_id']))
+  acc = accuracy(request('scores', u: post.player['user_id'], t: 'id', b: map['beatmap_id'], m: map['mode']))
 
-  pp = [oppai(map['beatmap_id'], mode: 'pp', acc: acc).join(" #{BAR} ")]
+  if map['mode'] == '0'
+    pp = [oppai(map['beatmap_id'], mode: 'pp', acc: acc).join(" #{BAR} ")]
+  end
 
   m = diff['SR'].length == 2  # Whether the table will include modded values.
   log("Diff contains nomod#{m ? ' and modded' : ''} values")
@@ -61,7 +64,7 @@ def beatmap_markdown(post)
   show_pp && headers.push("pp (#{accs})") && cols.push(pp)
 
   map_md = "##### **#{link_md} #{dl_md} by #{creator_md}**\n\n"
-  if status != 'Unranked'
+  if status != 'Unranked' && map['mode'] == '0'
     map_md += "**#{rank_one} || #{combo} || #{status} || #{pc}**\n\n"
   else
     map_md += "**#{combo} || #{status}**\n\n"
@@ -140,7 +143,7 @@ def top_play(player, mode)
 
   mods = mods_from_int(play['enabled_mods'])
   mods = mods.empty? ? '' : "+#{mods.join}"
-  combo = play['countmiss'] != '0' ? "(#{play['maxcombo']}/#{map['max_combo']}) " : ''
+  combo = play['countmiss'] != '0' ? "(#{play['maxcombo']}/#{map['maxcombo']}) " : ''
   md = "[#{map_string(map)}](#{OSU_URL}/b/#{id}) #{mods} "
   md += "#{play['countmiss'] == '0' ? 'FC ' : ''}#{BAR} "
   # If the map Markdown is too long, split the top play into two lines. Need to

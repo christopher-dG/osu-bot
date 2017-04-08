@@ -51,7 +51,7 @@ class ScorePost
 
   def inspect
     text = "ScorePost\n  "
-    text += "title: #{@title}}\n  player: #{@player['username']}\n  "
+    text += "title: #{@title}\n  player: #{@player['username']}\n  "
     text += "map: #{map_string(@map)}\n  mods: #{@mods}\n  "
     text += "bad_title: #{@bad_title}\n  error: #{@error}"
     return text
