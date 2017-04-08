@@ -12,21 +12,23 @@ if __FILE__ == $0
     user: 'christopher-dG',
     repo: 'osu-bot'
   )
-  me = Redd.it(
+  reddit = Redd.it(
     user_agent: 'osu!-bot',
     client_id: REDDIT_CLIENT_ID,
     secret: REDDIT_SECRET,
     username: 'osu-bot',
     password: REDDIT_PASSWORD,
-  ).me
+  )
+  bot = reddit.me
+  me = reddit.user('PM_ME_DOG_PICS_PLS')
 
   c = 0
-  
-  me.comments.each do |comment|
+
+  bot.comments.each do |comment|
     comment.reload.replies.each do |r|
 
       if r.body.start_with?("!error") &&
-         !me.saved.any? {|c| c.id == r.id}
+         !bot.saved.any? {|c| c.id == r.id}
         # Generate the issue title and text.
         reply_text = "> #{r.body[6..-1].split("\n").join("\n> ")}".strip
         # URL not working yet.
@@ -35,8 +37,9 @@ if __FILE__ == $0
         # link_md = "[#{comment.link_title}](#{link})"
         # body += "Comment on '#{link_md}':\n\n#{reply_text}"
         title = "Auto-generated issue by /u/#{r.author.name}"
-        body = "Comment on '#{comment.link_title}':\n\n#{reply_text}"
-
+        body = "Comment on '#{comment.link_title.gsub('#', '\# ')}':\n\n#{reply_text}"
+        msg = '[New issue](https://github.com/christopher-dg/osu-bot/issues)'
+        me.send_message(subject: 'osu!-bot', text: msg)
 
         log("#{title}\n#{body}")
         # Open the issue.
@@ -55,5 +58,5 @@ if __FILE__ == $0
       f.write("\n")
     end
   end
-  
+
 end
