@@ -1,7 +1,9 @@
+# coding: utf-8
+
 # Criteria for a post to be commented on.Title matching is deliberately
 # lenient because false positives are more of a problem then false negatives.
 def should_comment(post)
-  is_score = post.title =~ /.*\|.*-.*\[.*\].*/ && !post.is_self
+  is_score = post.title =~ /.+\|.+-.+\[.+\].*/ && !post.is_self
   log("Post is #{is_score ? '' : 'not '}a score post")
 
   # If we're doing a dry run, don't check if we've commented or not.
@@ -56,16 +58,15 @@ end
 # Returns an array of mods or an empty string if mods are not found.
 def mods_from_string(title)
   log("Getting mods from string: '#{title}'")
-  title = title.upcase
+  text = title[title.index(']', title.index('|'))..-1].upcase
 
   is_mods = Proc.new {|list| list.all? {|m| MODS.include?(m)}}
-  map = title.split('|', 2)[1]
-  plus = map.index('+', map.index(']'))
+  plus = text.index('+')
 
   # If there's a '+' in the title somewhere after the diff name, try to parse
   # the mods from the text immediately following it.
   if !plus.nil?
-    string = map[plus..-1]
+    string = text[plus..-1]
     string = string.match(/[[A-Z],]+/).to_s
     list = string.include?(',') ? string.split(',') : string.scan(/[A-Z]{1,2}/)
     if is_mods.call(list)
@@ -75,7 +76,7 @@ def mods_from_string(title)
     end
   end
 
-  tokens = map[map.index(']')..-1].split
+  tokens = text[text.index(']')..-1].split
   tokens.each do |token|
     list = token.gsub(',', '').scan(/[A-z]{1,2}/)
     if is_mods.call(list)
@@ -172,7 +173,7 @@ def adjusted_timing(bpm, length, mods)
     adj_length = round(length * 1.5)
   end
   log("Adjusted bpm, length: #{adj_bpm}, #{adj_length}")
-  return adj_bpm, adj_length
+  return adj_bpm.to_s, adj_length.to_s
 end
 
 # Get a score's percentage accuracy as a string.
@@ -184,7 +185,8 @@ def accuracy(score)
     50 => score['count50'].to_i, 0 => score['countmiss'].to_i
   }
   o = c.values.sum.to_f  # Total objects.
-  acc = "#{round([c[300] / o, c[100] / o * 1/3.to_f, c[50] / o * 1/6.to_f].sum * 100, 2, force: true)}"
+  acc = [c[300] / o, c[100] / o * 1/3.to_f, c[50] / o * 1/6.to_f].sum * 100
+  acc = round(acc, 2, force: true)
   log("Accuracy: #{acc}")
   return acc
 end

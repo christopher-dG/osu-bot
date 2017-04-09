@@ -1,3 +1,5 @@
+# coding: utf-8
+
 require 'github_api'
 require 'redd'
 

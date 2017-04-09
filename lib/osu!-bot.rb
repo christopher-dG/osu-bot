@@ -1,3 +1,5 @@
+# coding: utf-8
+
 require 'date'
 require 'fileutils'
 require 'httparty'
@@ -140,7 +142,7 @@ end
 
 # Run the bot.
 def run
-  File.open(LOG, 'a') {|f| f.write("#{`date`}\n")}
+  log("#{`date`}\n", force: true)
   start_time = Time.now
   # results: [[title, $comment/'fail']]
   results, attempts = [], 0
@@ -200,11 +202,13 @@ def run
 
   if !DEBUG  # Simplified summary when not debugging.
     if attempts > 0
-      text = "Made #{comments}/#{attempts} attempted comments\n\n"
-      titles.each {|t, success| text += "#{t}: #{success}\n"}
-      File.open(LOG, 'a') {|f| f.write("#{text}\n\n")}
+      log("Made #{comments}/#{attempts} attempted comments\n\n", force: true)
+      results.each do |title, comment|
+        log("#{title}: #{comment.nil? ? 'failed' : 'succeeded'}\n", force: true)
+      end
+      log("\n\n", force: true)
     else
-      File.open(LOG, 'a') {|f| f.write("Attempted 0 comments\n\n")}
+      log("Attempted 0 comments\n\n", force: true)
     end
   end
   return nil

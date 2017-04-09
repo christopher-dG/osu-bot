@@ -1,3 +1,5 @@
+# coding: utf-8
+
 # Make a string as easy to compare as possible. Technically this allows for
 # comparison errors, but they're extremely unlikely in our use case.
 def bleach(string) string.downcase.gsub(/\s/, '') end
@@ -9,7 +11,7 @@ def bleach_cmp(x, y) bleach(x) == bleach(y) end
 def format_num(n) round(n).reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse end
 
 # Return 's' if a given number is not 1, otherwise an empty string.
-def plur(n) n == 1 ? '' : 's' end
+def plur(n) n.to_f == 1 ? '' : 's' end
 
 # Format a map's title information.
 def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
@@ -23,7 +25,7 @@ end
 # places even if they are all zeroes.
 def round(n, d=0, force: false)
   n = n.to_f.round(d)
-  return (n.to_i == n && !force) ? n.to_i.to_s : n.to_s
+  return (n.to_i == n && !force) ?  n.to_i.to_s : force ? '%.2f' % n : n.to_s
 end
 
 # Get a subreddit, /r/osugame by default.
@@ -55,6 +57,7 @@ end
 def timestamp(n)
   log("Converting #{n} seconds to timestamp")
   s = n.to_i
+  s < 0 && raise('Attempted to get timestamp from negative time')
   h = s / 60
   m = s % 60
   if m < 10

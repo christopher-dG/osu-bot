@@ -1,3 +1,5 @@
+# coding: utf-8
+
 # Download a beatmap with a given id. Anything using this function should do
 # its own error handling.
 def download_map(map_id)

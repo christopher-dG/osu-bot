@@ -57,7 +57,7 @@ def beatmap_markdown(post)
   # oppai only works on standard, so don't show pp in any other modes.
   if map['mode'] == '0'
     begin
-      pp = [oppai(map['beatmap_id'], mode: 'pp', acc: acc).join(" #{BAR} ")]
+      pp = [oppai(map['beatmap_id'], mode: 'pp', acc: acc)]
       show_pp = true
     rescue
       show_pp = false
@@ -76,12 +76,17 @@ def beatmap_markdown(post)
 
     if show_pp
       begin
-        modded_pp = oppai(map['beatmap_id'], mods: mods, mode: 'pp', acc: acc)
+        modded_pp = oppai(
+          map['beatmap_id'], mods: mods, mode: 'pp', acc: acc, nomod_vals: pp[0]
+        )
       rescue
         show_pp = false
       end
     end
-    pp.push(modded_pp.join(" #{BAR} "))
+    if show_pp
+      pp[0] = pp[0].join(" #{BAR} ")
+      pp.push(modded_pp.join(" #{BAR} "))
+    end
   end
 
   length[0] = timestamp(length[0])

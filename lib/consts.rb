@@ -1,3 +1,5 @@
+# coding: utf-8
+
 # Path to oppai binary.
 OPPAI = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
 
@@ -41,7 +43,7 @@ OSUSEARCH_KEY = File.open("#{SECRETS}/search_key").read.chomp
 GITHUB_PASSWORD = File.open("#{SECRETS}/github_pass").read.chomp
 
 # All mods.
-MODS = %w(EZ HD HT DT NC HR FL SD PF NF RL SO AP AT)
+MODS = %w(EZ HD HT DT NC HR FL NF SD PF RL SO AP AT)
 
 # Mods that don't affect difficulty values.
 NO_DIFF_MODS = %w(SD PF AP RL)
