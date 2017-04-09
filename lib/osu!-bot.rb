@@ -79,7 +79,7 @@ end
 def beatmap_search(map_name, player)
   log("Searching for '#{map_name}' with player '#{player['username']}'")
   map_id = -1
-  log('Searching player\'s recent events')
+  log("Searching player's recent events")
 
   player['events'].each do |e|
     if bleach(e['display_html']).include?(bleach(map_name.gsub('&', '&amp;')))
@@ -111,7 +111,7 @@ def beatmap_search(map_name, player)
     l = recents.length
     recents.each do |play|
       id = play['beatmap_id']
-      seen_ids.include?(id) && log("Skipping duplicate: '#{id}'") || next
+      seen_ids.include?(id) && (log("Skipping duplicate: '#{id}'") || next)
       seen_ids.push(id)
 
       begin
@@ -126,7 +126,6 @@ def beatmap_search(map_name, player)
         msg += "#{round(Time.now - time, 5)} seconds, map was not retrieved"
         log(msg)
         return map
-
       end
     end
   end

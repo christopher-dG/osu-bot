@@ -105,6 +105,8 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
   elsif request == 'scores'
     suffix += "&u=#{u}&b=#{b}&limit=#{l}"
     is_list = false
+  else
+    raise
   end
   if ['string', 'id'].include?(t)
     suffix += "&type=#{t}"

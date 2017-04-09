@@ -78,9 +78,7 @@ def reply(comment)
 
   if !text.empty?
     text += "***\n\n^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})\n\n"
-    if !DRY
-      comment.save && comment.reply(text)
-    end
+    !DRY && comment.save && comment.reply(text)
     log("Commenting:\n#{text}")
     return true
   end

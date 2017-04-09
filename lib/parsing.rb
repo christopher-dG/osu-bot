@@ -105,7 +105,7 @@ def diff_vals(map, mods)
 
   # Modded values won't be calculated or displayed  when: the game mode
   # is not standard, there are no mods, or the mods don't affect the values.
-  show_mods = map['mode'] == '0' && mods.all? {|m| !NO_DIFF_MODS.include?(m)}
+  show_mods = map['mode'] == '0' && mods.any? {|m| !NO_DIFF_MODS.include?(m)}
   if !show_mods
     log('Returning nomod values')
     return nomod

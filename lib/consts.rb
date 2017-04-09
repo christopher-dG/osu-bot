@@ -46,7 +46,7 @@ GITHUB_PASSWORD = File.open("#{SECRETS}/github_pass").read.chomp
 MODS = %w(EZ HD HT DT NC HR FL NF SD PF RL SO AP AT)
 
 # Mods that don't affect difficulty values.
-NO_DIFF_MODS = %w(SD PF AP RL)
+NO_DIFF_MODS = %w(HD SD PF AP RL)
 
 # Mods that don't affect pp values.
 NO_PP_MODS = %w(SD PF)
