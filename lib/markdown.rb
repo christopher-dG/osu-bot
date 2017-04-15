@@ -48,9 +48,11 @@ def beatmap_markdown(post)
   diff = diff_vals(map, mods)  # {key => [nomod, modded]}
   bpm = [round(map['bpm'])]
   length = [map['total_length']]
+  # Todo: wait until #155 is fixed, then pass mods to this request to make sure
+  # we're getting the right score.
   score = request(
     'scores', u: post.player['user_id'], t: 'id',
-    b: map['beatmap_id'], m: map['mode']
+    b: map['beatmap_id'], m: map['mode'],
   )
   acc = accuracy(score)
 
@@ -73,20 +75,18 @@ def beatmap_markdown(post)
     adj_bpm, adj_length = adjusted_timing(bpm[0], length[0], mods)
     bpm.push(adj_bpm)
     length.push(timestamp(adj_length))
+    begin
+      modded_pp = oppai(
+        map['beatmap_id'], mods: mods, mode: 'pp', acc: acc, nomod_vals: pp[0]
+      )
+    rescue
+      show_pp = false
+    end
+  end
 
-    if show_pp
-      begin
-        modded_pp = oppai(
-          map['beatmap_id'], mods: mods, mode: 'pp', acc: acc, nomod_vals: pp[0]
-        )
-      rescue
-        show_pp = false
-      end
-    end
-    if show_pp
-      pp[0] = pp[0].join(" #{BAR} ")
-      pp.push(modded_pp.join(" #{BAR} "))
-    end
+  if show_pp
+    pp[0] = pp[0].join(" #{BAR} ")
+    modded && pp.push(modded_pp.join(" #{BAR} "))
   end
 
   length[0] = timestamp(length[0])
@@ -214,7 +214,8 @@ def top_play(player, mode)
   end
 
   mods = mods_from_int(play['enabled_mods'])
-  mods = mods.empty? ? '' : "+#{mods.join}"
+  # Pad mods with spaces to deal with double space in case of nomod plays.
+  mods = mods.empty? ? ' ' : " +#{mods.join} "
   fc = play['countmiss'] == '0'
 
   # API results for converted maps don't include max combo.
@@ -224,7 +225,7 @@ def top_play(player, mode)
     combo = "(#{play['maxcombo']}/#{map['max_combo']}) "
   end
 
-  md = "[#{map_string(map)}](#{OSU_URL}/b/#{id}) #{mods} "
+  md = "[#{map_string(map)}](#{OSU_URL}/b/#{id})#{mods}"
   md += "#{fc ? 'FC ' : ''}#{BAR} #{accuracy(play)}% "
   md += "#{combo}#{BAR} #{format_num(round(play['pp']))}pp"
 

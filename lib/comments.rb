@@ -92,13 +92,14 @@ if __FILE__ == $0
   saved = get_bot.saved
   count = 0
   markdown = Redcarpet::Markdown.new(StripMarkdown.new)
+  success = []
 
   comments.each do |c|
     log("Comment body: #{c.body}")
     if c.author.name != 'osu-bot' &&
        markdown.render(c.body) =~ /osu\.ppy\.sh\/[sb]\/[0-9]+/
       if !saved.any? {|s| c.id == s.id}
-        reply(c) && count += 1
+        reply(c) && count += 1 && success.push(c.body)
       else
         log("Skipped saved comment: #{c.body}")
       end
@@ -106,5 +107,6 @@ if __FILE__ == $0
   end
 
   log("Posted #{count} beatmap link comment#{plur(count)}", force: true)
+  (success.length > 0 && log('Comments replied to:')) || log(success.join("\n"))
   log("Made #{$request_count} API request#{plur($request_count)}")
 end

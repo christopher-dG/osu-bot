@@ -31,31 +31,15 @@ def split_title(title)
   return player_name, song_name, diff_name
 end
 
-# Get the enabled mods from an integer.
-# https://github.com/ppy/osu-api/wiki#mods
-# Returns '+Mod1Mod2Mod3' or an empty string.
-def mods_from_int(mods)
-  log("Parsing mods from integer: #{mods}")
-  i = mods.to_i
-  mod_list = []
-  BITWISE_MODS.keys.reverse.each do |mod|
-    if i == 0 && !mod_list.empty?
-      mod_list.include?('NC') && mod_list.delete('DT')
-      # Set the order.
-      MODS.each {|m| mod_list.delete(m) && mod_list.push(m)}
-      log("Mods: #{mod_list}")
-      return mod_list
-    elsif mod <= i
-      mod_list.push(BITWISE_MODS[mod])
-      i -= mod
-    end
-  end
-  log('Did not find mods')
-  return ''
+# Remove mods that we don't care about.
+def prune_mods(mods)
+  log('Pruning mods')
+  IGNORE_MODS.each {|m| mods.delete(m)}
+  log("Remaining mods: #{mods}")
+  return mods
 end
 
-# Get a modstring from a post title.
-# Returns an array of mods or an empty string if mods are not found.
+# Get an array of mods from a post title.
 def mods_from_string(title)
   log("Getting mods from string: '#{title}'")
   text = title[title.index(']', title.index('|'))..-1].upcase
@@ -72,7 +56,7 @@ def mods_from_string(title)
     if is_mods.call(list)
       MODS.each {|m| list.delete(m) && list.push(m)}
       log("Mods: #{list}")
-      return list
+      return prune_mods(list)
     end
   end
 
@@ -82,11 +66,45 @@ def mods_from_string(title)
     if is_mods.call(list)
       MODS.each {|m| list.delete(m) && list.push(m)}
       log("Mods: #{list}")
-      return list
+      return prune_mods(list)
     end
   end
   log('Did not find mods.')
-  return ''
+  return []
+end
+
+# Get the enabled mods from an integer as an array
+# https://github.com/ppy/osu-api/wiki#mods
+def mods_from_int(mods)
+  log("Parsing mods from integer: #{mods}")
+  i = mods.to_i
+  mod_list = []
+  BITWISE_MODS.keys.reverse.each do |mod|
+    if i == 0 && !mod_list.empty?
+      mod_list.include?('NC') && mod_list.delete('DT')
+      # Set the order.
+      MODS.each {|m| mod_list.delete(m) && mod_list.push(m)}
+      log("Mods: #{mod_list}")
+      return prune_mods(mod_list)
+    elsif mod <= i
+      mod_list.push(BITWISE_MODS[mod])
+      i -= mod
+    end
+  end
+  log('Did not find mods')
+  return []
+end
+
+# Convert an array of mods to an integer as a string.
+# https://github.com/ppy/osu-api/wiki#mods
+def mods_to_int(mods)
+  sum = 0
+  mods.each do |m|
+    sum += BITWISE_MODS.key(m)
+    # Need to manually add DT if we find NC.
+    m == 'NC' && sum += BITWISE_MODS.key('DT')
+  end
+  return sum.to_s
 end
 
 # Get difficulty values (not pp!) for a map with and without some given mods.
@@ -94,50 +112,55 @@ end
 # no mods or the mods do not affect the difficulty, values are length-one arrays.
 def diff_vals(map, mods)
   log("Getting diff values from #{map_string(map)} with mods '+#{mods.join}'")
-  nomod = {
+  # vals follows the format: {property => [nomod, modded]}.
+  vals = {
     'CS' => [map['diff_size']],
     'AR' => [map['diff_approach']],
     'OD' => [map['diff_overall']],
     'HP' => [map['diff_drain']],
     'SR' => [round(map['difficultyrating'], 2)],
   }
-  log("Nomod values: #{nomod}")
+  log("Nomod values: #{vals}")
 
-  # Modded values won't be calculated or displayed  when: the game mode
-  # is not standard, there are no mods, or the mods don't affect the values.
-  show_mods = map['mode'] == '0' && mods.any? {|m| !NO_DIFF_MODS.include?(m)}
-  if !show_mods
-    log('Returning nomod values')
-    return nomod
+  # If the mods don't affect difficulty values, we don't need to use oppai.
+  # In the case of zero-effect mods like PF, we don't even need to display them.
+  # In the case of HD, pp values are affected so we'll just display the nomod
+  # difficulty values twice. Non-standard game modes can't be calculated.
+
+  if map['mode'] != '0' || mods.all? {|m| SAME_PP_MODS.include?(m)}
+    log('Only using nomod values')
+    return vals
+  elsif mods.all? {|m| SAME_DIFF_MODS.include?(m)}
+    log('Reusing nomod values')
+    vals.keys.each {|k| vals[k] *= 2}
+    return vals
   end
 
+  # If we reach this point, we calculate and display modded values.
   begin
     modded = oppai(map['beatmap_id'], mods: mods, mode: 'diff')
   rescue
+    # Something went wrong with calculation, so we'll just display nomod.
     log('Returning nomod values')
-    return nomod
+    return vals
+  else
+    modded.keys.each {|k| vals[k].push(modded[k])}
   end
 
-  ez_hp_scalar = 0.5
-  hr_hp_scalar = 1.4
+  hp_scalar = {'EZ' => 0.5, 'HR' => 1.4}
   hp_max = 10
 
   # Oppai does not handle HP drain.
   if mods.include?('EZ')
-    modded['HP'] = round(nomod['HP'][0].to_f * ez_hp_scalar, 2)
+    vals['HP'].push(round(vals['HP'][0].to_f * hp_scalar['EZ'], 2))
   elsif mods.include?('HR')
-    modded['HP'] = round(nomod['HP'][0].to_f * hr_hp_scalar, 2)
-    modded['HP'] = modded['HP'].to_f > hp_max ? 10 : modded['HP']
+    vals['HP'].push(
+      [round(vals['HP'][0].to_f * hp_scalar['HR'], 2).to_f, hp_max].min.to_s
+    )
   else
-    modded['HP'] = nomod['HP'][0]
+    vals['HP'] *= 2
   end
-  log("Manually calculated HP value: #{modded['HP']}")
-
-  vals = {
-    'CS' => [nomod['CS'][0], modded['CS']], 'AR' => [nomod['AR'][0], modded['AR']],
-    'OD' => [nomod['OD'][0], modded['OD']], 'HP' => [nomod['HP'][0], modded['HP']],
-    'SR' => [nomod['SR'][0], modded['SR']]
-  }
+  log("Manually calculated HP value: #{vals['HP'][1]}")
 
   log("Final diff values: #{vals}")
   return vals

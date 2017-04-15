@@ -25,14 +25,11 @@ end
 # Get pp data from oppai for the map stored in 'map.osu' with some given mods.
 def oppai_pp(map_id, acc, mods, nomod_vals: [])
   log("Getting pp from oppai for mods +#{mods.join} with nomod values: #{nomod_vals}")
-  if !nomod_vals.empty? && mods.all? {|m| NO_PP_MODS.include?(m)}
+
+  if !nomod_vals.empty? && mods.all? {|m| SAME_PP_MODS.include?(m)}
     # If the mods won't change the pp values, return the nomod value.
     log("Mods  don't change  pp, returning nomod value")
     return nomod_vals
-  elsif mods.any? {|m| ZERO_PP_MODS.include?(m)}
-    # If any of the mods cancel out pp, return zeros.
-    log('Mods give no pp, returning zeroed values')
-    return [0] * 4
   end
 
   result = []

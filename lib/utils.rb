@@ -104,7 +104,7 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
     is_list = false
   elsif request == 'scores'
     suffix += "&u=#{u}&b=#{b}&limit=#{l}"
-    is_list = false
+    is_list = l.to_i > 1
   else
     raise
   end
