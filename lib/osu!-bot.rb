@@ -140,7 +140,7 @@ def beatmap_search(map_name, player)
 end
 
 # Run the bot.
-def run
+def run(limit: 25)
   log("#{`date`}\n", force: true)
   start_time = Time.now
   # results: [[title, $comment/'fail']]
@@ -151,7 +151,7 @@ def run
     log("Reddit initialization failed.") || exit
   end
 
-  osu.new.each do |p|
+  osu.new(limit: limit).each do |p|
     log("\nPost title: #{p.title}")
 
     if should_comment(p)

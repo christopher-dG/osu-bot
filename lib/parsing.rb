@@ -42,9 +42,9 @@ end
 # Get an array of mods from a post title.
 def mods_from_string(title)
   log("Getting mods from string: '#{title}'")
-  text = title[title.index(']', title.index('|'))..-1].upcase
+  text = title[title.index(']', title.index('|')) + 1..-1].upcase
 
-  is_mods = Proc.new {|list| list.all? {|m| MODS.include?(m)}}
+  is_mods = Proc.new {|list| !list.empty? && list.all? {|m| MODS.include?(m)}}
   plus = text.index('+')
 
   # If there's a '+' in the title somewhere after the diff name, try to parse
@@ -60,10 +60,11 @@ def mods_from_string(title)
     end
   end
 
-  tokens = text[text.index(']')..-1].split
+  tokens = text.split
   tokens.each do |token|
     list = token.gsub(',', '').scan(/[A-z]{1,2}/)
     if is_mods.call(list)
+      # Set the order.
       MODS.each {|m| list.delete(m) && list.push(m)}
       log("Mods: #{list}")
       return prune_mods(list)
