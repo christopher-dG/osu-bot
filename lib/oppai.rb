@@ -33,8 +33,10 @@ def oppai_pp(map_id, acc, mods, nomod_vals: [])
   end
 
   result = []
-  %W(95 98 99 100 #{acc}).sort_by(&:to_i).each do |acc|
-    pp = `#{cmd(mods: mods, acc: acc)}`
+  accs = [95, 98, 99, 100]
+  accs.any? {|a| a == acc.to_f} || accs.push(acc)
+  accs.sort_by(&:to_f).each do |acc|
+    pp = `#{cmd(mods: mods, acc: acc.to_s)}`
     $? == 0 || log('Something went wrong with oppai') || raise
     if !bleach_cmp(pp, 'This gamemode is not supported')
       pp = round(pp.split("\n")[-1].match(/[^ p]+/).to_s)
