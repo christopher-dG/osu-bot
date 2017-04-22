@@ -127,11 +127,11 @@ class TestOsuBot < Test::Unit::TestCase
   end
 
   def test_adjusted_timing
-    bpm, length = '30', '30'
-    assert_equal(adjusted_timing(bpm, length, []), ['30', '30'])
-    assert_equal(adjusted_timing(bpm, length, ['DT']), ['45', '20'])
-    assert_equal(adjusted_timing(bpm, length, ['NC']), ['45', '20'])
-    assert_equal(adjusted_timing(bpm, length, ['HT']), ['20', '45'])
+    bpm, length = '24', '24'
+    assert_equal(adjusted_timing(bpm, length, []), ['24', '24'])
+    assert_equal(adjusted_timing(bpm, length, ['DT']), ['36', '16'])
+    assert_equal(adjusted_timing(bpm, length, ['NC']), ['36', '16'])
+    assert_equal(adjusted_timing(bpm, length, ['HT']), ['18', '32'])
   end
 
   def test_accuracy

@@ -172,17 +172,18 @@ end
 # Returns [adjusted bpm, adjusted length_seconds] as strings.
 def adjusted_timing(bpm, length, mods)
   log("Getting adjusted timing, bpm: #{bpm}, length: #{length}, mods: +#{mods.join}")
-  bpm, length = bpm.to_i, length.to_i
+  bpm, length = bpm.to_f, length.to_f
   adj_bpm, adj_length = bpm, length
+  dt_scalar, ht_scalar = 1.5, 0.75
   if ['DT', 'NC'].any? {|m| mods.include?(m)}
-    adj_bpm = round(bpm * 1.5)
-    adj_length = round(length * 0.66)
+    adj_bpm = round(bpm * dt_scalar)
+    adj_length = round(length / dt_scalar)
   elsif mods.include?('HT')
-    adj_bpm = round(bpm * 0.66)
-    adj_length = round(length * 1.5)
+    adj_bpm = round(bpm * ht_scalar)
+    adj_length = round(length / ht_scalar)
   end
   log("Adjusted bpm, length: #{adj_bpm}, #{adj_length}")
-  return adj_bpm.to_s, adj_length.to_s
+  return round(adj_bpm, 1), round(adj_length, 1)
 end
 
 # Get a score's percentage accuracy as a string.
