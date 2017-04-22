@@ -1,6 +1,6 @@
 # osu!-bot
 
-[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to post beatmap and player information to /r/osugame score posts
+[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot to post beatmap and player information to /r/osugame score posts.
 
 ## To Score Posters
 
