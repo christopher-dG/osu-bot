@@ -188,8 +188,7 @@ def markdown(post)
   show_player && md += "\n#{player_md}\n"
   md += "***\n\n"
   md += "^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})\n\n"
-  md += '^(Notice a mistake? Make a reply to this comment '
-  md += 'beginning with "!error" describing it.)'
+  md += "^(Notice a mistake? Read [this](#{GH_URL}/blob/master/error.md."
 
   log("Generated full comment:\n#{md}")
   return md
