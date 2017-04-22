@@ -148,21 +148,6 @@ def diff_vals(map, mods)
     modded.keys.each {|k| vals[k].push(modded[k])}
   end
 
-  hp_scalar = {'EZ' => 0.5, 'HR' => 1.4}
-  hp_max = 10
-
-  # Oppai does not handle HP drain.
-  if mods.include?('EZ')
-    vals['HP'].push(round(vals['HP'][0].to_f * hp_scalar['EZ'], 2))
-  elsif mods.include?('HR')
-    vals['HP'].push(
-      [round(vals['HP'][0].to_f * hp_scalar['HR'], 2).to_f, hp_max].min.to_s
-    )
-  else
-    vals['HP'] *= 2
-  end
-  log("Manually calculated HP value: #{vals['HP'][1]}")
-
   log("Final diff values: #{vals}")
   return vals
 end

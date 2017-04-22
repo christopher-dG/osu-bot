@@ -41,7 +41,7 @@ The bot will upvote your post as soon as it comments. Isn't that enough?
 
 ***
 
-Credit for mod/pp calculations goes to [Francesco149](https://github.com/Francesco149/oppai) and [ThePooN](https://github.com/ThePooN/osu-ModPropertiesCalculator).
+Credit for mod/pp calculations goes to [Francesco149](https://github.com/Francesco149/oppai).
 
 If you have comments or suggestions for the bot, feel free to [open an issue](https://github.com/christopher-dG/osu-bot/issues/new) or [message me on Reddit](https://www.reddit.com/message/compose/?to=PM_ME_DOG_PICS_PLS).
 
