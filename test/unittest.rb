@@ -138,11 +138,11 @@ class TestOsuBot < Test::Unit::TestCase
     score = {
       'count300' => '1', 'count100' => '0', 'count50' => 0, 'countmiss' => '0'
     }
-    assert_equal(accuracy(score), '100.00')
+    assert_equal(accuracy(score), '100')
     score['count300'], score['countmiss'] = '1', '1'
-    assert_equal(accuracy(score), '50.00')
+    assert_equal(accuracy(score), '50')
     score['count300'], score['countmiss'] = '0', '1'
-    assert_equal(accuracy(score), '0.00')
+    assert_equal(accuracy(score), '0')
     score['count100'], score['countmiss'] = '1', '0'
     assert_equal(accuracy(score), '33.33')
     score['count50'], score['count100'] = '1', '0'
