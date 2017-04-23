@@ -31,9 +31,7 @@ In general, you can't go wrong with [/r/osugame](https://reddit.com/r/osugame)'s
 
 ### Reporting Errors
 
-If you see a mistake anywhere in a comment, post a reply beginning with `!error` to open an issue (no GitHub account required).
-
-For example: ```!error AR9 + DT is 10.3, not 10```
+If you see a mistake anywhere in a comment, read [these instructions](reporting.md).
 
 #### What's in it for me?
 
