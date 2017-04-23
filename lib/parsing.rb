@@ -196,7 +196,7 @@ def accuracy(score)
   }
   o = c.values.sum.to_f  # Total objects.
   acc = [c[300] / o, c[100] / o * 1/3.to_f, c[50] / o * 1/6.to_f].sum * 100
-  acc = round(acc, 2, force: true)
+  acc = round(acc, 2)
   log("Accuracy: #{acc}")
   return acc
 end
