@@ -101,7 +101,7 @@ def beatmap_markdown(post)
   cols += [diff['CS'], diff['AR'], diff['OD'], diff['HP'], diff['SR'], bpm, length]
   accs = [95, 98, 99, 100]
   accs.any? {|a| a == acc.to_f} || accs.push(acc)
-  accs = accs.sort_by(&:to_f).join(" #{BAR} ")
+  accs = accs.sort_by(&:to_f).map {|a| "#{a}%"}.join(" #{BAR} ")
   show_pp && headers.push("pp (#{accs})") && cols.push(pp)
   map_md = "##### **#{link_md} #{dl_md} by #{creator_md}**\n\n"
 
