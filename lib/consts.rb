@@ -42,6 +42,9 @@ REDDIT_CLIENT_ID = File.open("#{SECRETS}/reddit_client").read.chomp
 OSUSEARCH_KEY = File.open("#{SECRETS}/search_key").read.chomp
 GITHUB_PASSWORD = File.open("#{SECRETS}/github_pass").read.chomp
 
+# Users to ignore.
+TROLLS = %w(gomina chemistryosu)
+
 # All mods.
 MODS = %w(EZ HD HT DT NC HR FL NF SD PF RL SO AP AT)
 

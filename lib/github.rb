@@ -29,7 +29,7 @@ if __FILE__ == $0
   bot.comments.each do |comment|
     comment.reload.replies.each do |r|
 
-      if r.body.start_with?("!error") &&
+      if !TROLLS.include?(r.author.name) && r.body.start_with?("!error") &&
          !bot.saved.any? {|c| c.id == r.id}
         # Generate the issue title and text.
         reply_text = "> #{r.body[6..-1].split("\n").join("\n> ")}".strip
