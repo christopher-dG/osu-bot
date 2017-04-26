@@ -33,14 +33,13 @@ DEBUG = ARGV.include?("DEBUG")
 DRY = ARGV.include?("DRY")
 TEST = ARGV.include?("TEST")
 
-# Secret files.
-SECRETS = File.expand_path("#{File.dirname(__FILE__)}/../secrets")
-OSU_KEY = File.open("#{SECRETS}/osu_key").read.chomp
-REDDIT_PASSWORD = File.open("#{SECRETS}/reddit_pass").read.chomp
-REDDIT_SECRET = File.open("#{SECRETS}/reddit_secret").read.chomp
-REDDIT_CLIENT_ID = File.open("#{SECRETS}/reddit_client").read.chomp
-OSUSEARCH_KEY = File.open("#{SECRETS}/search_key").read.chomp
-GITHUB_PASSWORD = File.open("#{SECRETS}/github_pass").read.chomp
+# Secrets.
+config = YAML.load_file(File.expand_path("#{File.dirname(__FILE__)}/../config.yml"))
+OSU_KEY = config['osu_key']
+REDDIT_PASSWORD = config['reddit_pass']
+REDDIT_SECRET = config['reddit_secret']
+REDDIT_CLIENT = config['reddit_client']
+GITHUB_PASSWORD = config['github_pass']
 
 # Users to ignore.
 TROLLS = %w(gomina chemistryosu)

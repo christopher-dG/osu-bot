@@ -34,7 +34,7 @@ def get_sub
   log("Getting subreddit '#{sub}'")
   return Redd.it(
     user_agent: 'osu!-bot',
-    client_id: REDDIT_CLIENT_ID,
+    client_id: REDDIT_CLIENT,
     secret: REDDIT_SECRET,
     username: 'osu-bot',
     password: REDDIT_PASSWORD,
@@ -46,7 +46,7 @@ def get_bot
   log('Getting user /u/osu-bot')
   return Redd.it(
     user_agent: 'osu!-bot',
-    client_id: REDDIT_CLIENT_ID,
+    client_id: REDDIT_CLIENT,
     secret: REDDIT_SECRET,
     username: 'osu-bot',
     password: REDDIT_PASSWORD,

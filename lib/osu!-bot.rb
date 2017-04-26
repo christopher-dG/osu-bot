@@ -4,12 +4,14 @@ require 'date'
 require 'fileutils'
 require 'httparty'
 require 'redd'
+require 'yaml'
 
 require_relative 'consts'
 require_relative 'utils'
 require_relative 'oppai'
 require_relative 'parsing'
 require_relative 'markdown'
+
 
 class ScorePost
 
@@ -148,7 +150,7 @@ def run(limit: 25)
   begin
     osu = get_sub
   rescue
-    log("Reddit initialization failed.") || exit
+    log("Reddit initialization failed.", force: true) || exit
   end
 
   osu.new(limit: limit).each do |p|
