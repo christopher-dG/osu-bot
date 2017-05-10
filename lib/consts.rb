@@ -42,7 +42,7 @@ REDDIT_CLIENT_ID = config['reddit_client']
 GITHUB_PASSWORD = config['github_pass']
 
 # Users to ignore.
-TROLLS = %w(gomina chemistryosu)
+TROLLS = %w(gomina chemistryosu morgna)
 
 # All mods.
 MODS = %w(EZ HD HT DT NC HR FL NF SD PF RL SO AP AT)
