@@ -1,3 +1,0 @@
-Player|Rank|pp|Acc|Playcount|Top Play
-:-:|:-:|:-:|:-:|:-:|:-:
-[{{PLAYER}}](https://osu.ppy.sh/u/{{PLAYER_ID}})|#{{PLAYER_RANK}}|{{PLAYER_PP}}|{{PLAYER_ACC}}|{{PLAYER_PC}}|[{{TOP_PLAY_ARTIST}} - {{TOP_PLAY_TITLE}} [{{TOP_PLAY_DIFF}}]](https://osu.ppy.sh/b/{{TOP_PLAY_ID}}) {{TOP_PLAY_MODS}}{{TOP_PLAY_FC}}&#124; {{TOP_PLAY_ACC}} &#124; {{TOP_PLAY_PP}}

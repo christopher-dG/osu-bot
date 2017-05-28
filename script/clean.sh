@@ -1,5 +1,5 @@
-# Keep the rolling log file under 30 MB.
-tail -c 30MB ~/osu!-bot/logs/rolling.log > temp
+# Keep the rolling log file under 5 MB.
+tail -c 5MB ~/osu!-bot/logs/rolling.log > temp
 mv temp ~/osu!-bot/logs/rolling.log
 
 # Zip all the single-run logs to save space.
