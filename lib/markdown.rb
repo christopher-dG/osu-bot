@@ -114,7 +114,7 @@ def beatmap_markdown(post)
   map_md += "***\n\n"
 
   begin
-    map_md += table(headers, cols)
+    map_md += MarkdownTables.make_table(headers, cols)
   rescue
     log('Table generation failed') || raise
   end
@@ -154,7 +154,7 @@ def player_markdown(player, mode)
 
   log('Generating table for player')
   begin
-    player_table = table(headers, cols)
+    player_table = MarkdownTables.make_table(headers, cols)
   rescue
     raise
   end
@@ -217,51 +217,10 @@ def top_play(player, mode)
   mods = mods_from_int(play['enabled_mods'])
   # Pad mods with spaces to deal with double space in case of nomod plays.
   mods = mods.empty? ? ' ' : " +#{mods.join} "
-  fc = play['countmiss'] == '0'
 
-  # API results for converted maps don't include max combo.
-  if fc || map['max_combo'].nil?
-    combo = ''
-  else
-    combo = "(#{play['maxcombo']}/#{map['max_combo']}) "
-  end
-
-  md = "[#{map_string(map)}](#{OSU_URL}/b/#{id})#{mods}"
-  md += "#{fc ? 'FC ' : ''}#{BAR} #{accuracy(play)}% "
-  md += "#{combo}#{BAR} #{format_num(round(play['pp']))}pp"
+  md = "[#{map_string(map)}](#{OSU_URL}/b/#{id})#{mods}#{BAR} "
+  md += "#{accuracy(play)}% #{BAR} #{format_num(round(play['pp']))}pp"
 
   log("Generated:\n#{md}")
   return md
-end
-
-# Generate a Markdown table. headers and cols are one and two dimensional
-# arrays, respectively. Pass align: 'l' for left alignment and 'r' for right
-# alignment, otherwise cells will be centered. The data must represent a full
-# table, i.e. all cols must be the same length and there must be the same number
-# of cols as there are headers. All contents of headers and cols must be strings.
-# table({"a"=>[1, 2], "b"=>[3, 4], "c"=>[5, 6]}) => "a|b|c\n:-:|:-:|:-:\n1|3|5\n2|4|6"
-def table(headers, cols, align: '')
-  log("Creating table.\nheaders: #{headers}\ncols: #{cols}")
-  # Sanity checks.
-  error = headers.empty? || cols.empty? || cols.all? {|r| r.empty?} ||
-          cols.any? {|r| r.length != cols[0].length} ||
-          headers.any? {|h| h.class != String} ||
-          cols.any? {|col| col.any? {|c| c.class != String}}
-
-  error && (log('Sanity checks failed') || raise)
-
-  table = "#{headers.join('|')}\n"
-  sep = align == 'l' ? ':-' : align == 'r' ? '-:' : ':-:'
-  table += "#{([sep] * headers.length).join('|')}\n"
-  (0...cols[0].length).each do |i|
-    row = ''
-    cols.each {|c| row += "#{c[i]}|"}
-    row = row[0...-1]  # Remove trailing '|'.
-    log("Row: #{row}")
-    table += "#{row}\n"
-  end
-
-  table = table.chomp
-  log("Generated table:\n#{table}")
-  return table
 end

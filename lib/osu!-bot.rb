@@ -3,6 +3,7 @@
 require 'date'
 require 'fileutils'
 require 'httparty'
+require 'markdown-tables'
 require 'redd'
 require 'yaml'
 
