@@ -82,7 +82,10 @@ def mods_from_int(mods)
   mod_list = []
   BITWISE_MODS.keys.reverse.each do |mod|
     if i == 0 && !mod_list.empty?
+      # NC and PF are variations of other existing mods which
+      # are also applied, but should not be displayed.
       mod_list.include?('NC') && mod_list.delete('DT')
+      mod_list.include?('PF') && mod_list.delete('SD')
       # Set the order.
       MODS.each {|m| mod_list.delete(m) && mod_list.push(m)}
       log("Mods: #{mod_list}")

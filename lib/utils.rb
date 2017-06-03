@@ -71,6 +71,7 @@ end
 
 # Get osu! API results in the form of an array or a hash. Anything using this
 # function should do its own error handling.
+# request: type of data to retrieve.
 # u: user name or id
 # b: beatmap id
 # s: beatmapset id

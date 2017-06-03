@@ -29,9 +29,9 @@ LOG = File.expand_path(
 # Modes to run in.
 # 'DEBUG' -> Enable extra logging (todo), 'DRY' -> dry run, 'TEST' -> testing.
 RUN_MODES = %w(DEBUG DRY TEST)
-DEBUG = ARGV.include?("DEBUG")
-DRY = ARGV.include?("DRY")
-TEST = ARGV.include?("TEST")
+DEBUG = ARGV.include?('DEBUG')
+DRY = ARGV.include?('DRY')
+TEST = ARGV.include?('TEST')
 
 # Secrets.
 config = YAML.load_file(File.expand_path("#{File.dirname(__FILE__)}/../config.yml"))
