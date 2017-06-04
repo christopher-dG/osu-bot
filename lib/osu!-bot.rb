@@ -1,8 +1,8 @@
 # coding: utf-8
 
-require 'date'
 require 'fileutils'
 require 'httparty'
+require 'json'
 require 'markdown-tables'
 require 'redd'
 require 'yaml'

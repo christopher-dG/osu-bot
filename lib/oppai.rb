@@ -16,13 +16,14 @@ end
 def cmd(mods:, acc: '')
   acc = acc.empty? ? '' : "#{acc}% "
   log("Constructing oppai command for mods: #{mods}, acc: #{acc}")
-  cmd = "#{OPPAI} map.osu #{acc}"
+  cmd = "#{OPPAI} map.osu -ojson #{acc}"
   !mods.empty? &&  cmd += "+#{mods.join}"
   log("Command: #{cmd}")
   return cmd
 end
 
 # Get pp data from oppai for the map stored in 'map.osu' with some given mods.
+# Returns a list of pp values.
 def oppai_pp(map_id, acc, mods, nomod_vals: [])
   log("Getting pp from oppai for mods +#{mods.join} with nomod values: #{nomod_vals}")
 
@@ -34,17 +35,15 @@ def oppai_pp(map_id, acc, mods, nomod_vals: [])
 
   result = []
   accs = [95, 98, 99, 100]
-  accs.any? {|a| a == acc.to_f} || accs.push(acc)
+  accs.any? {|a| a == acc.to_f} || acc.empty? || accs.push(acc)
   accs.sort_by(&:to_f).each do |acc|
-    pp = `#{cmd(mods: mods, acc: acc.to_s)}`
-    $? == 0 || log('Something went wrong with oppai') || raise
-    if !bleach_cmp(pp, 'This gamemode is not supported')
-      pp = round(pp.split("\n")[-1].match(/[^ p]+/).to_s)
-      log("pp result from oppai: #{pp}")
-      result.push(format_num(pp))
-    else
-      log('oppai is not supported for the current gamemode') || raise
+    begin
+      pp = JSON.parse(`#{cmd(mods: mods, acc: acc.to_s)}`)['pp']
+    rescue
+      log('Something went wrong with oppai') || raise
     end
+    log("pp result from oppai: #{pp}")
+    result.push(format_num(pp))
   end
 
   log("pp: #{result}")
@@ -52,38 +51,31 @@ def oppai_pp(map_id, acc, mods, nomod_vals: [])
 end
 
 # Get difficulty values from oppai for the map stored in 'map.osu'.
-# Returns a hash with keys for each  difficulty property, or nil.
+# Returns a hash with keys for each difficulty property.
 def oppai_diff(map_id, mods)
   log("Getting diff values from oppai for mods +#{mods.join}")
   begin
-    result = `#{cmd(mods: mods)}`
+    result = JSON.parse(`#{cmd(mods: mods)}`)
   rescue
     log('Modded diff value calculations failed.') || raise
   end
-  if !bleach_cmp(result, 'This gamemode is not supported')
-    result = result.split("\n")
-  else
-    log('oppai is not supported for the current gamemode') || raise
-  end
 
-  # Magic numbers. Review this if oppai ever gets updated.
-  diff_line = 12
-  star_line = 19
   diff = {
-    'CS' => round(result[diff_line].match(/cs[^ ]+/).to_s[2..-1], 1),
-    'AR' => round(result[diff_line].match(/ar[^ ]+/).to_s[2..-1], 1),
-    'OD' => round(result[diff_line].match(/od[^ ]+/).to_s[2..-1], 1),
-    'HP' => round(result[diff_line].match(/hp[^ ]+/).to_s[2..-1], 1),
-    'SR' => round(result[star_line].match(/[^ ]+/).to_s, 2),
+    'CS' => round(result['cs'], 2),
+    'AR' => round(result['ar'], 2),
+    'OD' => round(result['od'], 2),
+    'HP' => round(result['hp'], 2),
+    'SR' => round(result['stars'], 2),
   }
   log("Diff values: #{diff}")
   return diff
 end
 
-# Download a file and analyze it with the given acc and mods  via oppai.
+# Download a file and analyze it with the given acc and mods via oppai.
 # Returns a hash with relevant information.
 # If mode = 'pp', get pp data. If mode = 'diff', get diff values.
 # nomod_vals is a list of previously computed nomod pp values.
+# acc is a number in string form.
 def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
   begin
     download_map(map_id)

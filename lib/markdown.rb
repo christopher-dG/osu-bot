@@ -48,8 +48,8 @@ def beatmap_markdown(post)
   diff = diff_vals(map, mods)  # {key => [nomod, modded]}
   bpm = [round(map['bpm'])]
   length = [map['total_length']]
-  # Todo: wait until #155 is fixed, then pass mods to this request to make sure
-  # we're getting the right score.
+  # Todo: wait until ppy/osu-api#155 is fixed, then pass mods to this request
+  # to make sure we're getting the right score.
   score = request(
     'scores', u: post.player['user_id'], t: 'id',
     b: map['beatmap_id'], m: map['mode'],
