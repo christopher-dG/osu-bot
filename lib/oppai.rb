@@ -61,10 +61,10 @@ def oppai_diff(map_id, mods)
   end
 
   diff = {
-    'CS' => round(result['cs'], 2),
-    'AR' => round(result['ar'], 2),
-    'OD' => round(result['od'], 2),
-    'HP' => round(result['hp'], 2),
+    'CS' => round(result['cs'], 1),
+    'AR' => round(result['ar'], 1),
+    'OD' => round(result['od'], 1),
+    'HP' => round(result['hp'], 1),
     'SR' => round(result['stars'], 2),
   }
   log("Diff values: #{diff}")
