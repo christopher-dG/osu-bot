@@ -199,9 +199,11 @@ def markdown(post)
   md += "\n#{player_md}\n" if show_player
   md += "***\n\n"
   md += "^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})\n\n"
-  md += "^(Notice a mistake? Read )[^this](#{GH_URL}/blob/master/reporting.md)^."
-
+  md += "^(Notice a mistake? Read )[^this](#{GH_URL}/blob/master/reporting.md)^(. "
+  md += "Also, my supporter is about to run out, )[^(pls help)](https://osu.ppy.sh/u/3172543)"
+  md += '^( if you like my work.)'
   log("Generated full comment:\n#{md}")
+
   return md
 end
 
