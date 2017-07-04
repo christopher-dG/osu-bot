@@ -3,18 +3,20 @@
 # Generate a Markdown a map's rank one score.
 def rank_one(map)
   if ranked_status(map) == 'Unranked'
-    log('Map is unranked, no rank one score to get') || raise
+    log('Map is unranked, no rank one score to get')
+    raise
   end
 
   begin
     top_play = request('scores', b: map['beatmap_id'], m: map['mode'])
     top_player = request('user', u: top_play['username'], m: map['mode'])
   rescue
-    log('An API request failed for the top play') || raise
+    log('An API request failed for the top play')
+    raise
   else
     rank_one = "#1: [#{top_play['username']}](#{OSU_URL}/u/#{top_player['user_id']}) ("
     rank_one_mods = mods_from_int(top_play['enabled_mods'])
-    !rank_one_mods.empty? && rank_one += "+#{rank_one_mods.join} - "
+    rank_one += "+#{rank_one_mods.join} - " if !rank_one_mods.empty?
     rank_one += "#{accuracy(top_play)}% - #{round(top_play['pp'])}pp)"
     show_rank_one = true
   end
@@ -86,7 +88,7 @@ def beatmap_markdown(post)
 
   if show_pp
     pp[0] = pp[0].join(" #{BAR} ")
-    modded && pp.push(modded_pp.join(" #{BAR} "))
+    pp.push(modded_pp.join(" #{BAR} ")) if modded
   end
 
   length[0] = timestamp(length[0])
@@ -100,9 +102,12 @@ def beatmap_markdown(post)
   headers += %w(CS AR OD HP SR BPM Length)
   cols += [diff['CS'], diff['AR'], diff['OD'], diff['HP'], diff['SR'], bpm, length]
   accs = [95, 98, 99, 100]
-  accs.any? {|a| a == acc.to_f} || accs.push(acc)
+  accs.push(acc) if accs.any? {|a| a == acc.to_f}
   accs = accs.sort_by(&:to_f).map {|a| "#{a}%"}.join(" #{BAR} ")
-  show_pp && headers.push("pp (#{accs})") && cols.push(pp)
+  if show_pp
+    headers.push("pp (#{accs})")
+    cols.push(pp)
+  end
   map_md = "##### **#{link_md} #{dl_md} by #{creator_md}**\n\n"
 
   if show_rank_one
@@ -116,7 +121,8 @@ def beatmap_markdown(post)
   begin
     map_md += MarkdownTables.make_table(headers, cols)
   rescue
-    log('Table generation failed') || raise
+    log('Table generation failed')
+    raise
   end
 
   log("Generated:\n'#{map_md}")
@@ -183,11 +189,14 @@ def markdown(post)
     show_player = false
   end
 
-  show_beatmap || show_player || log('Not enough info to display') || raise
+  if !show_beatmap && !show_player
+    log('Not enough info to display')
+    raise
+  end
 
   md = ''
-  show_beatmap && md += "#{beatmap_md}\n"
-  show_player && md += "\n#{player_md}\n"
+  md += "#{beatmap_md}\n" if show_beatmap
+  md += "\n#{player_md}\n" if show_player
   md += "***\n\n"
   md += "^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})\n\n"
   md += "^(Notice a mistake? Read )[^this](#{GH_URL}/blob/master/reporting.md)^."
@@ -203,7 +212,8 @@ def top_play(player, mode)
   begin
     play = request('user_best', u: player['user_id'], t: 'id', m: mode)
   rescue
-    log("Request failed for player's top play") || raise
+    log("Request failed for player's top play")
+    raise
   end
 
   id = play['beatmap_id']
@@ -211,7 +221,8 @@ def top_play(player, mode)
   begin
     map = request('beatmaps', b: id, m: mode)
   rescue
-    log('Request failed for map of top play') || raise
+    log('Request failed for map of top play')
+    raise
   end
 
   mods = mods_from_int(play['enabled_mods'])

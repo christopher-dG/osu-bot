@@ -114,13 +114,17 @@ def beatmap_search(map_name, player)
     l = recents.length
     recents.each do |play|
       id = play['beatmap_id']
-      seen_ids.include?(id) && (log("Skipping duplicate: '#{id}'") || next)
+      if seen_ids.include?(id)
+        log("Skipping duplicate: '#{id}'")
+        next
+      end
       seen_ids.push(id)
 
       begin
         map = request('beatmaps', b: id)
       rescue
-        log("Fetching beatmap for '#{map_name}' failed, continuing") || next
+        log("Fetching beatmap for '#{map_name}' failed, continuing")
+        next
       end
 
       if bleach_cmp(map_string(map), map_name)
@@ -135,7 +139,8 @@ def beatmap_search(map_name, player)
 
   msg = "Iterating over #{l} recent play#{plur(l)} "
   msg += "took #{round(Time.now - time,  5)} seconds, map was not retrieved"
-  log(msg) || raise
+  log(msg)
+  raise
 
 
   # We could use osusearch as a backup, getting the most played match:
@@ -151,7 +156,8 @@ def run(limit: 25)
   begin
     osu = get_sub
   rescue
-    log("Reddit initialization failed.", force: true) || exit
+    log("Reddit initialization failed.", force: true)
+    exit
   end
 
   osu.new(limit: limit).each do |p|
@@ -161,14 +167,17 @@ def run(limit: 25)
       attempts += 1
       results.push([p.title, nil])
       post = ScorePost.new(title: p.title)
-
-      post.error && (log('Generating a ScorePost failed') || next)
+      if post.error
+        log('Generating a ScorePost failed')
+        next
+      end
 
       log(post.inspect)
       begin
         comment = markdown(post)
       rescue
-        log("Not commenting on '#{post.title}'") || next
+        log("Not commenting on '#{post.title}'")
+        next
       end
 
       log("Commenting on '#{post.title}'")

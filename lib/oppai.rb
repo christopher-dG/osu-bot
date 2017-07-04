@@ -17,7 +17,7 @@ def cmd(mods:, acc: '')
   acc = acc.empty? ? '' : "#{acc}% "
   log("Constructing oppai command for mods: #{mods}, acc: #{acc}")
   cmd = "#{OPPAI} map.osu -ojson #{acc}"
-  !mods.empty? &&  cmd += "+#{mods.join}"
+  cmd += "+#{mods.join}" if !mods.empty?
   log("Command: #{cmd}")
   return cmd
 end
@@ -35,12 +35,13 @@ def oppai_pp(map_id, acc, mods, nomod_vals: [])
 
   result = []
   accs = [95, 98, 99, 100]
-  accs.any? {|a| a == acc.to_f} || acc.empty? || accs.push(acc)
+  accs.push(acc) if !accs.any? {|a| a == acc.to_f} && !acc.empty?
   accs.sort_by(&:to_f).each do |acc|
     begin
       pp = JSON.parse(`#{cmd(mods: mods, acc: acc.to_s)}`)['pp']
     rescue
-      log('Something went wrong with oppai') || raise
+      log('Something went wrong with oppai')
+      raise
     end
     log("pp result from oppai: #{pp}")
     result.push(format_num(pp))
@@ -57,7 +58,8 @@ def oppai_diff(map_id, mods)
   begin
     result = JSON.parse(`#{cmd(mods: mods)}`)
   rescue
-    log('Modded diff value calculations failed.') || raise
+    log('Modded diff value calculations failed.')
+    raise
   end
 
   diff = {
@@ -80,7 +82,8 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
   begin
     download_map(map_id)
   rescue
-    log("Downloading beatmap failed for '#{map_id}'") || raise
+    log("Downloading beatmap failed for '#{map_id}'")
+    raise
   end
 
   msg = "Running oppai in '#{mode}' mode for map_id '#{map_id}'"
@@ -103,7 +106,7 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
     # Could save to $map_id.osu and delete all .osu files afterwards, or even
     # cache map files for reuse across runs.
     log('Deleting map.osu')
-    File.file?('map.osu') && File.delete('map.osu')
+    File.delete('map.osu') if File.file?('map.osu')
   end
 
   log("oppai final result: #{result}")

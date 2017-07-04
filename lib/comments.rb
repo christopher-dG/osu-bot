@@ -19,8 +19,8 @@ def star_rating(mapset)
   sr = [1000, 0]  # Min - max star ratings
   mapset.each do |diff|
     val = diff['difficultyrating'].to_f
-    val < sr[0] && sr[0] = val
-    val > sr[1] && sr[1] = val
+    sr[0] = val if val < sr[0]
+    sr[1] = val if val > sr[1]
   end
 
   # We'll show x.xx - x.xx no matter what for multi-diff sets
@@ -54,12 +54,14 @@ def reply(comment)
         end
       rescue
         # Skip any mapsets that fail.
-        log("A request failed for comment token: '#{token}'") || next
+        log("A request failed for comment token: '#{token}'")
+        next
       end
 
       # Skip any maps or mapsets that we've already seen.
       if seen.include?(map['beatmapset_id']) || seen.include?(map['beatmap_id'])
-        log("Skipping duplicate mapset '#{map['beatmapset_id']}'") || next
+        log("Skipping duplicate mapset '#{map['beatmapset_id']}'")
+        next
       end
 
       sr = star_rating(mapset)
@@ -78,7 +80,10 @@ def reply(comment)
 
   if !text.empty?
     text += "***\n\n^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})\n\n"
-    !DRY && comment.save && comment.reply(text)
+    if !DRY
+      comment.save
+      comment.reply(text)
+    end
     log("Commenting:\n#{text}")
     return true
   end
@@ -99,7 +104,9 @@ if __FILE__ == $0
     if c.author.name != 'osu-bot' &&
        markdown.render(c.body) =~ /osu\.ppy\.sh\/[sb]\/[0-9]+/
       if !saved.any? {|s| c.id == s.id}
-        reply(c) && count += 1 && success.push(c.body)
+        reply(c)
+        success.push(c.body)
+        count += 1
       else
         log("Skipped saved comment: #{c.body}")
       end
@@ -107,6 +114,5 @@ if __FILE__ == $0
   end
 
   log("Posted #{count} beatmap link comment#{plur(count)}", force: true)
-  (success.length > 0 && log('Comments replied to:')) || log(success.join("\n"))
   log("Made #{$request_count} API request#{plur($request_count)}")
 end

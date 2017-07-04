@@ -16,16 +16,25 @@ def plur(n) n.to_f == 1 ? '' : 's' end
 # Format a map's title information.
 def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
 
-# Write 'msg' to a log file, only if 'DEBUG' or 'force' is set. Always returns false.
+# Write 'msg' to a log file, only if 'DEBUG' or 'force' is set.
 def log(msg, force: false)
-  (DEBUG || force) && File.open(LOG, 'a') {|f| f.write("#{msg}\n")} && puts(msg)
+  if DEBUG || force
+    File.open(LOG, 'a') {|f| f.write("#{msg}\n")}
+    puts(msg)
+  end
 end
 
 # Round 'n' to 'd' decimal places as a string. If 'force' is true: round to 'd'
 # places even if they are all zeroes.
 def round(n, d=0, force: false)
   n = n.to_f.round(d)
-  return (n.to_i == n && !force) ?  n.to_i.to_s : force ? '%.2f' % n : n.to_s
+  if n.to_i == n && !force
+    return n.to_i.to_s
+  elsif force
+    return '%.2f' % n
+  else
+    return n.to_s
+  end
 end
 
 # Get a subreddit, /r/osugame by default.
@@ -57,7 +66,7 @@ end
 def timestamp(n)
   log("Converting #{n} seconds to timestamp")
   s = n.to_i
-  s < 0 && raise('Attempted to get timestamp from negative time')
+  raise('Attempted to get timestamp from negative time') if s < 0
   h = s / 60
   m = s % 60
   if m < 10
@@ -78,7 +87,7 @@ end
 # t: user type ('string', 'id')
 # m: mode (0=standard)
 def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
-  defined?($request_count) && $request_count += 1
+  $request_count += 1 if defined?($request_count)
   msg = "Making request with u: '#{u}', b: '#{b}', "
   msg += "s: '#{s}', t: '#{t}', m: '#{m}', l: '#{l}'"
   log(msg)
@@ -109,19 +118,16 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
   else
     raise
   end
-  if ['string', 'id'].include?(t)
-    suffix += "&type=#{t}"
-  end
-  if !m.empty? && m.to_i >= 0 && m.to_i <= 3
-    suffix += "&m=#{m}&a=1"
-  end
+  suffix += "&type=#{t}" if ['string', 'id'].include?(t)
+  suffix += "&m=#{m}&a=1" if !m.empty? && m.to_i >= 0 && m.to_i <= 3
 
   url = "#{OSU_URL}/api/get_#{request}?#{suffix}"
   safe_url = url.sub(OSU_KEY, '$private_key')
   log("Requesting data from #{safe_url}")
   response = HTTParty.get(url).parsed_response
   if response.empty?
-    log('Empty API response') || raise
+    log('Empty API response')
+    raise
   end
   log("Request took #{round(Time.now - time, 3)} seconds")
   return is_list ? response : response[0]
@@ -138,8 +144,10 @@ end
 # => manual_comment(title: title, player: player, map: map, mods: mods)
 def manual_comment(title:, player:, map:, mods:, lim: 25)
   # Sanity checks.
-  (title.class != String || player.class != Hash || map.class != Hash ||
-   mods.class != Array) && raise('Arguments are of the wrong type')
+  raise('Arguments are of the wrong type') if
+    title.class != String || player.class != Hash ||
+    map.class != Hash || mods.class != Array
+
 
   osu = get_sub
   osu.new.each do |p|

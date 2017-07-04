@@ -54,7 +54,8 @@ def mods_from_string(title)
     string = string.match(/[[A-Z],]+/).to_s
     list = string.include?(',') ? string.split(',') : string.scan(/[A-Z]{1,2}/)
     if is_mods.call(list)
-      MODS.each {|m| list.delete(m) && list.push(m)}
+      # Set the order.
+      MODS.each {|m| list.push(m) if list.delete(m)}
       log("Mods: #{list}")
       return prune_mods(list)
     end
@@ -65,7 +66,7 @@ def mods_from_string(title)
     list = token.gsub(',', '').scan(/[A-z]{1,2}/)
     if is_mods.call(list)
       # Set the order.
-      MODS.each {|m| list.delete(m) && list.push(m)}
+      MODS.each {|m| list.push(m) if list.delete(m)}
       log("Mods: #{list}")
       return prune_mods(list)
     end
@@ -84,10 +85,10 @@ def mods_from_int(mods)
     if i == 0 && !mod_list.empty?
       # NC and PF are variations of other existing mods which
       # are also applied, but should not be displayed.
-      mod_list.include?('NC') && mod_list.delete('DT')
-      mod_list.include?('PF') && mod_list.delete('SD')
+      mod_list.delete('DT') if mod_list.include?('NC')
+      mod_list.delete('SD') if mod_list.include?('PF')
       # Set the order.
-      MODS.each {|m| mod_list.delete(m) && mod_list.push(m)}
+      MODS.each {|m| mod_list.push(m) if mod_list.delete(m)}
       log("Mods: #{mod_list}")
       return prune_mods(mod_list)
     elsif mod <= i
@@ -106,7 +107,7 @@ def mods_to_int(mods)
   mods.each do |m|
     sum += BITWISE_MODS.key(m)
     # Need to manually add DT if we find NC.
-    m == 'NC' && sum += BITWISE_MODS.key('DT')
+    sum += BITWISE_MODS.key('DT') if m == 'NC'
   end
   return sum.to_s
 end
