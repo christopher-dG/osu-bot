@@ -102,7 +102,7 @@ def beatmap_markdown(post)
   headers += %w(CS AR OD HP SR BPM Length)
   cols += [diff['CS'], diff['AR'], diff['OD'], diff['HP'], diff['SR'], bpm, length]
   accs = [95, 98, 99, 100]
-  accs.push(acc) if accs.any? {|a| a == acc.to_f}
+  accs.push(acc) if !accs.any? {|a| a == acc.to_f}
   accs = accs.sort_by(&:to_f).map {|a| "#{a}%"}.join(" #{BAR} ")
   if show_pp
     headers.push("pp (#{accs})")
