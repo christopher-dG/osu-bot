@@ -198,8 +198,7 @@ def markdown(post)
   md += "#{beatmap_md}\n" if show_beatmap
   md += "\n#{player_md}\n" if show_player
   md += "***\n\n"
-  md += "^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})\n\n"
-  md += "^(Notice a mistake? Read )[^this](#{GH_URL}/blob/master/reporting.md)^."
+  md += "^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})"
   log("Generated full comment:\n#{md}")
 
   return md

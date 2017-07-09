@@ -39,7 +39,6 @@ OSU_KEY = config['osu_key']
 REDDIT_PASSWORD = config['reddit_pass']
 REDDIT_SECRET = config['reddit_secret']
 REDDIT_CLIENT_ID = config['reddit_client']
-GITHUB_PASSWORD = config['github_pass']
 
 # Users to ignore.
 TROLLS = %w(gomina chemistryosu morgna)
