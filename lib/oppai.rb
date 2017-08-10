@@ -16,7 +16,7 @@ end
 def cmd(mods:, acc: '')
   acc = acc.empty? ? '' : "#{acc}% "
   log("Constructing oppai command for mods: #{mods}, acc: #{acc}")
-  cmd = "#{OPPAI} map.osu -ojson #{acc}"
+  cmd = "oppai map.osu -ojson #{acc}"
   cmd += "+#{mods.join}" if !mods.empty?
   log("Command: #{cmd}")
   return cmd

@@ -1,8 +1,5 @@
 # coding: utf-8
 
-# Path to oppai binary.
-OPPAI = File.expand_path("#{File.dirname(__FILE__)}/../oppai/oppai")
-
 # Vertical line delimiter that won't break Markdown tables.
 BAR = '&#124;'
 
@@ -23,7 +20,7 @@ DEV_URL = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
 # Log file.
 LOG = File.expand_path(
-  "#{File.dirname(__FILE__)}/../logs/#{`date +"%m-%d-%Y_%H:%M:%S"`.chomp}.log"
+  "#{File.dirname(__FILE__)}/../log/#{`date +"%m-%d-%Y_%H:%M:%S"`.chomp}.log"
 )
 
 # Modes to run in.
