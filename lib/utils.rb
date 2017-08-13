@@ -122,6 +122,7 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
       puts("Request took #{round(Time.now - time, 3)} seconds")
       return is_list ? response : response[0]
     end
+    sleep(5)
   end
   puts('Empty API response')
   raise
