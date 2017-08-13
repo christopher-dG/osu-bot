@@ -31,7 +31,7 @@ DRY = ARGV.include?('DRY')
 TEST = ARGV.include?('TEST')
 
 # Secrets.
-config = YAML.load_file(File.expand_path("#{File.dirname(__FILE__)}/../config.yml"))
+config = YAML.load_file("#{ENV['APP']}/config.yml")
 OSU_KEY = config['osu_key']
 REDDIT_PASSWORD = config['reddit_pass']
 REDDIT_SECRET = config['reddit_secret']

@@ -124,13 +124,16 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
   url = "#{OSU_URL}/api/get_#{request}?#{suffix}"
   safe_url = url.sub(OSU_KEY, '$private_key')
   log("Requesting data from #{safe_url}")
-  response = HTTParty.get(url).parsed_response
-  if response.empty?
-    log('Empty API response')
-    raise
+  3.times do |i|
+    log("Attempt #{i + 1}...")
+    response = HTTParty.get(url).parsed_response
+    if not response.empty?
+      log("Request took #{round(Time.now - time, 3)} seconds")
+      return is_list ? response : response[0]
+    end
   end
-  log("Request took #{round(Time.now - time, 3)} seconds")
-  return is_list ? response : response[0]
+  log('Empty API response')
+  raise
 end
 
 # Manually comment on an arbitrarily named Reddit post. Useful when a post has
@@ -148,7 +151,7 @@ def manual_comment(title:, player:, map:, mods:, lim: 25)
     title.class != String || player.class != Hash ||
     map.class != Hash || mods.class != Array
 
-
+i=694520
   osu = get_sub
   osu.new.each do |p|
     if bleach_cmp(p.title, title)

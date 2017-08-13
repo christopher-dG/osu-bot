@@ -5,13 +5,13 @@ ENV GEMS httparty markdown-tables redd
 
 RUN mkdir -p $APP/log/maps && \
     mkdir $APP/lib
-COPY config.yml $APP/config.yml
-COPY lib $APP/lib/
-COPY oppai /tmp/oppai/
-RUN /tmp/oppai/build.sh
-RUN touch $APP/log/rolling.log && \
+
+COPY . $APP
+
+RUN $APP/oppai/build.sh && \
+    touch $APP/log/rolling.log && \
     mv oppai /usr/local/bin/oppai && \
-    rm -rf /tmp/oppai && \
+    rm -rf $APP/oppai && \
     gem install $GEMS
 
 CMD ["ruby", "/root/app/lib/bot.rb"]
