@@ -3,7 +3,7 @@
 # Generate a Markdown a map's rank one score.
 def rank_one(map)
   if ranked_status(map) == 'Unranked'
-    log('Map is unranked, no rank one score to get')
+    puts('Map is unranked, no rank one score to get')
     raise
   end
 
@@ -11,7 +11,7 @@ def rank_one(map)
     top_play = request('scores', b: map['beatmap_id'], m: map['mode'])
     top_player = request('user', u: top_play['username'], m: map['mode'])
   rescue
-    log('An API request failed for the top play')
+    puts('An API request failed for the top play')
     raise
   else
     rank_one = "#1: [#{top_play['username']}](#{OSU_URL}/u/#{top_player['user_id']}) ("
@@ -27,7 +27,7 @@ end
 # Generate a markdown string with beatmap information.
 # Raises an exception if anuthing goes wrong.
 def beatmap_markdown(post)
-  log("Generating beatmap Markdown for #{post.title}")
+  puts("Generating beatmap Markdown for #{post.title}")
   map, mods = post.map, post.mods
 
   begin
@@ -71,7 +71,7 @@ def beatmap_markdown(post)
   end
 
   modded = diff['SR'].length == 2  # Whether the table will include modded values.
-  log("Diff contains nomod #{modded ? 'and modded ' : ''}values")
+  puts("Diff contains nomod #{modded ? 'and modded ' : ''}values")
 
   if modded
     adj_bpm, adj_length = adjusted_timing(bpm[0], length[0], mods)
@@ -121,25 +121,25 @@ def beatmap_markdown(post)
   begin
     map_md += MarkdownTables.make_table(headers, cols)
   rescue
-    log('Table generation failed')
+    puts('Table generation failed')
     raise
   end
 
-  log("Generated:\n'#{map_md}")
+  puts("Generated:\n'#{map_md}")
   return map_md
 end
 
 # Generate a Markdown string with player information.
 # Raises an exception if anything goes wrong.
 def player_markdown(player, mode)
-  log("Generating player Markdown for '#{player['username']}'")
+  puts("Generating player Markdown for '#{player['username']}'")
 
   # Get the player's top play.
   begin
     top_play_md = top_play(player, mode)
     show_top_play = true
   rescue
-    log("Generating top play failed for '#{player['username']}'")
+    puts("Generating top play failed for '#{player['username']}'")
     show_top_play = false
   end
 
@@ -158,7 +158,7 @@ def player_markdown(player, mode)
     cols += [[top_play_md]]
   end
 
-  log('Generating table for player')
+  puts('Generating table for player')
   begin
     player_table = MarkdownTables.make_table(headers, cols)
   rescue
@@ -171,7 +171,7 @@ end
 # player information can be generated, raises an exception.
 # 'mode' is the game mode: 0 => standard, 1 => taiko, 2 => catch, 3 => mania.
 def markdown(post)
-  log("Generating comment Markdown for '#{post.title}'")
+  puts("Generating comment Markdown for '#{post.title}'")
 
   # Get the beatmap information.
   begin
@@ -190,7 +190,7 @@ def markdown(post)
   end
 
   if !show_beatmap && !show_player
-    log('Not enough info to display')
+    puts('Not enough info to display')
     raise
   end
 
@@ -199,7 +199,7 @@ def markdown(post)
   md += "\n#{player_md}\n" if show_player
   md += "***\n\n"
   md += "^(I'm a bot. )[^Source](#{GH_URL})^( | )[^Developer](#{DEV_URL})"
-  log("Generated full comment:\n#{md}")
+  puts("Generated full comment:\n#{md}")
 
   return md
 end
@@ -207,11 +207,11 @@ end
 # Get a Markdown string for a player's top ranked play.
 # Raises an exception if anything goes wrong.
 def top_play(player, mode)
-  log("Generating Markdown for top play of #{player['username']} (mode=#{mode})")
+  puts("Generating Markdown for top play of #{player['username']} (mode=#{mode})")
   begin
     play = request('user_best', u: player['user_id'], t: 'id', m: mode)
   rescue
-    log("Request failed for player's top play")
+    puts("Request failed for player's top play")
     raise
   end
 
@@ -220,7 +220,7 @@ def top_play(player, mode)
   begin
     map = request('beatmaps', b: id, m: mode)
   rescue
-    log('Request failed for map of top play')
+    puts('Request failed for map of top play')
     raise
   end
 
@@ -231,6 +231,6 @@ def top_play(player, mode)
   md = "[#{map_string(map)}](#{OSU_URL}/b/#{id})#{mods}#{BAR} "
   md += "#{accuracy(play)}% #{BAR} #{format_num(round(play['pp']))}pp"
 
-  log("Generated:\n#{md}")
+  puts("Generated:\n#{md}")
   return md
 end

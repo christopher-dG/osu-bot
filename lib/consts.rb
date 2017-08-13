@@ -9,6 +9,12 @@ STAR = '&#9733;'
 # Download icon.
 DOWNLOAD = '&#8659;'
 
+# Reddit username.
+BOT_USER = 'osu-bot'
+
+# Subreddit to use.
+SUBREDDIT = 'osugame'
+
 # Base for API requests.
 OSU_URL = 'https://osu.ppy.sh'
 
@@ -18,17 +24,10 @@ GH_URL = 'https://github.com/christopher-dg/osu-bot'
 # Reddit profile URL.
 DEV_URL = 'https://reddit.com/u/PM_ME_DOG_PICS_PLS'
 
-# Log file.
-LOG = File.expand_path(
-  "#{File.dirname(__FILE__)}/../log/#{`date +"%m-%d-%Y_%H:%M:%S"`.chomp}.log"
-)
-
 # Modes to run in.
-# 'DEBUG' -> Enable extra logging (todo), 'DRY' -> dry run, 'TEST' -> testing.
-RUN_MODES = %w(DEBUG DRY TEST)
-DEBUG = ARGV.include?('DEBUG')
+# 'DRY' -> dry run (no comments).
+RUN_MODES = %w(DRY)
 DRY = ARGV.include?('DRY')
-TEST = ARGV.include?('TEST')
 
 # Secrets.
 config = YAML.load_file("#{ENV['APP']}/config.yml")
@@ -36,9 +35,6 @@ OSU_KEY = config['osu_key']
 REDDIT_PASSWORD = config['reddit_pass']
 REDDIT_SECRET = config['reddit_secret']
 REDDIT_CLIENT_ID = config['reddit_client']
-
-# Users to ignore.
-TROLLS = %w(gomina chemistryosu morgna)
 
 # All mods.
 MODS = %w(EZ HD HT DT NC HR FL NF SD PF RL SO AP AT)

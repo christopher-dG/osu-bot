@@ -41,7 +41,7 @@ class ScorePost
     begin
       @player = request('user', u: player_name, t: 'string')
     rescue
-      log("Fetching player data for '#{player_name}' failed.")
+      puts("Fetching player data for '#{player_name}' failed.")
       @error = true
       return
     end
@@ -55,11 +55,11 @@ class ScorePost
 
     # If the map is not standard, get the user's stats for the other game mode.
     if @map['mode'] != '0'
-      log("Getting player for mode: #{@map['mode']}")
+      puts("Getting player for mode: #{@map['mode']}")
       begin
         @player = request('user', u: @player['user_id'], m: @map['mode'])
       rescue
-        log("Fetching player data for '#{player_name}' failed.")
+        puts("Fetching player data for '#{player_name}' failed.")
       end
     end
 
@@ -80,9 +80,9 @@ end
 # player: https://github.com/ppy/osu-api/wiki#response-1
 # Returns a beatmap: https://github.com/ppy/osu-api/wiki#response
 def beatmap_search(map_name, player)
-  log("Searching for '#{map_name}' with player '#{player['username']}'")
+  puts("Searching for '#{map_name}' with player '#{player['username']}'")
   map_id = -1
-  log("Searching player's recent events")
+  puts("Searching player's recent events")
 
   player['events'].each do |e|
     if bleach(e['display_html']).include?(bleach(map_name.gsub('&', '&amp;')))
@@ -92,15 +92,15 @@ def beatmap_search(map_name, player)
   end
 
   if map_id != -1
-    log("Found beatmap match '#{map_id}' in events")
+    puts("Found beatmap match '#{map_id}' in events")
     begin
       return request('beatmaps', b: map_id)
     rescue
-      log("Fetching beatmap for '#{map_name}' from '#{map_id}' failed, continuing")
+      puts("Fetching beatmap for '#{map_name}' from '#{map_id}' failed, continuing")
     end
   end
 
-  log("Map was not found in events, searching player's recent plays")
+  puts("Map was not found in events, searching player's recent plays")
   # Use player's recent plays as a backup. This can take a while longer
   # if the player has recently played a lof of unique maps.
   seen_ids = []  # Avoid making duplicate API calls.
@@ -109,13 +109,13 @@ def beatmap_search(map_name, player)
   begin
     recents = request('user_recent', u: player['user_id'], t: 'id')
   rescue
-    log('Fetching player\'s recent plays failed')
+    puts('Fetching player\'s recent plays failed')
   else
     l = recents.length
     recents.each do |play|
       id = play['beatmap_id']
       if seen_ids.include?(id)
-        log("Skipping duplicate: '#{id}'")
+        puts("Skipping duplicate: '#{id}'")
         next
       end
       seen_ids.push(id)
@@ -123,15 +123,15 @@ def beatmap_search(map_name, player)
       begin
         map = request('beatmaps', b: id)
       rescue
-        log("Fetching beatmap for '#{map_name}' failed, continuing")
+        puts("Fetching beatmap for '#{map_name}' failed, continuing")
         next
       end
 
       if bleach_cmp(map_string(map), map_name)
-        log("Found beatmap match '#{map['beatmap_id']}' in recents")
+        puts("Found beatmap match '#{map['beatmap_id']}' in recents")
         msg = "Iterating over #{l} recent play#{plur(l)} took "
         msg += "#{round(Time.now - time, 5)} seconds, map was not retrieved"
-        log(msg)
+        puts(msg)
         return map
       end
     end
@@ -139,7 +139,7 @@ def beatmap_search(map_name, player)
 
   msg = "Iterating over #{l} recent play#{plur(l)} "
   msg += "took #{round(Time.now - time,  5)} seconds, map was not retrieved"
-  log(msg)
+  puts(msg)
   raise
 
 
@@ -149,43 +149,43 @@ end
 
 # Run the bot.
 def run(limit: 25)
-  log("#{`date`}\n", force: true)
+  puts("#{`date`}\n")
   start_time = Time.now
   # results: [[title, $comment/'fail']]
   results, attempts = [], 0
   begin
     osu = get_sub
   rescue
-    log("Reddit initialization failed.", force: true)
+    puts("Reddit initialization failed.")
     exit
   end
 
   osu.new(limit: limit).each do |p|
-    log("\nPost title: #{p.title}")
+    puts("\nPost title: #{p.title}")
 
     if should_comment(p)
       attempts += 1
       results.push([p.title, nil])
       post = ScorePost.new(title: p.title)
       if post.error
-        log('Generating a ScorePost failed')
+        puts('Generating a ScorePost failed')
         next
       end
 
-      log(post.inspect)
+      puts(post.inspect)
       begin
         comment = markdown(post)
       rescue
-        log("Not commenting on '#{post.title}'")
+        puts("Not commenting on '#{post.title}'")
         next
       end
 
-      log("Commenting on '#{post.title}'")
+      puts("Commenting on '#{post.title}'")
       if !DRY
         p.reply(comment).distinguish(:sticky)
         p.upvote
       end
-      log("Commented:\n#{comment}\n---")
+      puts("Commented:\n#{comment}\n---")
       results[-1][1] = comment
     end
   end
@@ -193,35 +193,24 @@ def run(limit: 25)
   comments = results.count {|t, c| !c.nil?}
 
   if attempts > 0
-    log("\n")
-    log("===========================================")
-    log("===========================================")
-    log("================= SUMMARY =================")
-    log("===========================================")
-    log("===========================================")
+    puts("\n")
+    puts("===========================================")
+    puts("===========================================")
+    puts("================= SUMMARY =================")
+    puts("===========================================")
+    puts("===========================================")
 
-    log("\nMade #{comments}/#{attempts} attempted comments\n")
+    puts("\nMade #{comments}/#{attempts} attempted comments\n")
     results.each do |title, comment|
-      comment.nil? ? log("#{title}: failed") : log("#{title}: \n#{comment}\n")
+      comment.nil? ? puts("#{title}: failed") : puts("#{title}: \n#{comment}\n")
     end
   else
-    log("\nAttempted 0 comments")
+    puts("\nAttempted 0 comments")
   end
 
-  log("Complete run took #{round(Time.now - start_time, 3)} seconds")
-  log("Made #{$request_count} API request#{plur($request_count)}\n\n")
+  puts("Complete run took #{round(Time.now - start_time, 3)} seconds")
+  puts("Made #{$request_count} API request#{plur($request_count)}\n\n")
 
-  if !DEBUG  # Simplified summary when not debugging.
-    if attempts > 0
-      log("Made #{comments}/#{attempts} attempted comments\n\n", force: true)
-      results.each do |title, comment|
-        log("#{title}: #{comment.nil? ? 'failed' : 'succeeded'}\n", force: true)
-      end
-      log("\n\n", force: true)
-    else
-      log("Attempted 0 comments\n\n", force: true)
-    end
-  end
   return nil
 end
 
@@ -233,9 +222,4 @@ if __FILE__ == $0
 
   $request_count = 0
   run
-
-  # Append the single-run results to the rolling log.
-  File.open("#{File.dirname(LOG)}/rolling.log", 'a') do |rolling|
-    File.open(LOG) {|f| rolling.write("#{f.read}")}
-  end
 end

@@ -16,14 +16,6 @@ def plur(n) n.to_f == 1 ? '' : 's' end
 # Format a map's title information.
 def map_string(map) "#{map['artist']} - #{map['title']} [#{map['version']}]" end
 
-# Write 'msg' to a log file, only if 'DEBUG' or 'force' is set.
-def log(msg, force: false)
-  if DEBUG || force
-    File.open(LOG, 'a') {|f| f.write("#{msg}\n")}
-    puts(msg)
-  end
-end
-
 # Round 'n' to 'd' decimal places as a string. If 'force' is true: round to 'd'
 # places even if they are all zeroes.
 def round(n, d=0, force: false)
@@ -37,34 +29,33 @@ def round(n, d=0, force: false)
   end
 end
 
-# Get a subreddit, /r/osugame by default.
+# Get a subreddit.
 def get_sub
-  sub = TEST ? 'osubottesting' : 'osugame'
-  log("Getting subreddit '#{sub}'")
+  puts("Getting subreddit '#{SUBREDDIT}'")
   return Redd.it(
-    user_agent: 'osu!-bot',
+    user_agent: BOT_USER,
     client_id: REDDIT_CLIENT_ID,
     secret: REDDIT_SECRET,
-    username: 'osu-bot',
+    username: BOT_USER,
     password: REDDIT_PASSWORD,
-  ).subreddit(sub)
+  ).subreddit(SUBREDDIT)
 end
 
-# Get the user, /u/osu-bot.
+# Get the bot user.
 def get_bot
-  log('Getting user /u/osu-bot')
+  puts("Getting user /u/#{BOT_USER}")
   return Redd.it(
-    user_agent: 'osu!-bot',
+    user_agent: BOT_USER,
     client_id: REDDIT_CLIENT_ID,
     secret: REDDIT_SECRET,
-    username: 'osu-bot',
+    username: BOT_USER,
     password: REDDIT_PASSWORD,
   ).me
 end
 
 # Convert a number of seconds to a 'mm:ss' timestamp. Can accept s as a string.
 def timestamp(n)
-  log("Converting #{n} seconds to timestamp")
+  puts("Converting #{n} seconds to timestamp")
   s = n.to_i
   raise('Attempted to get timestamp from negative time') if s < 0
   h = s / 60
@@ -74,7 +65,7 @@ def timestamp(n)
   else
     time = "#{h}:#{m}"
   end
-  log("Converted to #{time}")
+  puts("Converted to #{time}")
   return time
 end
 
@@ -90,7 +81,7 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
   $request_count += 1 if defined?($request_count)
   msg = "Making request with u: '#{u}', b: '#{b}', "
   msg += "s: '#{s}', t: '#{t}', m: '#{m}', l: '#{l}'"
-  log(msg)
+  puts(msg)
 
   time = Time.now
   suffix = "k=#{OSU_KEY}"
@@ -123,16 +114,16 @@ def request(request, u: '', b: '', s: '', t: '', m: '', l: '1')
 
   url = "#{OSU_URL}/api/get_#{request}?#{suffix}"
   safe_url = url.sub(OSU_KEY, '$private_key')
-  log("Requesting data from #{safe_url}")
+  puts("Requesting data from #{safe_url}")
   3.times do |i|
-    log("Attempt #{i + 1}...")
+    puts("Attempt #{i + 1}...")
     response = HTTParty.get(url).parsed_response
     if not response.empty?
-      log("Request took #{round(Time.now - time, 3)} seconds")
+      puts("Request took #{round(Time.now - time, 3)} seconds")
       return is_list ? response : response[0]
     end
   end
-  log('Empty API response')
+  puts('Empty API response')
   raise
 end
 

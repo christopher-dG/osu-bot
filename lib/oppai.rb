@@ -4,32 +4,32 @@
 # its own error handling.
 def download_map(map_id)
   url = "#{OSU_URL}/osu/#{map_id}"
-  log("Downloading map from #{url}")
+  puts("Downloading map from #{url}")
   File.open('map.osu', 'w') do |f|
     f.write(HTTParty.get(url).parsed_response)
   end
-  log('Wrote map to \'map.osu\'')
+  puts('Wrote map to \'map.osu\'')
   return true
 end
 
 # Generate a command to run oppai on 'map.osu' with given mods and acc.
 def cmd(mods:, acc: '')
   acc = acc.empty? ? '' : "#{acc}% "
-  log("Constructing oppai command for mods: #{mods}, acc: #{acc}")
+  puts("Constructing oppai command for mods: #{mods}, acc: #{acc}")
   cmd = "oppai map.osu -ojson #{acc}"
   cmd += "+#{mods.join}" if !mods.empty?
-  log("Command: #{cmd}")
+  puts("Command: #{cmd}")
   return cmd
 end
 
 # Get pp data from oppai for the map stored in 'map.osu' with some given mods.
 # Returns a list of pp values.
 def oppai_pp(map_id, acc, mods, nomod_vals: [])
-  log("Getting pp from oppai for mods +#{mods.join} with nomod values: #{nomod_vals}")
+  puts("Getting pp from oppai for mods +#{mods.join} with nomod values: #{nomod_vals}")
 
   if !nomod_vals.empty? && mods.all? {|m| SAME_PP_MODS.include?(m)}
     # If the mods won't change the pp values, return the nomod value.
-    log("Mods  don't change  pp, returning nomod value")
+    puts("Mods don't change pp, returning nomod value")
     return nomod_vals
   end
 
@@ -40,25 +40,25 @@ def oppai_pp(map_id, acc, mods, nomod_vals: [])
     begin
       pp = JSON.parse(`#{cmd(mods: mods, acc: acc.to_s)}`)['pp']
     rescue
-      log('Something went wrong with oppai')
+      puts('Something went wrong with oppai')
       raise
     end
-    log("pp result from oppai: #{pp}")
+    puts("pp result from oppai: #{pp}")
     result.push(format_num(pp))
   end
 
-  log("pp: #{result}")
+  puts("pp: #{result}")
   return result
 end
 
 # Get difficulty values from oppai for the map stored in 'map.osu'.
 # Returns a hash with keys for each difficulty property.
 def oppai_diff(map_id, mods)
-  log("Getting diff values from oppai for mods +#{mods.join}")
+  puts("Getting diff values from oppai for mods +#{mods.join}")
   begin
     result = JSON.parse(`#{cmd(mods: mods)}`)
   rescue
-    log('Modded diff value calculations failed.')
+    puts('Modded diff value calculations failed.')
     raise
   end
 
@@ -69,7 +69,7 @@ def oppai_diff(map_id, mods)
     'HP' => round(result['hp'], 1),
     'SR' => round(result['stars'], 2),
   }
-  log("Diff values: #{diff}")
+  puts("Diff values: #{diff}")
   return diff
 end
 
@@ -82,13 +82,13 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
   begin
     download_map(map_id)
   rescue
-    log("Downloading beatmap failed for '#{map_id}'")
+    puts("Downloading beatmap failed for '#{map_id}'")
     raise
   end
 
   msg = "Running oppai in '#{mode}' mode for map_id '#{map_id}'"
   msg += "and mods '+#{mods.join}' with nomod values: #{nomod_vals}"
-  log(msg)
+  puts(msg)
 
   result = ''
   begin
@@ -98,17 +98,13 @@ def oppai(map_id, mode:, mods: [], nomod_vals: [], acc: '')
       result = oppai_diff(map_id, mods)
     end
   rescue
-    FileUtils.cp('map.osu', "#{File.dirname(LOG)}/maps/#{map_id}.osu")
-    log("oppai failed in '#{mode}' mode: saved map to logs/maps/#{map_id}.osu")
+    puts("oppai failed in '#{mode}' mode.")
     raise
   ensure
-    # Todo: Don't redownload the same map for each call to oppai.
-    # Could save to $map_id.osu and delete all .osu files afterwards, or even
-    # cache map files for reuse across runs.
-    log('Deleting map.osu')
+    puts('Deleting map.osu')
     File.delete('map.osu') if File.file?('map.osu')
   end
 
-  log("oppai final result: #{result}")
+  puts("oppai final result: #{result}")
   return result
 end
