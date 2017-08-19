@@ -2,3 +2,53 @@
 
 [![Build Status](https://travis-ci.org/christopher-dG/OsuBot.jl.svg?branch=master)](https://travis-ci.org/christopher-dG/OsuBot.jl)
 [![CodeCov](https://codecov.io/gh/christopher-dG/OsuBot.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/OsuBot.jl)
+
+[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap
+and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.
+
+
+### To Score Posters
+
+The bot depends on you to properly format your title!
+The beginning of your post title should look something like this:
+
+```
+Player Name | Song Artist - Song Title [Diff Name] +Mods
+```
+
+For example:
+
+```
+Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP RECORD*
+```
+
+### Detailed Guidelines
+
+* The text before the first `|` must begin with the player name. Extra text
+  can be added in `(parentheses)` like so: ```Player Name (#1 global) | ...```
+* Mods are case-insensitive, but they must be separated by either nothing
+  or commas.
+  * The following styles will work: `+HDHR`, `HDHR`, `+HD,HR`, `HD,HR`
+  * The following syles will not work: `HD HR`, `HD-HR`, `+HD-HR`, `+HD +HR`
+* The rightmost set of `[square brackets]` between the first and second `|`
+  separators must contain the diff name.
+  * The following will work:
+    ```Player | Artist - Song [Diff] +DT | FC [7.9*]```.
+  * The following will not work:
+    ```Player | Artist - Song [Diff] FC 99.2% [first fc]```.
+
+***
+
+Credit for mod/pp calculations goes to
+[Francesco149](https://github.com/Francesco149/oppai).
+
+If you have comments or suggestions for the bot, feel free to
+[open an issue](https://github.com/christopher-dG/osu-bot/issues/new) or
+[message me on Reddit](https://reddit.com/message/compose/?to=PM_ME_DOG_PICS_PLS).
+
+And if you want to thank me in some way, I'll happily accept
+[the gift of supporter](https://ppy.sh/users/3172543).
+
+***
+
+**This project is in no way affiliated with [osu!](https://osu.ppy.sh).**
