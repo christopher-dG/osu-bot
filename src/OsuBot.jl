@@ -1,5 +1,10 @@
 module OsuBot
 
-# Package code goes here.
+export OsuTypes, Reddit, Osu, Oppai
+
+include("OsuTypes.jl")
+include("Reddit.jl")
+include("Osu.jl")
+include("Oppai.jl")
 
 end
