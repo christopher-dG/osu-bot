@@ -1,4 +1,4 @@
-module OsuBot
+module OsuBot  # It's too bad 'osu!bot' breaks so many naming conventions.
 
 export OsuTypes, Reddit, Osu, Oppai
 

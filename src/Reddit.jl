@@ -5,18 +5,19 @@ using YAML
 
 @pyimport praw
 
-const config = map(
-    pair -> Symbol(pair.first) => pair.second,
-    YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["reddit"],
-)
-
 """
-    login(config::Dict{Symbol, String}) -> PyObject
+    login() -> PyObject
 
-Return a Reddit bot user from `config` with keys `:user_agent`, `:client_id`,
-`:client_secret`, `:username`, and `:password`.
+Return a Reddit bot user defined by the global Reddit config.
 """
-login() = praw.Reddit(; config...)
+function login()
+    praw.Reddit(;
+        map(
+            pair -> Symbol(pair.first) => pair.second,
+            YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["reddit"],
+        )...
+    )
+end
 
 """
     reply(post::PyObject, comment::AbstractString) -> PyObject
@@ -39,6 +40,6 @@ Save `comment`.
 """
 save(comment::PyObject) = comment[:save]()
 
-log(msg::AbstractString) = info("$(basename(@__FILE__)): $msg")
+log(msg) = info("$(basename(@__FILE__)): $msg")
 
 end
