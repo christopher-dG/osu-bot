@@ -3,54 +3,52 @@ Types that represent concepts/objects in osu!.
 """
 module OsuTypes
 
-export make_map, Beatmap, Player, Score, Mode, Mod
+export mod_map, map_str, make_map, Beatmap, Player, Score, Mode
 
 const fmt = DateFormat("y-m-d H:M:S")
 
-@enum Status GRAVEYARD=-2 WIP PENDING RANKED APPROVED QUALIFIED LOVED
-
 @enum Mode STD TAIKO CTB MANIA
 
+const status_map = Dict{Int, String}(
+    -2 => "Unranked",
+    -1 => "Unranked",
+    0 => "Unranked",
+    1 => "Ranked",
+    2 => "Ranked",
+    3 => "Qualified",
+    4 => "Loved",
+)
+
 # https://github.com/ppy/osu-api/wiki#mods
-@enum(
-    Mod,
-    NOMOD=1 >> 1,
-    NF=1 << 0,
-    EZ=1 << 1,
-    NOVID=1 << 2,
-    HD=1 << 3,
-    HR= 1 << 4,
-    SD=1 << 5,
-    DT=1 << 6,
-    RL=1 << 7,
-    HT=1 << 8,
-    NC=1 << 6 + 1 << 9,  # DT is always set along with NC.
-    FL=1 << 10,
-    AT=1 << 11,
-    SO=1 << 12,
-    AP=1 << 13,
-    PF=1 << 5 + 1 << 14,  # SD is always set along with PF.
-    K4=1 << 15,
-    K5=1 << 16,
-    K6=1 << 17,
-    K7=1 << 18,
-    K8=1 << 19,
-    KMOD=1 << 15 | 1 << 16 | 1 << 17 | 1 << 18 | 1 << 19,
-    FADEIN=1 << 20,
-    RANDOM=1 << 21,
-    LAST=1 << 22,
-    FREEMOD=1 << 0 | 1 << 1 | 1 << 3 | 1 << 4 | 1 << 5 | 1 << 10 | 1 << 20 | 1 << 7 | 1 << 11 | 1 << 12 | 1 << 15 | 1 << 16 | 1 << 17 | 1 << 18 | 1 << 19,
-    K9=1 << 24,
-    K10=1 << 25,
-    K1=1 << 26,
-    K3=1 << 27,
-    K2=1 << 28,
+const mod_map = Dict{Symbol, Int}(
+    :NOMOD => 1 >> 1,
+    :NF => 1 << 0,
+    :EZ => 1 << 1,
+    :HD => 1 << 3,
+    :HR => 1 << 4,
+    :SD => 1 << 5,
+    :DT => 1 << 6,
+    :RL => 1 << 7,
+    :HT => 1 << 8,
+    :NC => 1 << 6 | 1 << 9,  # DT is always set along with NC.
+    :FL => 1 << 10,
+    :AT => 1 << 11,
+    :SO => 1 << 12,
+    :AP => 1 << 13,
+    :PF => 1 << 5 | 1 << 14,  # SD is always set along with PF.
 )
 
 """
     A beatmap of any mode.
 """
 abstract type Beatmap end
+
+"""
+    map_str(map::Beatmap) -> String
+
+Get `map` in a human-readable format.
+"""
+map_str(map::Beatmap) = "$(map.artist) - $(map.title) [$(map.diff)]"
 
 """
 An osu!std beatmap.
@@ -69,11 +67,11 @@ struct StdBeatmap <: Beatmap
     hp::Float16  # HP drain.
     bpm::Float16  # Song BPM.
     length::Dates.Second  # Song length.
-    status::Status  # Ranked status.
-    approved_date::DateTime  # Date and time ranked/loved/qualified.
-    last_update::DateTime  # Date and time last updated.
+    status::AbstractString  # Ranked status.
+    approved_date::Date  # Date ranked/loved/qualified.
     plays::Int  # Play count.
     combo::Int  # Max combo.
+    mode::Mode  # Game mode.
 
     function StdBeatmap(d::Dict)
         new(
@@ -90,11 +88,11 @@ struct StdBeatmap <: Beatmap
             parse(Float16, d["diff_drain"]),
             parse(Float16, d["bpm"]),
             Dates.Second(d["total_length"]),
-            Status[parse(Int, d["approved"])][1],
-            DateTime(d["approved_date"], fmt),
-            DateTime(d["last_update"], fmt),
+            get(status_map, parse(Int, d["approved"]), "Unknown"),
+            Date(d["approved_date"], fmt),
             parse(Int, d["playcount"]),
             parse(Int, d["max_combo"]),
+            Mode[parse(Int, d["mode"])][1],
         )
     end
 end
@@ -116,9 +114,8 @@ struct OtherBeatmap <: Beatmap
     hp::Float16  # HP drain.
     bpm::Float16  # Song BPM.
     length::Dates.Second  # Song length.
-    status::Status  # Ranked status.
-    approved_date::DateTime  # Date and time ranked/loved/qualified.
-    last_update::DateTime  # Date and time last updated.
+    status::AbstractString  # Ranked status.
+    approved_date::Date  # Date ranked/loved/qualified.
     plays::Int  # Play count.
 
     function OtherBeatmap(d::Dict)
@@ -137,9 +134,8 @@ struct OtherBeatmap <: Beatmap
             parse(Float16, d["diff_drain"]),
             parse(Float16, d["bpm"]),
             Dates.Second(d["total_length"]),
-            Status[parse(Int, d["approved"])][1],
-            DateTime(d["approved_date"], fmt),
-            DateTime(d["last_update"], fmt),
+            get(status_map, parse(Int, d["approved"]), "Unknown"),
+            Date(d["approved_date"], fmt),
             parse(Int, d["playcount"]),
         )
     end
@@ -169,11 +165,11 @@ struct Event
 
     function Event(d::Dict)
         regex = r"/b/[0-9]+\?m=[0-9]'>(.+) - (.+) \[(.+)\]</a>"
-        caps = match(regex, d["display_html"]).captures
-        return if length(caps) == 3
+        try
+            caps = match(regex, d["display_html"]).captures
             map_str = "$(caps[1]) - $(caps[2]) [$(caps[3])]"
             new(map_str, parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]))
-        else
+        catch
             new("", parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]))
         end
     end

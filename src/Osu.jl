@@ -61,7 +61,7 @@ end
     beatmap_scores(
         id::Int;
         mode::Mode=OsuTypes.STD,
-        mods::Union{Int, Void}=nothing,
+        mods::Symbol=:FREEMOD,
         lim::Int=50,
     ) -> Nullable{Vector{Score}}
 
@@ -70,11 +70,11 @@ Get the top scores on a map by `id`.
 function beatmap_scores(
     id::Int;
     mode::Mode=OsuTypes.STD,
-    mods::Union{Int, Void}=nothing,
+    mods::Symbol=:FREEMOD,
     lim::Int=50,
 )
     args = ["b=$id", "m=$(Int(mode))", "limit=$lim"]
-    isa(mods, Int) && push!(args, "mods=$mods")
+    mods != :FREEMOD && push!(args, "mods=$(mod_map[mods])")
     url = render(osu_url; cmd="get_scores", args=args)
     return Nullable{Vector{Score}}(
         try
@@ -89,7 +89,7 @@ end
         id::Int,
         player::Int;
         mode::Mode=OsuTypes.STD,
-        mods::Union{Int, Void}=nothing,
+        mods::Symbol=:FREEMOD,
         lim::Int=50,
     ) -> Nullable{Vector{Score}}
 
@@ -99,11 +99,11 @@ function beatmap_scores(
     id::Int,
     player::Int;
     mode::Mode=OsuTypes.STD,
-    mods::Union{Int, Void}=nothing,
+    mods::Symbol=:FREEMOD,
     lim::Int=50,
 )
     args = ["b=$id", "u=$player", "type=id", "m=$(Int(mode))", "limit=$lim"]
-    isa(mods, Int) && push!(args, "mods=$mods")
+    mods != :FREEMOD && push!(args, "mods=$(mod_map[mods])")
     url = render(osu_url; cmd="get_scores", args=args)
     return Nullable{Vector{Score}}(
         try
@@ -118,7 +118,7 @@ end
         id::Int,
         player::AbstractString;
         mode::Mode=OsuTypes.STD,
-        mods::Union{Int, Void}=nothing,
+        mods::Symbol=:FREEMOD,
         lim::Int=50,
     ) -> Nullable{Vector{Score}}
 
@@ -128,11 +128,11 @@ function beatmap_scores(
     id::Int,
     player::AbstractString;
     mode::Mode=OsuTypes.STD,
-    mods::Union{Int, Void}=nothing,
+    mods::Symbol=:FREEMOD,
     lim::Int=50,
 )
     args = ["b=$id", "u=$player", "m=$(Int(mode))", "type=string", "limit=$lim"]
-    isa(mods, Int) && push!(args, "mods=$mods")
+    mods != :FREEMOD && push!(args, "mods=$(mod_map[mods])")
     url = render(osu_url; cmd="get_scores", args=args)
     return Nullable{Vector{Score}}(
         try
@@ -216,27 +216,29 @@ function request(url::AbstractString)
     if endswith(url, "&")
         url = url[1:end-1]
     end
+    url = replace(url, " ", "%20")
     log("Making request to $(replace(url, osu_key, "[secure]"))")
     response = nothing
     for i in 1:3
-        i > 1 && log("Attempt $i...")
+        i > 1 && log("Attempt $i...") && sleep(3)
         response = try
             HTTP.get(url)
         catch err
             log(err)
+            nothing
         end
-        response != nothing && break
+        response != nothing && response.body.len > 50 && break
     end
     if response == nothing
-        log("No response from server")
-        error()
+        log("No response from server") && error()
     elseif response.status != 200
-        log("Error code $(response.status) from server")
-        error()
+        log("Error code $(response.status) from server") && error()
+    elseif response.body.len < 50
+        log("Empty Empty response form server") && error()
     end
-    return JSON.parse(readstring(response.body))
+    return JSON.parse(String(take!(response)))
 end
 
-log(msg) = info("$(basename(@__FILE__)): $msg")
+log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end

@@ -5,6 +5,8 @@ be found in `Oppai.map_stats` and `Oppai.pp` after calls to `run`.
 """
 module Oppai
 
+using HTTP
+
 using OsuBot.OsuTypes
 
 struct Object
@@ -137,7 +139,7 @@ function init()
     global params = Ref{PPParams}()
     global parser = Ref{Parser}()
     global map_stats = Ref{BeatmapStats}()
-    global mods = Cint(OsuTypes.NOMOD)
+    global mods = Cint(OsuTypes.mod_map[:NOMOD])
     ccall(d_init, Cint, (Ref{DiffCalc},), calc)
     ccall(pp_init, Cint, (Ref{PPParams},), params)
     ccall(p_init, Cint, (Ref{Parser},), parser)
@@ -189,6 +191,11 @@ function apply_mods(mods::Cuint)
     return nothing
 end
 
+"""
+    load_map(file::AbstractString) -> Void
+
+Load the map at `file`.
+"""
 function load_map(file::AbstractString)
     fp = ccall(:fopen, Cptrdiff_t, (Cstring, Cstring), file, "r")
     ccall(p_map, Cint, (Ref{Parser}, Ref{Beatmap}, Cptrdiff_t), parser, map, fp)
@@ -200,11 +207,18 @@ function load_map(file::AbstractString)
 end
 
 """
-    run(; acc::Float64=100.0, mods::Int=Int(OsuTypes.NOMOD)) -> Void
+    load_map() -> Void
+Load the default map file, which should be obtained with `download`.
+"""
+load_map() = load_map("map.osu")
+
+"""
+    run(; acc::Float64=100.0, mods::Int=OsuTypes.mod_map[:NOMOD]) -> Void
 
 Run oppai on the currently loaded map.
 """
-function run(; acc::Float64=100.0, mods::Int=Int(OsuTypes.NOMOD))
+function run(; acc::Float64=100.0, mods::Int=OsuTypes.mod_map[:NOMOD])
+    load_map()
     # Calculate map values like AR, OD, max combo, etc.
     ccall(d_calc, Cint, (Ref{DiffCalc}, Ref{Beatmap}, Cint), calc, map, mods)
     # We have to manually set these two values, which we just got from the above call.
@@ -227,6 +241,46 @@ function run(; acc::Float64=100.0, mods::Int=Int(OsuTypes.NOMOD))
     # Finally, calculate pp.
     ccall(ppv2p, Cint, (Ref{PPCalc}, Ref{PPParams}), pp, params)
     return nothing
+end
+
+"""
+    download(id::Int) -> Void
+
+Write a map by `id`'s `.osu` file to `map.osu`, and return true on success.
+"""
+function download(id::Int)
+    url = "https://osu.ppy.sh/osu/$id"
+    log("Downloading from $url")
+    return try
+        write("map.osu", HTTP.request(url).body)
+        true
+    catch e
+        log(e)
+        false
+    end
+end
+
+"""
+    getpp() -> Float64
+
+Get the currently calculated pp value.
+"""
+getpp() = pp[].total
+
+"""
+    getdiff() -> Dict{String, Float64}
+
+Get the current calculated difficulty values.
+"""
+function getdiff()
+    return Dict{String, Float64}(
+        "ar" => map_stats[].ar,
+        "od" => map_stats[].od,
+        "cs" => map_stats[].cs,
+        "hp" => map_stats[].hp,
+        "sr" => calc[].total,
+        "speed" => map_stats[].speed,
+    )
 end
 
 end
