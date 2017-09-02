@@ -88,7 +88,7 @@ struct StdBeatmap <: Beatmap
             Date(d["approved_date"], fmt),
             parse(Int, d["playcount"]),
             parse(Int, d["max_combo"]),
-            Mode[parse(Int, d["mode"])][1],
+            STD,
         )
     end
 end
@@ -113,6 +113,7 @@ struct TaikoBeatmap <: Beatmap
     status::AbstractString  # Ranked status.
     approved_date::Date  # Date ranked/loved/qualified.
     plays::Int  # Play count.
+    mode::Mode  # Game mode.
 
     function TaikoBeatmap(d::Dict)
         fmt = DateFormat("y-m-d H:M:S")
@@ -133,6 +134,7 @@ struct TaikoBeatmap <: Beatmap
             get(status_map, parse(Int, d["approved"]), "Unknown"),
             Date(d["approved_date"], fmt),
             parse(Int, d["playcount"]),
+            TAIKO,
         )
     end
 end
@@ -157,6 +159,7 @@ struct OtherBeatmap <: Beatmap
     status::AbstractString  # Ranked status.
     approved_date::Date  # Date ranked/loved/qualified.
     plays::Int  # Play count.
+    mode::Mode  # Game mode.
 
     function OtherBeatmap(d::Dict)
         fmt = DateFormat("y-m-d H:M:S")
@@ -177,6 +180,7 @@ struct OtherBeatmap <: Beatmap
             get(status_map, parse(Int, d["approved"]), "Unknown"),
             Date(d["approved_date"], fmt),
             parse(Int, d["playcount"]),
+            first(Mode[parse(Int, d["mode"])]),
         )
     end
 end

@@ -24,7 +24,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
             map_str = "$(caps[2]) - $(caps[3]) [$(caps[4])]"
             beatmap = Nullable{OsuTypes.Beatmap}(Utils.search(get(player), map_str))
             isnull(map) && warn("Proceeding without beatmap")
-            comment_str = Utils.build_comment(get(player), beatmap)
+            comment_str = CommentMarkdown.build_comment(get(player), beatmap)
             !dry && log("Commenting on $(post[:title]): $comment_str")
             !dry && Reddit.reply_sticky(post, comment_str)
         catch e

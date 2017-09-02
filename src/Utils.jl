@@ -1,14 +1,14 @@
 """
-Tools for building comments, parsing mods, etc.
+Tools for parsing and formatting stuff, etc.
 """
 module Utils
 
 using Formatting
 
-using OsuBot.Osu
 using OsuBot.OsuTypes
+using OsuBot.Osu
 
-export map_name, mods_from_int, mods_from_string, search, build_comment
+export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp
 
 """
     map_name(map::Beatmap) -> String
@@ -35,6 +35,8 @@ function mods_from_int(n::Int)
     return mods
 end
 
+mods_to_int(mods::Vector{Symbol}) = sum(map(m -> mod_map[m], mods))
+
 """
     mods_from_string(s::AbstractString) -> Int
 
@@ -49,7 +51,7 @@ function mods_from_string(s::AbstractString)
     # The "easy case" is when there's a '+' before the mods.
     if idx != 0 && idx < length(s)
         s = s[idx:end]
-        s = replace(split(s[findfirst(!isspace, s):end])[1], r"[^A-Z]", "")
+        s = replace(split(first(s[findfirst(!isspace, s):end])), r"[^A-Z]", "")
         s = length(s) == 0 ? s : s[1:end-1]
         for idx in 1:2:length(s)
             mod = Symbol(s[idx:idx + 1])
@@ -73,28 +75,6 @@ function mods_from_string(s::AbstractString)
     return mods
 end
 
-function timestamp(s::Real)
-    s = Int(round(s))
-    h = convert(Int, floor(s / 3600))
-    s -= 3600h
-    m = floor(s / 60)
-    s -= 60m
-    m = format(convert(Int, m); width=2, zeropadding=true)
-    s = format(convert(Int, s); width=2, zeropadding=true)
-    return if h > 0
-        "$h:$m:$s"
-    else
-        "$m:$s"
-    end
-end
-
-function fmt(el::Union{Real, AbstractString})
-    return if isa(el, AbstractFloat)
-        round(el) == el ? string(convert(Int, round(el))) : string(trunc(el, 1))
-    else
-        el
-    end
-end
 """
     search(player::Player, map_str::AbstractString) -> Nullable{Beatmap}
 
@@ -113,54 +93,38 @@ function search(player::Player, map_str::AbstractString)
     !isnull(map) && log("Found map: $(map_name(get(map)))") && return map
 
     log("Searching recent plays")
+    # We have no way to know what game mode we're looking for, so this won't work unless
+    # unless it's standard.
     recent = get(player_recent(player.id; lim=50), [])
     for map in (beatmap(play.map_id) for play in recent)
         isnull(map) && continue
         map_name(get(map)) == map_str && return map
     end
     # TODO: osusearch.
-    log("No map found") && return nothing
+    log("No map found") && return Nullable{Beatmap}()
 end
 
-"""
-    build_comment(player::Player, beatmap::Beatmap) -> String
-
-Build a comment from `player` and `beatmap`.
-"""
-function build_comment(player::Player, beatmap::Nullable{Beatmap})
-    const osu = "https://osu.ppy.sh"
-    buf = IOBuffer()
-    tmp = ""
-
-    if !isnull(beatmap)
-        map = get(beatmap)
-        tmp = "[$(map_name(map))]($osu/b/$(map.id)) [(↓)]($osu/d/$(map.id)) "
-        tmp *= "by [$(map.mapper)]($osu/u/$(map.mapper))"
-        Markdown.plain(buf, Markdown.Header(tmp, 3))
-        tmp = ""
-        plays = beatmap_scores(map.id)
-        if !isnull(plays)
-            top = get(plays)[1]
-            # Output from `beatmap_scores` always has both `username` and `user_id` fields,
-            # so we shouldn't need to handle `NullException`s.
-            tmp = "#1: [$(get(top.username))]($osu/u/$(get(top.user_id))) ("
-            if top.mods != mod_map[:NOMOD]
-                tmp *= "+$(join(mods_from_int(top.mods))) - "
-            end
-            # `beatmap_scores` also always comes with `pp` set.
-            tmp *= "$(trunc(top.accuracy, 2))% - "
-            tmp *= "$(format(get(top.pp); commas=true))pp) || "
-        end
-        if isa(map, StdBeatmap)
-            tmp *= "$(format(map.combo; commas=true))x max combo || "
-        end
-        tmp *= "$(map.status) ($(map.approved_date)) || "
-        tmp *= "$(format(map.plays; commas=true)) plays"
-        Markdown.plaininline(buf, Markdown.Bold(tmp))
-        tmp = ""
+function timestamp(s::Real)
+    s = Int(round(s))
+    h = convert(Int, floor(s / 3600))
+    s -= 3600h
+    m = floor(s / 60)
+    s -= 60m
+    m = format(convert(Int, m); width=2, zeropadding=true)
+    s = format(convert(Int, s); width=2, zeropadding=true)
+    return if h > 0
+        "$h:$m:$s"
+    else
+        "$m:$s"
     end
+end
 
-    return String(take!(buf))
+function strfmt(el::Real; precision::Int=1)
+    return if round(el) == el || precision == 0
+        format(round(el); commas=true)
+    else
+        format(trunc(el, precision); commas=true)
+    end
 end
 
 log(msg) = (info("$(basename(@__FILE__)): $msg"); true)

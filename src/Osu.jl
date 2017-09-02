@@ -23,7 +23,7 @@ Get a beatmap by `id`.
 function beatmap(id::Int)
     args = ["b=$id", "limit=1"]
     url = render(osu_url; cmd="get_beatmaps", args=args)
-    return Nullable{Beatmap}(try make_map(request(url)[1]) catch end)
+    return Nullable{Beatmap}(try make_map(first(request(url))) catch end)
 end
 
 """
@@ -45,7 +45,7 @@ Get a player by `id`.
 function player(id::Int; mode::Mode=OsuTypes.STD)
     args = ["u=$id", "type=id", "m=$(Int(mode))", "event_days=31"]
     url = render(osu_url; cmd="get_user", args=args)
-    return Nullable{Player}(try Player(request(url)[1]) catch e rethrow(e) end)
+    return Nullable{Player}(try Player(first(request(url))) catch e rethrow(e) end)
 end
 
 """
@@ -56,7 +56,7 @@ Get a player by `name`.
 function player(name::AbstractString; mode::Mode=OsuTypes.STD)
     args = ["u=$name", "type=string", "m=$(Int(mode))", "event_days=31"]
     url = render(osu_url; cmd="get_user", args=args)
-    return Nullable{Player}(try Player(request(url)[1]) catch end)
+    return Nullable{Player}(try Player(first(request(url))) catch end)
 end
 
 """

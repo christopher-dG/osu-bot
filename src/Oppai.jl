@@ -9,6 +9,8 @@ using JSON
 using OsuBot.OsuTypes
 using OsuBot.Utils
 
+export get_diff, get_pp
+
 const tmpdir = joinpath(tempdir(), "osubot")
 mkpath(tmpdir)
 
@@ -34,7 +36,6 @@ function download(id::Int)
         log(e)
         return ""
     end
-
 end
 
 function oppai(cmd::Cmd)
@@ -42,15 +43,15 @@ function oppai(cmd::Cmd)
     return JSON.parse(readstring(cmd))
 end
 
-get_pp(beatmap::Beatmap, acc::AbstractFloat) = get_pp(beatmap, acc, mod_map[:NOMOD])
+get_pp(beatmap::Beatmap, acc::Real) = get_pp(beatmap, acc, mod_map[:NOMOD])
 
-function get_pp(beatmap::Beatmap, acc::AbstractFloat, mods::Int)
+function get_pp(beatmap::Beatmap, acc::Real, mods::Int)
     path = download(beatmap.id)
     isempty(path) && return nothing
     mods = mods_from_int(mods)
     mods = isempty(mods) ? "" : "+$(join(mods))"
     taiko = isa(beatmap, TaikoBeatmap) ? "-taiko" : ""
-    cmd = `$oppai_cmd $path -ojson $acc% $mods $taiko`
+    cmd = `oppai $path -ojson $acc% $mods $taiko`
     return try
         oppai(cmd)["pp"]
     catch
@@ -58,9 +59,9 @@ function get_pp(beatmap::Beatmap, acc::AbstractFloat, mods::Int)
     end
 end
 
-get_pp(::OtherBeatmap, acc::AbstractFloat) = nothing
+get_pp(::OtherBeatmap, acc::Real) = nothing
 
-get_pp(::OtherBeatmap, acc::AbstractFloat, mods::Int) = nothing
+get_pp(::OtherBeatmap, acc::Real, mods::Int) = nothing
 
 function get_diff(beatmap::Beatmap)
     return Dict{Symbol, Union{AbstractString, Real}}(
