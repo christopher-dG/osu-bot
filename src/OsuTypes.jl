@@ -92,7 +92,51 @@ struct StdBeatmap <: Beatmap
 end
 
 """
-An beatmap of any non-standard game mode.
+An osu!taiko beatmap.
+"""
+struct TaikoBeatmap <: Beatmap
+    id::Int  # Beatmap ID.
+    set_id::Int  # Beatmapset ID.
+    artist::AbstractString  # Song artist.
+    title::AbstractString  # Song title.
+    diff::AbstractString  # Diff name.
+    mapper::AbstractString  # Mapper name.
+    stars::AbstractFloat  # Star rating.
+    cs::AbstractFloat  # Circle size.
+    od::AbstractFloat  # Overall difficulty.
+    ar::AbstractFloat  # Approach rate.
+    hp::AbstractFloat  # HP drain.
+    bpm::AbstractFloat  # Song BPM.
+    length::Dates.Second  # Song length.
+    status::AbstractString  # Ranked status.
+    approved_date::Date  # Date ranked/loved/qualified.
+    plays::Int  # Play count.
+
+    function OtherBeatmap(d::Dict)
+        fmt = DateFormat("y-m-d H:M:S")
+        new(
+            parse(Int, d["beatmap_id"]),
+            parse(Int, d["beatmapset_id"]),
+            d["artist"],
+            d["title"],
+            d["version"],
+            d["creator"],
+            parse(Float64, d["difficultyrating"]),
+            parse(Float64, d["diff_size"]),
+            parse(Float64, d["diff_overall"]),
+            parse(Float64, d["diff_approach"]),
+            parse(Float64, d["diff_drain"]),
+            parse(Float64, d["bpm"]),
+            Dates.Second(d["total_length"]),
+            get(status_map, parse(Int, d["approved"]), "Unknown"),
+            Date(d["approved_date"], fmt),
+            parse(Int, d["playcount"]),
+        )
+    end
+end
+
+"""
+An osu!ctb or osu!mania beatmap (incompatible with oppai).
 """
 struct OtherBeatmap <: Beatmap
     id::Int  # Beatmap ID.
