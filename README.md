@@ -40,7 +40,7 @@ Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP REC
 ***
 
 Credit for mod/pp calculations goes to
-[Francesco149](https://github.com/Francesco149/oppai).
+[Francesco149](https://github.com/Francesco149/oppai-ng).
 
 If you have comments or suggestions for the bot, feel free to
 [open an issue](https://github.com/christopher-dG/osu-bot/issues/new) or

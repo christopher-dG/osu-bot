@@ -3,7 +3,7 @@ Types that represent concepts/objects in osu!.
 """
 module OsuTypes
 
-export mod_map, map_str, make_map, Beatmap, Player, Score, Mode
+export mod_map, make_map, Beatmap, StdBeatmap, OtherBeatmap, Player, Score, Mode
 
 const fmt = DateFormat("y-m-d H:M:S")
 
@@ -36,19 +36,13 @@ const mod_map = Dict{Symbol, Int}(
     :SO => 1 << 12,
     :AP => 1 << 13,
     :PF => 1 << 5 | 1 << 14,  # SD is always set along with PF.
+    :FREEMOD => -1,
 )
 
 """
     A beatmap of any mode.
 """
 abstract type Beatmap end
-
-"""
-    map_str(map::Beatmap) -> String
-
-Get `map` in a human-readable format.
-"""
-map_str(map::Beatmap) = "$(map.artist) - $(map.title) [$(map.diff)]"
 
 """
 An osu!std beatmap.
@@ -60,12 +54,12 @@ struct StdBeatmap <: Beatmap
     title::AbstractString  # Song title.
     diff::AbstractString  # Diff name.
     mapper::AbstractString  # Mapper name.
-    stars::Float16  # Star rating.
-    cs::Float16  # Circle size.
-    od::Float16  # Overall difficulty.
-    ar::Float16  # Approach rate.
-    hp::Float16  # HP drain.
-    bpm::Float16  # Song BPM.
+    stars::AbstractFloat  # Star rating.
+    cs::AbstractFloat  # Circle size.
+    od::AbstractFloat  # Overall difficulty.
+    ar::AbstractFloat  # Approach rate.
+    hp::AbstractFloat  # HP drain.
+    bpm::AbstractFloat  # Song BPM.
     length::Dates.Second  # Song length.
     status::AbstractString  # Ranked status.
     approved_date::Date  # Date ranked/loved/qualified.
@@ -81,12 +75,12 @@ struct StdBeatmap <: Beatmap
             d["title"],
             d["version"],
             d["creator"],
-            parse(Float16, d["difficultyrating"]),
-            parse(Float16, d["diff_size"]),
-            parse(Float16, d["diff_overall"]),
-            parse(Float16, d["diff_approach"]),
-            parse(Float16, d["diff_drain"]),
-            parse(Float16, d["bpm"]),
+            parse(Float64, d["difficultyrating"]),
+            parse(Float64, d["diff_size"]),
+            parse(Float64, d["diff_overall"]),
+            parse(Float64, d["diff_approach"]),
+            parse(Float64, d["diff_drain"]),
+            parse(Float64, d["bpm"]),
             Dates.Second(d["total_length"]),
             get(status_map, parse(Int, d["approved"]), "Unknown"),
             Date(d["approved_date"], fmt),
@@ -107,12 +101,12 @@ struct OtherBeatmap <: Beatmap
     title::AbstractString  # Song title.
     diff::AbstractString  # Diff name.
     mapper::AbstractString  # Mapper name.
-    stars::Float16  # Star rating.
-    cs::Float16  # Circle size.
-    od::Float16  # Overall difficulty.
-    ar::Float16  # Approach rate.
-    hp::Float16  # HP drain.
-    bpm::Float16  # Song BPM.
+    stars::AbstractFloat  # Star rating.
+    cs::AbstractFloat  # Circle size.
+    od::AbstractFloat  # Overall difficulty.
+    ar::AbstractFloat  # Approach rate.
+    hp::AbstractFloat  # HP drain.
+    bpm::AbstractFloat  # Song BPM.
     length::Dates.Second  # Song length.
     status::AbstractString  # Ranked status.
     approved_date::Date  # Date ranked/loved/qualified.
@@ -127,12 +121,12 @@ struct OtherBeatmap <: Beatmap
             d["title"],
             d["version"],
             d["creator"],
-            parse(Float16, d["difficultyrating"]),
-            parse(Float16, d["diff_size"]),
-            parse(Float16, d["diff_overall"]),
-            parse(Float16, d["diff_approach"]),
-            parse(Float16, d["diff_drain"]),
-            parse(Float16, d["bpm"]),
+            parse(Float64, d["difficultyrating"]),
+            parse(Float64, d["diff_size"]),
+            parse(Float64, d["diff_overall"]),
+            parse(Float64, d["diff_approach"]),
+            parse(Float64, d["diff_drain"]),
+            parse(Float64, d["bpm"]),
             Dates.Second(d["total_length"]),
             get(status_map, parse(Int, d["approved"]), "Unknown"),
             Date(d["approved_date"], fmt),
@@ -183,7 +177,7 @@ struct Player
     name::AbstractString  # Username.
     pp::Int  # Raw pp.
     rank::Int  # Overall rank.
-    accuracy::Float32  # Overall accuracy.
+    accuracy::AbstractFloat  # Overall accuracy.
     playcount::Int  # Ranked playcount.
     events::Vector{Event}  # Recent events.
 
@@ -191,9 +185,9 @@ struct Player
         new(
             parse(Int, d["user_id"]),
             d["username"],
-            round(parse(Float32, d["pp_raw"])),
+            round(parse(Float64, d["pp_raw"])),
             parse(Int, d["pp_rank"]),
-            parse(Float16, d["accuracy"]),
+            parse(Float64, d["accuracy"]),
             parse(Int, d["playcount"]),
             map(e -> Event(e), d["events"]),
         )
@@ -210,7 +204,7 @@ struct Score
     date::DateTime  # Date of the play.
     mods::Int  # Mods on the play.
     fc::Bool  # Whether or not the play is a full combo.
-    accuracy::Float32  # Accuracy of the play, in percent.
+    accuracy::AbstractFloat  # Accuracy of the play, in percent.
     pp::Nullable{Int}  # pp for the play (not always supplied).
     combo::Int  # Max combo on the play.
 
@@ -231,7 +225,7 @@ struct Score
                 parse(Int, d["countmiss"]);
                 mode=d["mode"],
             ),
-            Nullable{Int}(haskey(d, "pp") ? round(parse(Float32, d["pp"])) : nothing),
+            Nullable{Int}(haskey(d, "pp") ? round(parse(Float64, d["pp"])) : nothing),
             parse(Int, d["maxcombo"]),
         )
     end
@@ -245,7 +239,7 @@ end
         countgeki::Int,
         countkatu::Int,
         misses::Int;
-        mode::Mode=OsuTypes.STD,
+        mode::Mode=STD,
     ) -> Float64
 
 Get a play's accuracy in percent.
@@ -257,10 +251,10 @@ function accuracy(
     countgeki::Int,
     countkatu::Int,
     misses::Int;
-    mode::Mode=OsuTypes.STD,
+    mode::Mode=STD,
 )
     # https://osu.ppy.sh/help/wiki/Accuracy/
-    return 100 * if mode == OsuTypes.STD
+    return 100 * if mode == STD
         /(
             count300 + count100/3 + count50/6,
             count300 + count100 + count50 + misses,

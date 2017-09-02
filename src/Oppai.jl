@@ -133,17 +133,19 @@ function init()
     global ppv2p = Libdl.dlsym(oppai, :ppv2p)
     global acc_round = Libdl.dlsym(oppai, :acc_round)
     global mods_apply = Libdl.dlsym(oppai, :mods_apply)
-    global map = Ref{Beatmap}()
+    global beatmap = Ref{Beatmap}()
     global calc = Ref{DiffCalc}()
     global pp = Ref{PPCalc}()
     global params = Ref{PPParams}()
     global parser = Ref{Parser}()
     global map_stats = Ref{BeatmapStats}()
-    global mods = Cint(OsuTypes.mod_map[:NOMOD])
-    ccall(d_init, Cint, (Ref{DiffCalc},), calc)
-    ccall(pp_init, Cint, (Ref{PPParams},), params)
-    ccall(p_init, Cint, (Ref{Parser},), parser)
-    return nothing
+    global mods = Cint(mod_map[:NOMOD])
+    r = ccall(d_init, Cint, (Ref{DiffCalc},), calc)
+    r != 0 && log("ccall to d_init returned $r") && return false
+    ccall(pp_init, Void, (Ref{PPParams},), params)
+    r = ccall(p_init, Cint, (Ref{Parser},), parser)
+    r != 0 && log("ccall to p_init returned $r") && return false
+    return true
 end
 
 """
@@ -176,7 +178,7 @@ function change_counts(n300::Cushort, n100::Cushort, n50::Cushort)
 end
 
 """
-    apply_mods(mods::Cushort) -> Void
+    apply_mods(mods::Cuint) -> Bool
 
 Apply mods, and replace the global `params` with a new instance containng the new mods.
 """
@@ -188,22 +190,25 @@ function apply_mods(mods::Cuint)
         old.aim, old.speed, old.base_ar, old.base_od, old.max_combo, old.nsliders, old.ncircles, old.nobjects,
         old.mode, mods, old.combo, old.n300, old.n100, old.n50, old.nmiss, old.score_version,
     ))
-    return nothing
+    return true
 end
 
 """
-    load_map(file::AbstractString) -> Void
+    load_map(file::AbstractString) -> Bool
 
 Load the map at `file`.
 """
 function load_map(file::AbstractString)
     fp = ccall(:fopen, Cptrdiff_t, (Cstring, Cstring), file, "r")
-    ccall(p_map, Cint, (Ref{Parser}, Ref{Beatmap}, Cptrdiff_t), parser, map, fp)
+    fp == C_NULL && log("ccall to fopen returned NULL")
+    r = ccall(p_map, Cint, (Ref{Parser}, Ref{Beatmap}, Cptrdiff_t), parser, beatmap, fp)
+    r < 0 && log("ccall to p_map returned $r") && return false
     global map_stats = Ref{BeatmapStats}(
-        BeatmapStats(map[].ar, map[].od, map[].cs, map[].hp, Cfloat(1.0)),
+        BeatmapStats(beatmap[].ar, beatmap[].od, beatmap[].cs, beatmap[].hp, Cfloat(1.0)),
     )
-    ccall(:fclose, Cint, (Cptrdiff_t,), fp)
-    return nothing
+    r = ccall(:fclose, Cint, (Cptrdiff_t,), fp)
+    r != 0 && log("ccall to fclose returned $r") && return false
+    return true
 end
 
 """
@@ -213,18 +218,22 @@ Load the default map file, which should be obtained with `download`.
 load_map() = load_map("map.osu")
 
 """
-    run(; acc::Float64=100.0, mods::Int=OsuTypes.mod_map[:NOMOD]) -> Void
+    run(; acc::Float64=100.0, mods::Int=mod_map[:NOMOD]) -> Bool
 
 Run oppai on the currently loaded map.
 """
-function run(; acc::Float64=100.0, mods::Int=OsuTypes.mod_map[:NOMOD])
+function run(; acc::Float64=100.0, mods::Int=mod_map[:NOMOD])
     load_map()
     # Calculate map values like AR, OD, max combo, etc.
-    ccall(d_calc, Cint, (Ref{DiffCalc}, Ref{Beatmap}, Cint), calc, map, mods)
+    r = ccall(d_calc, Cint, (Ref{DiffCalc}, Ref{Beatmap}, Cint), calc, beatmap, mods)
+    r != 0 &&  log("ccall to d_calc returned $r") && return false
     # We have to manually set these two values, which we just got from the above call.
     change_aim_speed(calc[].aim, calc[].speed)
     # Set the required values in params to the map's values.
-    ccall(b_ppv2p, Cint, (Ref{Beatmap}, Ref{PPCalc}, Ref{PPParams}), map, pp, params)
+    r = ccall(
+        b_ppv2p, Cint, (Ref{Beatmap}, Ref{PPCalc}, Ref{PPParams}), beatmap, pp, params,
+    )
+    r != 0 &&  log("ccall to b_ppv2p returned $r") && return false
     # Set the accuracy to the desired value... In a very clunky way.
     n300 = Ref{Cushort}(params[].n300)
     n100 = Ref{Cushort}(params[].n100)
@@ -239,12 +248,13 @@ function run(; acc::Float64=100.0, mods::Int=OsuTypes.mod_map[:NOMOD])
     change_counts(n300[], n100[], n50[])
     apply_mods(Cuint(mods))
     # Finally, calculate pp.
-    ccall(ppv2p, Cint, (Ref{PPCalc}, Ref{PPParams}), pp, params)
-    return nothing
+    r = ccall(ppv2p, Cint, (Ref{PPCalc}, Ref{PPParams}), pp, params)
+    r != 0 &&  log("ccall to ppv2p returned $r") && return false
+    return true
 end
 
 """
-    download(id::Int) -> Void
+    download(id::Int) -> Bool
 
 Write a map by `id`'s `.osu` file to `map.osu`, and return true on success.
 """
@@ -273,14 +283,16 @@ getpp() = pp[].total
 Get the current calculated difficulty values.
 """
 function getdiff()
-    return Dict{String, Float64}(
-        "ar" => map_stats[].ar,
-        "od" => map_stats[].od,
-        "cs" => map_stats[].cs,
-        "hp" => map_stats[].hp,
-        "sr" => calc[].total,
-        "speed" => map_stats[].speed,
+    return Dict{Symbol, AbstractFloat}(
+        :AR => map_stats[].ar,
+        :OD => map_stats[].od,
+        :CS => map_stats[].cs,
+        :HP => map_stats[].hp,
+        :SR => calc[].total,
+        :SPD => map_stats[].speed,
     )
 end
+
+log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end
