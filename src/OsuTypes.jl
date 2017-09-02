@@ -3,7 +3,8 @@ Types that represent concepts/objects in osu!.
 """
 module OsuTypes
 
-export mod_map, make_map, Beatmap, StdBeatmap, OtherBeatmap, Player, Score, Mode
+export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, Player, Score,
+    Mode
 
 const fmt = DateFormat("y-m-d H:M:S")
 
@@ -24,6 +25,7 @@ const mod_map = Dict{Symbol, Int}(
     :NOMOD => 1 >> 1,
     :NF => 1 << 0,
     :EZ => 1 << 1,
+    :NV => 1 << 2,  # "NoVideo" mod sometimes present on really old plays.
     :HD => 1 << 3,
     :HR => 1 << 4,
     :SD => 1 << 5,
@@ -112,7 +114,7 @@ struct TaikoBeatmap <: Beatmap
     approved_date::Date  # Date ranked/loved/qualified.
     plays::Int  # Play count.
 
-    function OtherBeatmap(d::Dict)
+    function TaikoBeatmap(d::Dict)
         fmt = DateFormat("y-m-d H:M:S")
         new(
             parse(Int, d["beatmap_id"]),
@@ -188,6 +190,8 @@ function make_map(view::Dict)
     mode = parse(Int, view["mode"])
     return if mode == Int(STD)
         StdBeatmap(view)
+    elseif mode == Int(TAIKO)
+        TaikoBeatmap(view)
     else
         OtherBeatmap(view)
     end

@@ -32,6 +32,7 @@ function mods_from_int(n::Int)
             n <= 0 && return filter(m -> in(m, mods), order)
         end
     end
+    return mods
 end
 
 """
@@ -72,8 +73,8 @@ function mods_from_string(s::AbstractString)
     return mods
 end
 
-function timestamp(s::Dates.Second)
-    s = s.value
+function timestamp(s::Real)
+    s = Int(round(s))
     h = convert(Int, floor(s / 3600))
     s -= 3600h
     m = floor(s / 60)

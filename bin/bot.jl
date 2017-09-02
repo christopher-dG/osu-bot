@@ -11,8 +11,6 @@ if abspath(PROGRAM_FILE) == @__FILE__
     const title_regex = r"(.+)\|(.+)-(.+)\[(.+)\].*"
     Reddit.login()
     log("Logged into Reddit")
-    Oppai.init()
-    log("Iniitizizd oppai")
     stream = Reddit.posts()
     for post in stream
         try
