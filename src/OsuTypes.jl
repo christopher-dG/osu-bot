@@ -47,7 +47,9 @@ const mod_map = Dict{Symbol, Int}(
 abstract type Beatmap end
 
 """
-An osu!std beatmap.
+    StdBeatmap(d::Dict) -> StdBeatmap
+
+Create an osu!std beatmap from `d`.
 """
 struct StdBeatmap <: Beatmap
     id::Int  # Beatmap ID.
@@ -94,7 +96,9 @@ struct StdBeatmap <: Beatmap
 end
 
 """
-An osu!taiko beatmap.
+    TaikoBeatmap(d::Dict) -> TaikoBeatmap
+
+Create an osu!taiko beatmap from `d`.
 """
 struct TaikoBeatmap <: Beatmap
     id::Int  # Beatmap ID.
@@ -140,7 +144,9 @@ struct TaikoBeatmap <: Beatmap
 end
 
 """
-An osu!ctb or osu!mania beatmap (incompatible with oppai).
+    OtherBeatmap(d::Dict) -> OtherBeatmap
+
+Create an osu!ctb or osu!mania beatmap from `d` (incompatible with oppai).
 """
 struct OtherBeatmap <: Beatmap
     id::Int  # Beatmap ID.
@@ -202,7 +208,10 @@ function make_map(view::Dict)
 end
 
 """
-A recent accomplishment by a player displayed on their profile. We use it to find map IDs.
+    Event(d::Dict) -> Event
+
+Create an accomplishment by a player displayed on their profile, used to find map IDs from
+`d`.
 """
 struct Event
     map_str::AbstractString  # Artist - Title [Diff].
@@ -222,7 +231,9 @@ struct Event
 end
 
 """
-An osu! player.
+    Player(d::Dict) -> Player
+
+Create an osu! player from `d`.
 """
 struct Player
     id::Int  # User ID.
@@ -247,7 +258,9 @@ struct Player
 end
 
 """
-A player's score on a map.
+    Score(d::Dict) -> Score
+
+Create a player's score on a map from `d`.
 """
 struct Score
     map_id::Int  # Beatmap ID.

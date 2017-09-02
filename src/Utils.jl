@@ -35,6 +35,11 @@ function mods_from_int(n::Int)
     return mods
 end
 
+"""
+    mods_to_int(mods::Vector{Symbol}) -> Int
+
+Get the integer associated with a list of mods.
+"""
 mods_to_int(mods::Vector{Symbol}) = sum(map(m -> mod_map[m], mods))
 
 """
@@ -81,6 +86,7 @@ end
 Search `player`'s recent events and plays for a map called `map_str`.
 """
 function search(player::Player, map_str::AbstractString)
+    log("Searching for $map_str with $(player.name)")
     log("Searching $(length(player.events)) recent events")
     map = try
         beatmap(
@@ -104,6 +110,11 @@ function search(player::Player, map_str::AbstractString)
     log("No map found") && return Nullable{Beatmap}()
 end
 
+"""
+    timestamp(s::Real) -> String
+
+Convert `s` seconds into a timestamp.
+"""
 function timestamp(s::Real)
     s = Int(round(s))
     h = convert(Int, floor(s / 3600))
@@ -119,6 +130,11 @@ function timestamp(s::Real)
     end
 end
 
+"""
+    strfmt(el::Real; precision::Int=1) -> String
+
+Format `el` with arbitary precision and comma separation.
+"""
 function strfmt(el::Real; precision::Int=1)
     return if round(el) == el || precision == 0
         format(round(el); commas=true)

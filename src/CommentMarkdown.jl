@@ -16,6 +16,11 @@ const BAR = "&#124;"
 const source_url = "https://github.com/christopher-dG/OsuBot.jl"
 const me = "PM_ME_DOG_PICS_PLS"
 
+"""
+    map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int) -> Void
+
+Produce a table containing difficulty and pp values, and write it to `buf`.
+"""
 function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
     modded = mods != mod_map[:NOMOD]
     header, nomod_row = modded ? ([""], ["NoMod"]) : ([], [])
@@ -63,6 +68,7 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
 
     table = Markdown.Table(rows, repeat([:c]; outer=[length(header)]))
     Markdown.plain(buf, table)
+    return nothing
 end
 
 function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int)
@@ -81,14 +87,15 @@ function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int)
     )
     table = Markdown.Table(rows, repeat([:c]; outer=[length(header)]))
     Markdown.plain(buf, table)
+    return nothing
 end
 
 """
-    build_comment(player::Player, beatmap::Beatmap) -> String
+    build_comment(player::Player, beatmap::Nullable{<:Beatmap}) -> String
 
 Build a comment from `player` and `beatmap`.
 """
-function build_comment(player::Player, beatmap::Nullable{Beatmap})
+function build_comment(player::Player, beatmap::Nullable{<:Beatmap})
     buf = IOBuffer()
     if !isnull(beatmap)
         map = get(beatmap)
@@ -104,11 +111,33 @@ function build_comment(player::Player, beatmap::Nullable{Beatmap})
         end
     end
     player_markdown!(buf, player, isnull(beatmap) ? STD : get(beatmap).mode)
-    write(buf, "\n***\n\n^(I'm a bot. )[^Source]($source_url)^( | )[^Developer](/u/$me)")
+    memes = [
+        "pls enjoy gaem",
+        "play more",
+        "Ye XD",
+        "imperial dead bicycle lol",
+        "nice pass ecks dee",
+        "kirito is legit",
+        "can just shut up",
+        "thank mr monstrata",
+        "fc cry thunder and say that me again",
+        "tbh i don't think fils has the aim for this",
+        "fuck azer",
+        "omg kappadar big fan",
+        "reese get the camera",
+        "cookiezi hdhr when",
+    ]
+    meme = memes[Int(ceil(rand() * length(memes)))]
+    write(buf, "\n***\n\n^($meme - )[^Source]($source_url)^( | )[^Developer](/u/$me)")
 
     return String(take!(buf))
 end
 
+"""
+    map_basics!(buf::IO, map::Beatmap) -> Void
+
+Produce basic map information (name, mapper, playcount, etc.) and write it to `buf`.
+"""
 function map_basics!(buf::IO, map::Beatmap)
     const osu = "https://osu.ppy.sh"
     tmp = "[$(map_name(map))]($osu/b/$(map.id)) [(↓)]($osu/d/$(map.set_id)) "
@@ -134,8 +163,14 @@ function map_basics!(buf::IO, map::Beatmap)
     tmp *= "$(map.status) ($(map.approved_date)) || "
     tmp *= "$(strfmt(map.plays; precision=0)) plays"
     Markdown.plaininline(buf, Markdown.Bold(tmp))
+    return nothing
 end
 
+"""
+    player_markdown!(buf::IO, player::Player, mode::Mode) -> Void
+
+Produce a table containing player information and write it to `buf`.
+"""
 function player_markdown!(buf::IO, player::Player, mode::Mode)
     const osu = "https://osu.ppy.sh"
     header = ["Player", "Rank", "pp", "Acc", "Playcount"]
@@ -155,14 +190,15 @@ function player_markdown!(buf::IO, player::Player, mode::Mode)
             map = get(map)
             str = "[$(map_name(map))]($osu/b/$(map.id)) "
             mods = mods_from_int(play.mods)
-            str *= isempty(mods) ? "| " : "+$(join(mods)) | "
-            str *= "$(strfmt(play.accuracy; precision=2))% | $(strfmt(get(play.pp)))pp"
+            str *= isempty(mods) ? "$BAR " : "+$(join(mods)) $BAR "
+            str *= "$(strfmt(play.accuracy; precision=2))% $BAR $(strfmt(get(play.pp)))pp"
             push!(header, "Top Play")
             push!(row, str)
         end
     end
     table = Markdown.Table(rows, repeat([:c]; outer=[length(header)]))
     Markdown.plain(buf, table)
+    return nothing
 end
 
 log(msg) = (info("$(basename(@__FILE__)): $msg"); true)

@@ -38,19 +38,29 @@ function download(id::Int)
     end
 end
 
+"""
+    oppai(cmd::Cmd) -> Dict
+
+Run `cmd` and return its output as a `Dict`.
+"""
 function oppai(cmd::Cmd)
     log("Running $cmd")
     return JSON.parse(readstring(cmd))
 end
 
-get_pp(beatmap::Beatmap, acc::Real) = get_pp(beatmap, acc, mod_map[:NOMOD])
+"""
+    get_pp(map::Beatmap, acc::Real, [mods::Int]) -> Union{Dict, Void}
 
-function get_pp(beatmap::Beatmap, acc::Real, mods::Int)
-    path = download(beatmap.id)
+Calculate pp for a beatmap. Returns `nothing` on failure.
+"""
+get_pp(map::Beatmap, acc::Real) = get_pp(map, acc, mod_map[:NOMOD])
+
+function get_pp(map::Beatmap, acc::Real, mods::Int)
+    path = download(map.id)
     isempty(path) && return nothing
     mods = mods_from_int(mods)
     mods = isempty(mods) ? "" : "+$(join(mods))"
-    taiko = isa(beatmap, TaikoBeatmap) ? "-taiko" : ""
+    taiko = isa(map, TaikoBeatmap) ? "-taiko" : ""
     cmd = `oppai $path -ojson $acc% $mods $taiko`
     return try
         oppai(cmd)["pp"]
@@ -63,6 +73,11 @@ get_pp(::OtherBeatmap, acc::Real) = nothing
 
 get_pp(::OtherBeatmap, acc::Real, mods::Int) = nothing
 
+"""
+    get_diff(beatmap::Beatmap, [mods::Int]) -> Union{Dict, Void}
+
+Calculate difficulty values for a beatmap. Returns `nothing` on failure.
+"""
 function get_diff(beatmap::Beatmap)
     return Dict{Symbol, Union{AbstractString, Real}}(
         :AR => beatmap.ar,
