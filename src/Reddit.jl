@@ -45,6 +45,6 @@ function reply(post::PyObject, comment::AbstractString)
     post[:upvote]()
 end
 
-log(msg) = info("$(basename(@__FILE__)): $msg")
+log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end

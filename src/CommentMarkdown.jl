@@ -18,9 +18,9 @@ const me = "PM_ME_DOG_PICS_PLS"
 
 function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
     modded = mods != mod_map[:NOMOD]
-    headers, nomod_row = modded ? ([""], ["NoMod"]) : ([], [])
-    rows = [headers, nomod_row]
-    push!(headers, "CS", "AR", "OD", "HP", "SR", "BPM", "Length")
+    header, nomod_row = modded ? ([""], ["NoMod"]) : ([], [])
+    rows = [header, nomod_row]
+    push!(header, "CS", "AR", "OD", "HP", "SR", "BPM", "Length")
     map_diff = get_diff(beatmap)
     push!(
         nomod_row,
@@ -40,7 +40,7 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
         end
     end
     accs = sort(collect(keys(pp_vals)))
-    push!(headers, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $BAR ")))")
+    push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $BAR ")))")
     push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $BAR "))
 
     if modded
@@ -61,13 +61,13 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
         push!(rows, modded_row)
     end
 
-    table = Markdown.Table(rows, repeat([:c]; outer=[length(headers)]))
+    table = Markdown.Table(rows, repeat([:c]; outer=[length(header)]))
     Markdown.plain(buf, table)
 end
 
 function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int)
-    headers, row = ["CS", "AR", "OD", "HP", "SR", "BPM", "Length"], []
-    rows = [headers, row]
+    header, row = ["CS", "AR", "OD", "HP", "SR", "BPM", "Length"], []
+    rows = [header, row]
     map_diff = get_diff(beatmap)
     push!(
         row,
@@ -79,7 +79,7 @@ function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int)
         strfmt(map_diff[:BPM]; precision=0),
         map_diff[:LEN],
     )
-    table = Markdown.Table(rows, repeat([:c]; outer=[length(headers)]))
+    table = Markdown.Table(rows, repeat([:c]; outer=[length(header)]))
     Markdown.plain(buf, table)
 end
 
@@ -100,10 +100,11 @@ function build_comment(player::Player, beatmap::Nullable{Beatmap})
             map_basics!(buf, map)
             write(buf, "\n\n")
             map_table!(buf, map, acc, mods)
+            write(buf, "\n")
         end
     end
-    player_markdown!(buf, player)
-    write(buf, "\n\n^(I'm a bot. )[^Source]($source_url)^( | )[^Developer](/u/$me)")
+    player_markdown!(buf, player, isnull(beatmap) ? STD : get(beatmap).mode)
+    write(buf, "\n***\n\n^(I'm a bot. )[^Source]($source_url)^( | )[^Developer](/u/$me)")
 
     return String(take!(buf))
 end
@@ -135,8 +136,33 @@ function map_basics!(buf::IO, map::Beatmap)
     Markdown.plaininline(buf, Markdown.Bold(tmp))
 end
 
-function player_markdown!(buf::IO, player::Player)
+function player_markdown!(buf::IO, player::Player, mode::Mode)
     const osu = "https://osu.ppy.sh"
+    header = ["Player", "Rank", "pp", "Acc", "Playcount"]
+    row = [
+        "[$(player.name)]($osu/u/$(player.id))",
+        "#$(strfmt(player.rank))",
+        strfmt(player.pp),
+        strfmt(player.accuracy; precision=2),
+        strfmt(player.playcount),
+    ]
+    rows = [header, row]
+    plays = player_best(player.id; mode=mode, lim=1)
+    if !isnull(plays)
+        play = first(get(plays))
+        map = beatmap(play.map_id)
+        if !isnull(map)
+            map = get(map)
+            str = "[$(map_name(map))]($osu/b/$(map.id)) "
+            mods = mods_from_int(play.mods)
+            str *= isempty(mods) ? "| " : "+$(join(mods)) | "
+            str *= "$(strfmt(play.accuracy; precision=2))% | $(strfmt(get(play.pp)))pp"
+            push!(header, "Top Play")
+            push!(row, str)
+        end
+    end
+    table = Markdown.Table(rows, repeat([:c]; outer=[length(header)]))
+    Markdown.plain(buf, table)
 end
 
 log(msg) = (info("$(basename(@__FILE__)): $msg"); true)

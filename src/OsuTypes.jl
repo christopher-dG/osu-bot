@@ -252,7 +252,7 @@ A player's score on a map.
 struct Score
     map_id::Int  # Beatmap ID.
     user_id::Nullable{Int}  # Player ID (not always supplied).
-    username::Nullable{AbstractString}  # Player usernamew (not always supplied).
+    username::Nullable{AbstractString}  # Player username (not always supplied).
     date::DateTime  # Date of the play.
     mods::Int  # Mods on the play.
     fc::Bool  # Whether or not the play is a full combo.
@@ -326,6 +326,6 @@ function accuracy(
     end
 end
 
-log(msg) = info("$(basename(@__FILE__)): $msg")
+log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end
