@@ -8,7 +8,9 @@ using Formatting
 using OsuBot.OsuTypes
 using OsuBot.Osu
 
-export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp
+import Base.search
+
+export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp, parse_player
 
 """
     map_name(map::Beatmap) -> String
@@ -141,6 +143,55 @@ function strfmt(el::Real; precision::Int=1)
     else
         format(trunc(el, precision); commas=true)
     end
+end
+
+"""
+    parse_player(s::AbstractString) -> String
+
+Get a player name from the beginning part of a post title, cutting out common mistakes.
+This should only be run on the part of a title up to and not including the first '|'.
+"""
+function parse_player(s::AbstractString)
+    s = strip(s)
+    for cap in matchall(r"(\([^\(^\)]*\))", s)
+        range = search(s, cap)
+        if range.start == 1
+            s = strip(s[range.stop + 1:end])
+        elseif range.stop != -1
+            # This covers the common "Player (something)" case, and it also partially takes
+            # care of weird cases with parens in the middle by just assuming that the
+            # leftmost part is the player name.
+            s = strip(s[1:range.start - 1])
+        end
+    end
+
+    # Usernames can have brackets but people tend to put auxilary information in them
+    # before the player name, i.e. "[Unnoticed] Player | ...".
+    ignores =  [
+        "UNNOTICED",
+        "STANDARD",
+        "STD",
+        "O!STD",
+        "CTB",
+        "O!CATCH",
+        "O!CTB",
+        "MANIA",
+        "O!MANIA",
+        "O!M",
+        "TAIKO",
+        "O!TAIKO",
+    ]
+    for cap in matchall(r"(\[[^\[^\]]*\])", s)
+        if in(replace(uppercase(cap), " ", "")[2:end-1], ignores)
+            range = search(s, cap)
+            if range.start == 1
+                s = strip(s[range.stop + 1:end])
+            elseif range.stop == length(s)
+                s = strip(s[1:range.start - 1])
+            end
+        end
+    end
+    return s
 end
 
 log(msg) = (info("$(basename(@__FILE__)): $msg"); true)

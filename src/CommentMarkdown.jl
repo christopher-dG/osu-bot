@@ -126,6 +126,7 @@ function build_comment(player::Player, beatmap::Nullable{<:Beatmap})
         "omg kappadar big fan",
         "reese get the camera",
         "cookiezi hdhr when",
+        "TATOE",
     ]
     meme = memes[Int(ceil(rand() * length(memes)))]
     write(buf, "\n***\n\n^($meme - )[^Source]($source_url)^( | )[^Developer](/u/$me)")

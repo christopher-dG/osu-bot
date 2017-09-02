@@ -20,7 +20,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
             m = match(title_regex, post[:title])
             m == nothing && log("'$(post[:title])' is not a score post") && continue
             caps = strip.(m.captures)
-            player = Osu.player(caps[1])
+            player = Osu.player(Utils.parse_player(caps[1]))
             isnull(player) && log("No player found for $(caps[1])") && continue
             map_str = "$(caps[2]) - $(caps[3]) [$(caps[4])]"
             beatmap = Utils.search(get(player), map_str)
@@ -41,7 +41,7 @@ Generate a comment string from a post title. Mostly for manual testing.
 """
 function from_title(title::AbstractString)
     caps = strip.(match(title_regex, title).captures)
-    player = Osu.player(caps[1])
+    player = Osu.player(Utils.parse_player(caps[1]))
     isnull(player) && error("Player $(caps[1]) not found")
     map_str = "$(caps[2]) - $(caps[3]) [$(caps[4])]"
     beatmap = Utils.search(get(player), map_str)
