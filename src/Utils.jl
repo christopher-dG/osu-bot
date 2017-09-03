@@ -49,7 +49,7 @@ mods_to_int(mods::Vector{Symbol}) = sum(map(m -> mod_map[m], mods))
     mods_from_string(s::AbstractString) -> Int
 
 Get a number representation of the mods in `s`. This does not deal with the odd case of
-mods separated by spaces.
+mods separated by spaces. This should always be called on whole post title.
 """
 function mods_from_string(s::AbstractString)
     mods = 0
@@ -59,8 +59,11 @@ function mods_from_string(s::AbstractString)
     # The "easy case" is when there's a '+' before the mods.
     if idx != 0 && idx < length(s)
         s = s[idx:end]
-        s = replace(split(first(s[findfirst(!isspace, s):end])), r"[^A-Z]", "")
-        s = length(s) == 0 ? s : s[1:end-1]
+        s = replace(first(split(s[findfirst(!isspace, s):end])), r"[^A-Z]", "")
+        if length(s) % 2 != 0
+            # If this gets triggered, we're probably screwed.
+            s = s[1:end-1]
+        end
         for idx in 1:2:length(s)
             mod = Symbol(s[idx:idx + 1])
             mods += get(mod_map, mod, 0)
@@ -119,6 +122,7 @@ end
 Convert `s` seconds into a timestamp.
 """
 function timestamp(s::Real)
+    s = max(s, 0)
     total = s
     s = Int(round(s))
     h = convert(Int, floor(s / 3600))
