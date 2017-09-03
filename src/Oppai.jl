@@ -49,18 +49,20 @@ function oppai(cmd::Cmd)
 end
 
 """
-    get_pp(map::Beatmap, acc::Real, [mods::Int]) -> Union{Dict, Void}
+    get_pp(map::Beatmap, acc::Real, [mods::Int]; taiko::Bool=false) -> Union{Dict, Void}
 
 Calculate pp for a beatmap. Returns `nothing` on failure.
 """
-get_pp(map::Beatmap, acc::Real) = get_pp(map, acc, mod_map[:NOMOD])
+function get_pp(map::Beatmap, acc::Real; taiko::Bool=false)
+    return get_pp(map, acc, mod_map[:NOMOD]; taiko=taiko)
+end
 
-function get_pp(map::Beatmap, acc::Real, mods::Int)
+function get_pp(map::Beatmap, acc::Real, mods::Int; taiko::Bool=false)
     path = download(map.id)
     isempty(path) && return nothing
     mods = mods_from_int(mods)
     mods = isempty(mods) ? "" : "+$(join(mods))"
-    taiko = isa(map, TaikoBeatmap) ? "-taiko" : ""
+    taiko = taiko || isa(map, TaikoBeatmap) ? "-taiko" : ""
     cmd = `oppai $path -ojson $acc% $mods $taiko`
     return try
         oppai(cmd)["pp"]

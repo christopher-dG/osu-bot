@@ -10,53 +10,55 @@ using YAML
 
 using OsuBot.OsuTypes
 
-export beatmap, mapset, player, beatmap_scores, player_recent, player_best
+export beatmap, mapset, user, beatmap_scores, player_recent, player_best
 
 const osu_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["osu_key"]
 const osu_url = "https://osu.ppy.sh/api/{{:cmd}}?k=$osu_key&{{#:args}}{{.}}&{{/:args}}"
 
 """
-    beatmap(id::Int) -> Nullable{Beatmap}
+    beatmap(id::Int; mode::Union{Mode, Void}=nothing) -> Nullable{Beatmap}
 
 Get a beatmap by `id`.
 """
-function beatmap(id::Int)
+function beatmap(id::Int; mode::Union{Mode, Void}=nothing)
     args = ["b=$id", "limit=1"]
+    mode != nothing && push!(args, "a=1", "m=$(Int(mode))")
     url = render(osu_url; cmd="get_beatmaps", args=args)
-    return Nullable{Beatmap}(try make_map(first(request(url))) catch end)
+    return Nullable{Beatmap}(try make_map(first(request(url))) catch e log(e) end)
 end
 
 """
-    mapset(id::Int) -> Nullable{Vector{Beatmap}}
+    mapset(id::Int; mode::Mode=OsuTypes.STD, lim::Int=500) -> Nullable{Vector{Beatmap}}
 
 Get maps in a mapset by `id`.
 """
-function mapset(id::Int; lim::Int=500)
-    args=["s=$id", "limit=$lim"]
+function mapset(id::Int; mode::Mode=OsuTypes.STD, lim::Int=500)
+    args = ["s=$id", "limit=$lim"]
+    mode != nothing && push!(args, "a=1", "m=$(Int(mode))")
     url = render(osu_url; cmd="get_beatmaps", args=args)
-    return Nullable{Vector{Beatmap}}(try make_map.(request(url)) catch end)
+    return Nullable{Vector{Beatmap}}(try make_map.(request(url)) catch e log(e) end)
 end
 
 """
-    player(id::Int, mode::Mode=OsuTypes.STD) -> Nullable{Player}
+    user(id::Int, mode::Mode=OsuTypes.STD) -> Nullable{User}
 
-Get a player by `id`.
+Get a user by `id`.
 """
-function player(id::Int; mode::Mode=OsuTypes.STD)
+function user(id::Int; mode::Mode=OsuTypes.STD)
     args = ["u=$id", "type=id", "m=$(Int(mode))", "event_days=31"]
     url = render(osu_url; cmd="get_user", args=args)
-    return Nullable{Player}(try Player(first(request(url))) catch e rethrow(e) end)
+    return Nullable{User}(try User(first(request(url))) catch e log(e) end)
 end
 
 """
-    player(name::AbstractString, mode::Mode=OsuTypes.STD) -> Nullable{Player}
+    user(name::AbstractString; mode::Mode=OsuTypes.STD) -> Nullable{User}
 
-Get a player by `name`.
+Get a user by `name`.
 """
-function player(name::AbstractString; mode::Mode=OsuTypes.STD)
+function user(name::AbstractString; mode::Mode=OsuTypes.STD)
     args = ["u=$name", "type=string", "m=$(Int(mode))", "event_days=31"]
     url = render(osu_url; cmd="get_user", args=args)
-    return Nullable{Player}(try Player(first(request(url))) catch end)
+    return Nullable{User}(try User(first(request(url))) catch end)
 end
 
 """
@@ -219,28 +221,35 @@ function request(url::AbstractString)
         url = url[1:end-1]
     end
     url = replace(url, " ", "%20")
-    log("Making request to $(replace(url, osu_key, "[secure]"))")
+    secure = replace(url, osu_key, "[secure]")
+    secure = replace(secure, r"[a-zA-Z\d-]{36}", "[secure]")  # osusearch key.
+    log("Making request to $secure")
     response = nothing
     for i in 1:3
-        i > 1 && log("Attempt $i...") && sleep(3)
+        if i > 1
+            log("Attempt $i...")
+            sleep(3)
+        end
         response = try
             HTTP.get(url)
-        catch err
-            log(err)
-            nothing
+        catch e
+            log(e)
         end
         response != nothing && response.body.len > 50 && break
     end
     if response == nothing
-        log("No response from server") && error()
+        log("No response from server")
+        error()
     elseif response.status != 200
-        log("Error code $(response.status) from server") && error()
+        log("Error code $(response.status) from server")
+        error()
     elseif response.body.len < 50
-        log("Empty response from server") && error()
+        log("Empty response from server")
+        error()
     end
     return JSON.parse(String(take!(response)))
 end
 
-log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
+log(msg) = info("$(basename(@__FILE__)): $msg")
 
 end

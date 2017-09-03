@@ -4,6 +4,8 @@ Tools for parsing and formatting stuff, etc.
 module Utils
 
 using Formatting
+using Mustache
+using YAML
 
 using OsuBot.OsuTypes
 using OsuBot.Osu
@@ -11,6 +13,10 @@ using OsuBot.Osu
 import Base.search
 
 export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp, parse_player
+
+const search_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["search_key"]
+const search_url = "https://osusearch.com/api/search?key=$search_key&{{#:args}}{{.}}&{{/:args}}"
+const order = [:EZ, :HD, :HT, :DT, :NC, :HR, :FL, :NF, :SD, :PF, :RL, :SO, :AP, :AT]
 
 """
     map_name(map::Beatmap) -> String
@@ -25,7 +31,6 @@ map_name(map::Beatmap) = "$(map.artist) - $(map.title) [$(map.diff)]"
 Get a list of mods from `n`.
 """
 function mods_from_int(n::Int)
-    const order = [:EZ, :HD, :HT, :DT, :NC, :HR, :FL, :NF, :SD, :PF, :RL, :SO, :AP, :AT]
     mods = Symbol[]
     for (k, v) in reverse(sort(collect(mod_map); by=p -> p.second))
         if v <= n
@@ -87,37 +92,62 @@ function mods_from_string(s::AbstractString)
 end
 
 """
-    search(player::Player, map_str::AbstractString) -> Nullable{Beatmap}
+    search(
+        player::User,
+        map_str::AbstractString
+    ) -> Tuple{Nullable{Beatmap}, Nullable{Mode}}
 
-Search `player`'s recent events and plays for a map called `map_str`.
+Search for a map called `map_str`. If we find the map in `player`'s recent events, then
+also return the game mode that it was played in (this helps deal with autoconverts).
 """
-function search(player::Player, map_str::AbstractString)
+function search(player::User, map_str::AbstractString)
     log("Searching for $map_str with $(player.name)")
     log("Searching $(length(player.events)) recent events")
-    map = try
-        beatmap(
-            player.events[first(find(e -> e.map_str == map_str, player.events))].map_id,
-        )
-    catch e
-        log(e)
-        Nullable()
+    idx = findfirst(e -> e.map_str == map_str, player.events)
+    if idx != 0
+        event = player.events[idx]
+        map = try
+            beatmap(event.map_id; mode=get(event.mode, nothing))
+        catch e
+            log(e)
+            Nullable()
+        end
+        if !isnull(map)
+            log("Found map: $(map_name(get(map))) with mode: $(get(event.mode, "null"))")
+            return map, event.mode
+        end
     end
-    !isnull(map) && log("Found map: $(map_name(get(map)))") && return map
 
     log("Searching recent plays")
     # We have no way to know what game mode we're looking for, so this won't work unless
     # unless it's standard.
-    seen = []
     recent = get(player_recent(player.id; lim=50), [])
-    for map in (beatmap(play.map_id) for play in recent)
+    # TODO: This duplicate elimination doesn't seem to be working.
+    seen = []
+    for play in recent
+        in(play.map_id, seen) && continue
+        map = beatmap(play.map_id)
         if !isnull(map)
-            in(get(map).id, seen) && continue
             push!(seen, get(map).id)
-            map_name(get(map)) == map_str && return map
+            map_name(get(map)) == map_str && return map, Nullable{Mode}()
         end
     end
-    # TODO: osusearch.
-    log("No map found") && return Nullable{Beatmap}()
+
+    log("Searching osusearch.com")
+    try
+        artist, title, diff = match(r"(.*) - (.*) \[(.*)\]", map_str).captures
+        args = ["title=$title", "artist=$artist", "diff_name=$diff"]
+        url = replace(render(search_url, args=args), " ", "+")
+        maps = Osu.request(url)["beatmaps"]
+        fav = maps[indmax([m["favorites"] for m in maps])]
+        map_dict = Dict([pair.first => string(pair.second) for pair in fav])
+        map = make_map(map_dict)
+        log("Found map $(map_name(map))")
+        return Nullable(map), Nullable{Mode}()
+    catch e
+        log(e)
+        log("No map found") && return Nullable{Beatmap}(), Nullable{Mode}()
+    end
 end
 
 """
@@ -186,13 +216,18 @@ function parse_player(s::AbstractString)
         "STANDARD",
         "STD",
         "O!STD",
+        "OSU!STD",
         "CTB",
         "O!CATCH",
+        "OSU!CTB",
         "O!CTB",
         "MANIA",
         "O!MANIA",
+        "OSU!MANIA",
+        "OSU!M",
         "O!M",
         "TAIKO",
+        "OSU!TAIKO",
         "O!TAIKO",
     ]
     for cap in matchall(r"(\[[^\[^\]]*\])", s)

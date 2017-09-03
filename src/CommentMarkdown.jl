@@ -18,13 +18,14 @@ const source_url = "https://github.com/christopher-dG/OsuBot.jl"
 const me = "PM_ME_DOG_PICS_PLS"
 
 """
-    map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int) -> Void
+    map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode) -> Void
 
 Produce a table containing difficulty and pp values, and write it to `buf`.
 """
-function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
+function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode)
     modded = mods != mod_map[:NOMOD]
     log("Getting map table for $(map_name(beatmap)) with$(modded ? "" : "out") mods")
+
     header, nomod_row = modded ? ([""], ["NoMod"]) : ([], [])
     rows = [header, nomod_row]
     push!(header, "CS", "AR", "OD", "HP", "SR", "BPM", "Length")
@@ -39,18 +40,22 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
         strfmt(map_diff[:BPM]; precision=0),
         map_diff[:LEN],
     )
-    pp_vals = Dict{Real, AbstractFloat}()
-    for acc in sort(Real[accuracy, 95, 98, 99, 100])
-        pp = get_pp(beatmap, acc)
-        if pp != nothing
-            pp_vals[acc] = pp
+
+    if in(mode, [OsuTypes.STD, OsuTypes.TAIKO])
+        pp_vals = Dict{Real, AbstractFloat}()
+        for acc in sort(Real[accuracy, 95, 98, 99, 100])
+            pp = get_pp(beatmap, acc; taiko=mode == OsuTypes.TAIKO)
+            if pp != nothing
+                pp_vals[acc] = pp
+            end
         end
     end
+
     accs = sort(collect(keys(pp_vals)))
     push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $BAR ")))")
     push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $BAR "))
 
-    if modded
+    if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO])
         modded_row = ["+$(join(mods_from_int(mods)))"]
         map_diff = get_diff(beatmap, mods)
         push!(
@@ -63,7 +68,11 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
             strfmt(map_diff[:BPM]; precision=0),
             map_diff[:LEN],
         )
-        pp_vals = filter(v -> v != nothing, map(acc -> get_pp(beatmap, acc, mods), accs))
+
+        pp_vals = filter(
+            v -> v != nothing,
+            map(acc -> get_pp(beatmap, acc, mods; taiko=mode == OsuTypes.TAIKO), accs),
+        )
         push!(modded_row, join(strfmt.(pp_vals; precision=0), " $BAR "))
         push!(rows, modded_row)
     end
@@ -73,7 +82,7 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
     return nothing
 end
 
-function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int)
+function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int, mode::Mode)
     header, row = ["CS", "AR", "OD", "HP", "SR", "BPM", "Length"], []
     rows = [header, row]
     map_diff = get_diff(beatmap)
@@ -94,42 +103,52 @@ end
 
 """
     build_comment(
-        player::Player,
+        player::User,
         beatmap::Nullable{<:Beatmap},
-        mods::Int;
-        acc:Real=0,
+        mods::Int,
+        acc::Nullable{<:Real},
+        mode::Nullable{Mode},
     ) -> String
 
 Build a comment from a player's play on a beatmap with given mods and accuracy.
+When `acc` has no value we couldn't find the accuracy in the title, so we try to find a
+play by `player` and use its accuracy. When `mode` has no value we don't yet know the game
+mode, so we'll use the default beatmap mode, ignoring autoconverts.
 """
 function build_comment(
-    player::Player,
+    player::User,
     beatmap::Nullable{<:Beatmap},
-    mods::Int;
-    acc::Real=-1,
+    mods::Int,
+    acc::Nullable{<:Real},
+    mode::Nullable{Mode},
 )
     map_str = isnull(beatmap) ? "null" : map_name(get(beatmap))
-    log("Building comment: player=$(player.name), beatmap=$map_str, mods=$mods, acc=$acc")
+    log("player=$(player.name), beatmap=$map_str, mods=$mods, acc=$acc, mode=$mode")
     buf = IOBuffer()
     if !isnull(beatmap)
         map = get(beatmap)
-        map_basics!(buf, map)
+        mode = isnull(mode) ? map.mode : get(mode)
+        map_basics!(buf, map, mode)
         write(buf, "\n\n")
-        if acc == -1
+        # Either use the supplied accuracy value from the title, or go find one.
+        # If things fail, set it to 100 so that no extra pp value is generated.
+        acc = if isnull(acc)
             log("Title didn't contain acc; looking for a play by $(player.name)")
-            plays = beatmap_scores(map.id, player.id; mode=map.mode)
-            acc = if !isnull(plays)
+            plays = beatmap_scores(map.id, player.id; mode=mode)
+             if !isnull(plays)
                 plays = get(plays)
                 try first(plays).accuracy catch e log(e); 100 end
             else
-                log("Couldn't get a play")
+                log("Couldn't find a play")
                 100
             end
+        else
+            get(acc)
         end
-        map_table!(buf, map, acc, mods)
+        map_table!(buf, map, acc, mods, mode)
         write(buf, "\n")
     end
-    player_markdown!(buf, player, isnull(beatmap) ? OsuTypes.STD : get(beatmap).mode)
+    player_table!(buf, player, mode)
     memes = [
         "pls enjoy gaem",
         "play more",
@@ -154,16 +173,22 @@ function build_comment(
 end
 
 """
-    map_basics!(buf::IO, map::Beatmap) -> Void
+    map_basics!(buf::IO, map::Beatmap, mode::Mode) -> Void
 
 Produce basic map information (name, mapper, playcount, etc.) and write it to `buf`.
 """
-function map_basics!(buf::IO, map::Beatmap)
+function map_basics!(buf::IO, map::Beatmap, mode::Mode)
     tmp = "[$(map_name(map))]($osu/b/$(map.id)) [(↓)]($osu/d/$(map.set_id)) "
     tmp *= "by [$(map.mapper)]($osu/u/$(map.mapper))"
+    if map.status == "Unranked"
+        # Unranked maps always come from osusearch, and they never have max combo set.
+        tmp *= " || $(map.status) ($(map.approved_date))"
+        Markdown.plain(buf, Markdown.Header(tmp, 3))
+        return nothing
+    end
     Markdown.plain(buf, Markdown.Header(tmp, 3))
     tmp = ""
-    plays = beatmap_scores(map.id; mode=map.mode)
+    plays = beatmap_scores(map.id; mode=mode)
     if !isnull(plays)
         top = first(get(plays))
         # Output from `beatmap_scores` always has both `username` and `user_id` fields,
@@ -176,7 +201,8 @@ function map_basics!(buf::IO, map::Beatmap)
         tmp *= "$(strfmt(top.accuracy;precision=2))% - "
         tmp *= "$(strfmt(get(top.pp); precision=0))pp) || "
     end
-    if isa(map, StdBeatmap)
+    if isa(map, StdBeatmap) && map.combo != -1
+        # Non-standard maps don't have max combo set, nor do maps from osusearch.
         tmp *= "$(strfmt(map.combo; precision=0))x max combo || "
     end
     tmp *= "$(map.status) ($(map.approved_date)) || "
@@ -186,11 +212,19 @@ function map_basics!(buf::IO, map::Beatmap)
 end
 
 """
-    player_markdown!(buf::IO, player::Player, mode::Mode) -> Void
+    player_table!(buf::IO, player::User, mode::Mode) -> Void
 
 Produce a table containing player information and write it to `buf`.
 """
-function player_markdown!(buf::IO, player::Player, mode::Mode)
+function player_table!(buf::IO, player::User, mode::Mode)
+    # Now that we know what game mode we're dealing with, we can make sure that we get
+    # stats for the right mode.
+    if mode != OsuTypes.STD
+        mode_player = user(player.id; mode=mode)
+        if !isnull(mode)
+            player = get(mode_player)
+        end
+    end
     header = ["Player", "Rank", "pp", "Acc", "Playcount"]
     row = [
         "[$(player.name)]($osu/u/$(player.id))",

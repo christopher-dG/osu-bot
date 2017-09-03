@@ -3,7 +3,7 @@ Types that represent concepts/objects in osu!.
 """
 module OsuTypes
 
-export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, Player, Score,
+export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, User, Score,
     Mode
 
 const fmt = DateFormat("y-m-d H:M:S")
@@ -50,6 +50,7 @@ abstract type Beatmap end
     StdBeatmap(d::Dict) -> StdBeatmap
 
 Create an osu!std beatmap from `d`.
+Note: Autoconverts are also of this type.
 """
 struct StdBeatmap <: Beatmap
     id::Int  # Beatmap ID.
@@ -72,24 +73,29 @@ struct StdBeatmap <: Beatmap
     mode::Mode  # Game mode.
 
     function StdBeatmap(d::Dict)
+        status_key = haskey(d, "approved") ? "approved" : "beatmap_status"
+        status = get(status_map, parse(Int, d[status_key]), "Unknown")
+        date_key = haskey(d, "approved_date") ? "approved_date" : "date"
+        approved_date = Date(replace(d[date_key], "T", " "), fmt)
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
             d["artist"],
             d["title"],
-            d["version"],
-            d["creator"],
-            parse(Float64, d["difficultyrating"]),
-            parse(Float64, d["diff_size"]),
-            parse(Float64, d["diff_overall"]),
-            parse(Float64, d["diff_approach"]),
-            parse(Float64, d["diff_drain"]),
+            get(d, "version", get(d, "difficulty_name", "")),
+            get(d, "creator", get(d, "mapper", "")),
+            parse(Float64, get(d, "difficultyrating", get(d, "difficulty", ""))),
+            parse(Float64, get(d, "diff_size", get(d, "difficulty_cs", ""))),
+            parse(Float64, get(d, "diff_overall", get(d, "difficulty_od", ""))),
+            parse(Float64, get(d, "diff_approach", get(d, "difficulty_ar", ""))),
+            parse(Float64, get(d, "diff_drain", get(d, "difficulty_hp", ""))),
             parse(Float64, d["bpm"]),
             Dates.Second(d["total_length"]),
-            get(status_map, parse(Int, d["approved"]), "Unknown"),
-            Date(d["approved_date"], fmt),
-            parse(Int, d["playcount"]),
-            parse(Int, d["max_combo"]),
+            status,
+            approved_date,
+            parse(Int, get(d, "playcount", get(d, "play_count", "0"))),
+            # Autoconverts from std to taiko have null max combo.
+            try parse(Int, get(d, "max_combo", "-1")) catch -1 end,
             STD,
         )
     end
@@ -120,26 +126,29 @@ struct TaikoBeatmap <: Beatmap
     mode::Mode  # Game mode.
 
     function TaikoBeatmap(d::Dict)
-        fmt = DateFormat("y-m-d H:M:S")
+        status_key = haskey(d, "approved") ? "approved" : "beatmap_status"
+        status = get(status_map, parse(Int, d[status_key]), "Unknown")
+        date_key = haskey(d, "approved_date") ? "approved_date" : "date"
+        approved_date = Date(replace(d[date_key], "T", " "), fmt)
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
             d["artist"],
             d["title"],
-            d["version"],
-            d["creator"],
-            parse(Float64, d["difficultyrating"]),
-            parse(Float64, d["diff_size"]),
-            parse(Float64, d["diff_overall"]),
-            parse(Float64, d["diff_approach"]),
-            parse(Float64, d["diff_drain"]),
+            get(d, "version", get(d, "difficulty_name", "")),
+            get(d, "creator", get(d, "mapper", "")),
+            parse(Float64, get(d, "difficultyrating", get(d, "difficulty", ""))),
+            parse(Float64, get(d, "diff_size", get(d, "difficulty_cs", ""))),
+            parse(Float64, get(d, "diff_overall", get(d, "difficulty_od", ""))),
+            parse(Float64, get(d, "diff_approach", get(d, "difficulty_ar", ""))),
+            parse(Float64, get(d, "diff_drain", get(d, "difficulty_hp", ""))),
             parse(Float64, d["bpm"]),
             Dates.Second(d["total_length"]),
-            get(status_map, parse(Int, d["approved"]), "Unknown"),
-            Date(d["approved_date"], fmt),
-            parse(Int, d["playcount"]),
+            status,
+            approved_date,
+            parse(Int, get(d, "playcount", get(d, "play_count", "0"))),
             TAIKO,
-        )
+    )
     end
 end
 
@@ -168,24 +177,27 @@ struct OtherBeatmap <: Beatmap
     mode::Mode  # Game mode.
 
     function OtherBeatmap(d::Dict)
-        fmt = DateFormat("y-m-d H:M:S")
+        status_key = haskey(d, "approved") ? "approved" : "beatmap_status"
+        status = get(status_map, parse(Int, d[status_key]), "Unknown")
+        date_key = haskey(d, "approved_date") ? "approved_date" : "date"
+        approved_date = Date(replace(d[date_key], "T", " "), fmt)
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
             d["artist"],
             d["title"],
-            d["version"],
-            d["creator"],
-            parse(Float64, d["difficultyrating"]),
-            parse(Float64, d["diff_size"]),
-            parse(Float64, d["diff_overall"]),
-            parse(Float64, d["diff_approach"]),
-            parse(Float64, d["diff_drain"]),
+            get(d, "version", get(d, "difficulty_name", "")),
+            get(d, "creator", get(d, "mapper", "")),
+            parse(Float64, get(d, "difficultyrating", get(d, "difficulty", ""))),
+            parse(Float64, get(d, "diff_size", get(d, "difficulty_cs", ""))),
+            parse(Float64, get(d, "diff_overall", get(d, "difficulty_od", ""))),
+            parse(Float64, get(d, "diff_approach", get(d, "difficulty_ar", ""))),
+            parse(Float64, get(d, "diff_drain", get(d, "difficulty_hp", ""))),
             parse(Float64, d["bpm"]),
             Dates.Second(d["total_length"]),
-            get(status_map, parse(Int, d["approved"]), "Unknown"),
-            Date(d["approved_date"], fmt),
-            parse(Int, d["playcount"]),
+            status,
+            approved_date,
+            parse(Int, get(d, "playcount", get(d, "play_count", "0"))),
             first(Mode[parse(Int, d["mode"])]),
         )
     end
@@ -197,7 +209,8 @@ end
 Get a beatmap of the appropriate type from `view`.
 """
 function make_map(view::Dict)
-    mode = parse(Int, view["mode"])
+    mode = parse(Int, get(view, "mode", get(view, "gamemode", "-1")))
+    mode == -1 && error()
     return if mode == Int(STD)
         StdBeatmap(view)
     elseif mode == Int(TAIKO)
@@ -217,25 +230,36 @@ struct Event
     map_str::AbstractString  # Artist - Title [Diff].
     map_id::Int  # Beatmap ID.
     mapset_id::Int  # Mapset ID.
+    mode::Nullable{Mode}
 
     function Event(d::Dict)
-        regex = r"/b/[0-9]+\?m=[0-9]'>(.+) - (.+) \[(.+)\]</a>"
+        regex = r"/b/[0-9]+\?m=[0-9]'>(.+) - (.+) \[(.+)\]</a> \((.*)\)"
         try
             caps = match(regex, d["display_html"]).captures
             map_str = "$(caps[1]) - $(caps[2]) [$(caps[3])]"
-            new(map_str, parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]))
+            mode = uppercase(caps[4])
+            mode = if mode == "OSU!"
+                STD
+            elseif mode == "TAIKO"
+                TAIKO
+            elseif mode == "CATCH THE BEAT"
+                CTB
+            elseif mode == "OSU!MANIA"
+                MANIA
+            end
+            new(map_str, parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]), mode)
         catch
-            new("", parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]))
+            new("", parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]), nothing)
         end
     end
 end
 
 """
-    Player(d::Dict) -> Player
+    User(d::Dict) -> User
 
 Create an osu! player from `d`.
 """
-struct Player
+struct User
     id::Int  # User ID.
     name::AbstractString  # Username.
     pp::Int  # Raw pp.
@@ -244,7 +268,7 @@ struct Player
     playcount::Int  # Ranked playcount.
     events::Vector{Event}  # Recent events.
 
-    function Player(d::Dict)
+    function User(d::Dict)
         new(
             parse(Int, d["user_id"]),
             d["username"],
@@ -264,8 +288,8 @@ Create a player's score on a map from `d`.
 """
 struct Score
     map_id::Int  # Beatmap ID.
-    user_id::Nullable{Int}  # Player ID (not always supplied).
-    username::Nullable{AbstractString}  # Player username (not always supplied).
+    user_id::Nullable{Int}  # User ID (not always supplied).
+    username::Nullable{AbstractString}  # User username (not always supplied).
     date::DateTime  # Date of the play.
     mods::Int  # Mods on the play.
     fc::Bool  # Whether or not the play is a full combo.
