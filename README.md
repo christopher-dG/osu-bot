@@ -6,7 +6,6 @@
 [/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap
 and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.
 
-
 ### To Score Posters
 
 The bot depends on you to properly format your title!
@@ -22,20 +21,15 @@ For example:
 Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP RECORD*
 ```
 
-### Detailed Guidelines
+There are plenty of other subtleties to title formatting that will/won't work,
+but in general just do what everyone else does and there shouldn't be any
+problems.
 
-* The text before the first `|` must begin with the player name. Extra text
-  can be added in `(parentheses)` like so: ```Player Name (#1 global) | ...```
-* Mods are case-insensitive, but they must be separated by either nothing
-  or commas.
-  * The following styles will work: `+HDHR`, `HDHR`, `+HD,HR`, `HD,HR`
-  * The following syles will not work: `HD HR`, `HD-HR`, `+HD-HR`, `+HD +HR`
-* The rightmost set of `[square brackets]` between the first and second `|`
-  separators must contain the diff name.
-  * The following will work:
-    ```Player | Artist - Song [Diff] +DT | FC [7.9*]```.
-  * The following will not work:
-    ```Player | Artist - Song [Diff] FC 99.2% [first fc]```.
+### Development Dependencies
+
+* [Docker](https://www.docker.com/)
+* [`oppai`](https://github.com/Francesco149/oppai-ng) binary somewhere on your
+  `$PATH`
 
 ***
 
@@ -43,7 +37,7 @@ Credit for mod/pp calculations goes to
 [Francesco149](https://github.com/Francesco149/oppai-ng).
 
 If you have comments or suggestions for the bot, feel free to
-[open an issue](https://github.com/christopher-dG/osu-bot/issues/new) or
+[open an issue](https://github.com/christopher-dG/OsuBot.jl/issues/new) or
 [message me on Reddit](https://reddit.com/message/compose/?to=PM_ME_DOG_PICS_PLS).
 
 And if you want to thank me in some way, I'll happily accept
