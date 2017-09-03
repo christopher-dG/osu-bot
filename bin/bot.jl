@@ -49,7 +49,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
             try
                 comment_str = from_title(title)
                 log("Commenting on $(post[:title]): \n$comment_str")
-                !dry && Reddit.reply_sticky(post, comment_str)
+                !dry && Reddit.reply(post, comment_str)
             catch e
                 throw(e)
                 log("Comment generation/transmission failed: $e")

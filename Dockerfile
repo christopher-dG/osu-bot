@@ -15,4 +15,4 @@ RUN apt-get update && \
     mv oppai /usr/local/bin/ && \
     julia -e 'Pkg.clone(pwd()); cp("config.yml", Pkg.dir("OsuBot", "config.yml"))'
 
-CMD ["julia", "/root/app/bin/bot.jl"]
+CMD ["julia", "/root/OsuBot/bin/bot.jl"]
