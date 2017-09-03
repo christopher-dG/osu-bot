@@ -15,7 +15,8 @@ export build_comment
 const osu = "https://osu.ppy.sh"
 const BAR = "&#124;"
 const source_url = "https://github.com/christopher-dG/OsuBot.jl"
-const me = "PM_ME_DOG_PICS_PLS"
+const me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
+const ignore_mods = [:NF, :PF, :AP, :RL, :AT]
 
 """
     map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode) -> Void
@@ -55,8 +56,9 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
     push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $BAR ")))")
     push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $BAR "))
 
-    if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO])
-        modded_row = ["+$(join(mods_from_int(mods)))"]
+    mod_list = mods_from_int(mods)
+    if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO]) && !isempty(setdiff(mod_list, ignore_mods))
+        modded_row = ["+$(join(mod_list))"]
         map_diff = get_diff(beatmap, mods)
         push!(
             modded_row,
@@ -169,7 +171,7 @@ function build_comment(
         "TATOE",
     ]
     meme = memes[Int(ceil(rand() * length(memes)))]
-    write(buf, "\n***\n\n^($meme - )[^Source]($source_url)^( | )[^Developer](/u/$me)")
+    write(buf, "\n***\n\n^($meme - )[^Source]($source_url)^( | )[^Developer]($me)")
 
     return String(take!(buf))
 end
