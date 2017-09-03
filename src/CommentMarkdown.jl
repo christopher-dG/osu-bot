@@ -96,7 +96,7 @@ end
     build_comment(
         player::Player,
         beatmap::Nullable{<:Beatmap},
-        mods::Vector{Symbol};
+        mods::Int;
         acc:Real=0,
     ) -> String
 
@@ -129,7 +129,7 @@ function build_comment(
         map_table!(buf, map, acc, mods)
         write(buf, "\n")
     end
-    player_markdown!(buf, player, isnull(beatmap) ? STD : get(beatmap).mode)
+    player_markdown!(buf, player, isnull(beatmap) ? OsuTypes.STD : get(beatmap).mode)
     memes = [
         "pls enjoy gaem",
         "play more",

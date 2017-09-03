@@ -25,7 +25,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
             isnull(player) && log("No player found for $(caps[1])") && continue
             map_str = "$(caps[2]) - $(caps[3]) [$(caps[4])]"
             beatmap = Utils.search(get(player), map_str)
-            isnull(map) && warn("Proceeding without beatmap")
+            isnull(beatmap) && warn("Proceeding without beatmap")
             mods = Utils.mods_from_string(post[:title])
             title_end = strip(post[:title][search(post[:title], caps[4]).stop + 2:end])
             acc = match(r"(\d{1,2}\.?\d{1,2})%", title_end)
