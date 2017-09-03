@@ -25,7 +25,16 @@ if abspath(PROGRAM_FILE) == @__FILE__
             map_str = "$(caps[2]) - $(caps[3]) [$(caps[4])]"
             beatmap = Utils.search(get(player), map_str)
             isnull(map) && warn("Proceeding without beatmap")
-            comment_str = CommentMarkdown.build_comment(get(player), beatmap)
+            mods = mods_from_string(post[:title])
+            title_end = strip(post[:title][search(post[:title], caps[4]).stop + 2:end])
+            acc = match(r"(\d{1,2}\.?\d{1,2})%", title_end)
+            comment_str = if acc != nothing
+                acc = parse(Float64, acc.captures[1])
+                log("Found accuracy in title: $acc%")
+                CommentMarkdown.build_comment(get(player), beatmap, mods; acc=acc)
+            else
+                CommentMarkdown.build_comment(get(player), beatmap, mods)
+            end
             log("Commenting on $(post[:title]): $comment_str")
             !dry && Reddit.reply_sticky(post, comment_str)
         catch e
@@ -46,5 +55,14 @@ function from_title(title::AbstractString)
     map_str = "$(caps[2]) - $(caps[3]) [$(caps[4])]"
     beatmap = Utils.search(get(player), map_str)
     isnull(beatmap) && warn("Beatmap not found")
-    return CommentMarkdown.build_comment(get(player), beatmap)
+    mods = Utils.mods_from_string(title)
+    title_end = strip(title[search(title, caps[4]).stop + 2:end])
+    acc = match(r"(\d{1,2}\.?\d{1,2})%", title_end)
+    return if acc != nothing
+        acc = parse(Float64, acc.captures[1])
+        log("Found accuracy in title: $acc%")
+        CommentMarkdown.build_comment(get(player), beatmap, mods; acc=acc)
+    else
+        CommentMarkdown.build_comment(get(player), beatmap, mods)
+    end
 end

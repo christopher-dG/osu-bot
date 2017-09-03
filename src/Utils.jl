@@ -34,6 +34,7 @@ function mods_from_int(n::Int)
             n <= 0 && return filter(m -> in(m, mods), order)
         end
     end
+    log("Found mods: $mods")
     return mods
 end
 
@@ -71,7 +72,6 @@ function mods_from_string(s::AbstractString)
         for token in split(s)
             token = replace(token, r"[^A-Z]", "")
             length(token) % 2 != 0 && continue
-            println(token)
             for idx in 1:2:length(token)
                 mod = Symbol(token[idx:idx + 1])
                 mods += get(mod_map, mod, 0)
@@ -79,6 +79,7 @@ function mods_from_string(s::AbstractString)
             mods > 0 && return mods
         end
     end
+    log("Found mods: $mods ($(mods_from_int(mods)))")
     return mods
 end
 
@@ -118,6 +119,7 @@ end
 Convert `s` seconds into a timestamp.
 """
 function timestamp(s::Real)
+    total = s
     s = Int(round(s))
     h = convert(Int, floor(s / 3600))
     s -= 3600h
@@ -125,11 +127,13 @@ function timestamp(s::Real)
     s -= 60m
     m = format(convert(Int, m); width=2, zeropadding=true)
     s = format(convert(Int, s); width=2, zeropadding=true)
-    return if h > 0
+    ts = if h > 0
         "$h:$m:$s"
     else
         "$m:$s"
     end
+    log("Converted $total seconds to timestamp: $ts")
+    return ts
 end
 
 """
@@ -156,11 +160,13 @@ function parse_player(s::AbstractString)
     for cap in matchall(r"(\([^\(^\)]*\))", s)
         range = search(s, cap)
         if range.start == 1
+            log("Stripping $cap from $s")
             s = strip(s[range.stop + 1:end])
         elseif range.stop != -1
             # This covers the common "Player (something)" case, and it also partially takes
             # care of weird cases with parens in the middle by just assuming that the
             # leftmost part is the player name.
+            log("Stripping $cap from $s")
             s = strip(s[1:range.start - 1])
         end
     end
@@ -185,12 +191,15 @@ function parse_player(s::AbstractString)
         if in(replace(uppercase(cap), " ", "")[2:end-1], ignores)
             range = search(s, cap)
             if range.start == 1
+                log("Stripping $cap from $s")
                 s = strip(s[range.stop + 1:end])
             elseif range.stop == length(s)
+                log("Stripping $cap from $s")
                 s = strip(s[1:range.start - 1])
             end
         end
     end
+    log("Player name: $s")
     return s
 end
 

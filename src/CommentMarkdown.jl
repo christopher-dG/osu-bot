@@ -12,6 +12,7 @@ using OsuBot.Utils
 
 export build_comment
 
+const osu = "https://osu.ppy.sh"
 const BAR = "&#124;"
 const source_url = "https://github.com/christopher-dG/OsuBot.jl"
 const me = "PM_ME_DOG_PICS_PLS"
@@ -23,6 +24,7 @@ Produce a table containing difficulty and pp values, and write it to `buf`.
 """
 function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int)
     modded = mods != mod_map[:NOMOD]
+    log("Getting map table for $(map_name(beatmap)) with$(modded ? "" : "out") mods")
     header, nomod_row = modded ? ([""], ["NoMod"]) : ([], [])
     rows = [header, nomod_row]
     push!(header, "CS", "AR", "OD", "HP", "SR", "BPM", "Length")
@@ -91,24 +93,41 @@ function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int)
 end
 
 """
-    build_comment(player::Player, beatmap::Nullable{<:Beatmap}) -> String
+    build_comment(
+        player::Player,
+        beatmap::Nullable{<:Beatmap},
+        mods::Vector{Symbol};
+        acc:Real=0,
+    ) -> String
 
-Build a comment from `player` and `beatmap`.
+Build a comment from a player's play on a beatmap with given mods and accuracy.
 """
-function build_comment(player::Player, beatmap::Nullable{<:Beatmap})
+function build_comment(
+    player::Player,
+    beatmap::Nullable{<:Beatmap},
+    mods::Int;
+    acc::Real=-1,
+)
+    map_str = isnull(beatmap) ? "null" : map_name(get(beatmap))
+    log("Building comment: player=$(player.name), beatmap=$map_str, mods=$mods, acc=$acc")
     buf = IOBuffer()
     if !isnull(beatmap)
         map = get(beatmap)
-        plays = beatmap_scores(map.id, player.id; mode=map.mode)
-        if !isnull(plays)
-            play = first(get(plays))
-            acc = play.accuracy
-            mods = play.mods
-            map_basics!(buf, map)
-            write(buf, "\n\n")
-            map_table!(buf, map, acc, mods)
-            write(buf, "\n")
+        map_basics!(buf, map)
+        write(buf, "\n\n")
+        if acc == -1
+            log("Title didn't contain acc; looking for a play by $(player.name)")
+            plays = beatmap_scores(map.id, player.id; mode=map.mode)
+            acc = if !isnull(plays)
+                plays = get(plays)
+                try first(plays).accuracy catch e log(e); 100 end
+            else
+                log("Couldn't get a play")
+                100
+            end
         end
+        map_table!(buf, map, acc, mods)
+        write(buf, "\n")
     end
     player_markdown!(buf, player, isnull(beatmap) ? STD : get(beatmap).mode)
     memes = [
@@ -140,7 +159,6 @@ end
 Produce basic map information (name, mapper, playcount, etc.) and write it to `buf`.
 """
 function map_basics!(buf::IO, map::Beatmap)
-    const osu = "https://osu.ppy.sh"
     tmp = "[$(map_name(map))]($osu/b/$(map.id)) [(↓)]($osu/d/$(map.set_id)) "
     tmp *= "by [$(map.mapper)]($osu/u/$(map.mapper))"
     Markdown.plain(buf, Markdown.Header(tmp, 3))
@@ -173,7 +191,6 @@ end
 Produce a table containing player information and write it to `buf`.
 """
 function player_markdown!(buf::IO, player::Player, mode::Mode)
-    const osu = "https://osu.ppy.sh"
     header = ["Player", "Rank", "pp", "Acc", "Playcount"]
     row = [
         "[$(player.name)]($osu/u/$(player.id))",
