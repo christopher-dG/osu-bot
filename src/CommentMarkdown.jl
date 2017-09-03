@@ -147,6 +147,8 @@ function build_comment(
         end
         map_table!(buf, map, acc, mods, mode)
         write(buf, "\n")
+    else
+        mode = get(mode, OsuTypes.STD)
     end
     player_table!(buf, player, mode)
     memes = [
@@ -183,10 +185,10 @@ function map_basics!(buf::IO, map::Beatmap, mode::Mode)
     if map.status == "Unranked"
         # Unranked maps always come from osusearch, and they never have max combo set.
         tmp *= " || $(map.status) ($(map.approved_date))"
-        Markdown.plain(buf, Markdown.Header(tmp, 3))
+        Markdown.plain(buf, Markdown.Header(tmp, 5))
         return nothing
     end
-    Markdown.plain(buf, Markdown.Header(tmp, 3))
+    Markdown.plain(buf, Markdown.Header(tmp, 5))
     tmp = ""
     plays = beatmap_scores(map.id; mode=mode)
     if !isnull(plays)
