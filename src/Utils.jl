@@ -107,10 +107,14 @@ function search(player::Player, map_str::AbstractString)
     log("Searching recent plays")
     # We have no way to know what game mode we're looking for, so this won't work unless
     # unless it's standard.
+    seen = []
     recent = get(player_recent(player.id; lim=50), [])
     for map in (beatmap(play.map_id) for play in recent)
-        isnull(map) && continue
-        map_name(get(map)) == map_str && return map
+        if !isnull(map)
+            in(get(map).id, seen) && continue
+            push!(seen, get(map).id)
+            map_name(get(map)) == map_str && return map
+        end
     end
     # TODO: osusearch.
     log("No map found") && return Nullable{Beatmap}()
