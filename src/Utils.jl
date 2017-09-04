@@ -102,9 +102,8 @@ also return the game mode that it was played in (this helps deal with autoconver
 """
 function search(player::User, map_str::AbstractString)
     log("Searching for $map_str with $(player.name)")
-    map_str = uppercase(map_str)
     log("Searching $(length(player.events)) recent events")
-    idx = findfirst(e -> uppercase(e.map_str) == map_str, player.events)
+    idx = findfirst(e -> uppercase(e.map_str) == uppercase(map_str), player.events)
     if idx != 0
         event = player.events[idx]
         map = try
@@ -130,7 +129,9 @@ function search(player::User, map_str::AbstractString)
         map = beatmap(play.map_id)
         if !isnull(map)
             push!(seen, get(map).id)
-            uppercase(map_name(get(map))) == map_str && return map, Nullable{Mode}()
+            if uppercase(map_name(get(map))) == uppercase(map_str)
+                return map, Nullable{Mode}()
+            end
         end
     end
 
@@ -138,10 +139,13 @@ function search(player::User, map_str::AbstractString)
     try
         artist, title, diff = match(r"(.*) - (.*) \[(.*)\]", map_str).captures
         args = ["title=$title", "artist=$artist", "diff_name=$diff"]
-        url = replace(render(search_url, args=args), " ", "+")
+        url = replace(replace(render(search_url, args=args), " ", "+"), "&#x2F;", "/")
         maps = Osu.request(url)["beatmaps"]
         maps = filter(
-            m -> uppercase("$(m["artist"]) - $(m["title"]) [$(m["difficulty_name"])]") == map_str,
+            m -> ==(
+                uppercase("$(m["artist"]) - $(m["title"]) [$(m["difficulty_name"])]"),
+                uppercase(map_str),
+            ),
             maps,
         )
         fav = maps[indmax([m["favorites"] for m in maps])]
