@@ -16,15 +16,30 @@ function login()
         map(pair -> Symbol(pair.first) => pair.second, config["reddit"])...,
     )
     global subreddit = bot[:subreddit](config["reddit"]["subreddit"])
+    log("Logged into Reddit")
     return nothing
 end
 
 """
-    posts() -> PyObject
+    posts(channel::Channel) -> Void
 
-Get a generator to indefinitely stream posts from the global subreddit as they arrive.
+Put new posts from the global subreddit into `channel` as they arrive. `praw` has a
+streaming method built in, but new posts are picked up at slow/inconsistent intervals.
+This function does not return, so wrap it in `@async`.
 """
-posts() = subreddit[:stream][:submissions]()
+function posts(channel::Channel)
+    ids = String[]  # Ordered [oldest, ..., newest].
+    while true
+        for post in reverse(collect(subreddit[:new]()))  # Oldest posts first.
+            if !in(post[:id], ids)
+                push!(ids, post[:id])
+                put!(channel, post)
+            end
+        end
+        sleep(10)
+        ids = ids[max(1, end - 1000):end]  # I don't know whether or not this works...
+    end
+end
 
 """
     comments() -> PyObject

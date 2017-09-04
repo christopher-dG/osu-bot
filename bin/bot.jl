@@ -36,9 +36,10 @@ end
 if abspath(PROGRAM_FILE) == @__FILE__
     log("Running with dry=$(dry)")
     Reddit.login()
-    log("Logged into Reddit")
-    posts = Reddit.posts()
-    @async for post in posts
+    channel = Channel(1)
+    @async Reddit.posts(channel)
+    @async while true
+        post = take!(channel)
         try
             !dry && post[:saved] && log("'$(post[:title])' is already saved") && continue
             post[:is_self] && log("'$(post[:title])' is a self post") && continue
@@ -51,11 +52,9 @@ if abspath(PROGRAM_FILE) == @__FILE__
                 log("Commenting on $(post[:title]): \n$comment_str")
                 !dry && Reddit.reply(post, comment_str)
             catch e
-                throw(e)
                 log("Comment generation/transmission failed: $e")
             end
         catch e
-            throw(e)
             log(e)
         end
     end
