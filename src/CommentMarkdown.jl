@@ -13,7 +13,8 @@ using OsuBot.Utils
 export build_comment
 
 const osu = "https://osu.ppy.sh"
-const BAR = "&#124;"
+const bar = "&#124;"
+const download = "&#x2b07;"
 const source_url = "https://github.com/christopher-dG/OsuBot.jl"
 const me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
 const ignore_mods = [:NF, :PF, :AP, :RL, :AT]
@@ -53,8 +54,8 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
     end
 
     accs = sort(collect(keys(pp_vals)))
-    push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $BAR ")))")
-    push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $BAR "))
+    push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $bar ")))")
+    push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $bar "))
 
     mod_list = mods_from_int(mods)
     if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO]) && !isempty(setdiff(mod_list, ignore_mods))
@@ -75,7 +76,7 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
             v -> v != nothing,
             map(acc -> get_pp(beatmap, acc, mods; taiko=mode == OsuTypes.TAIKO), accs),
         )
-        push!(modded_row, join(strfmt.(pp_vals; precision=0), " $BAR "))
+        push!(modded_row, join(strfmt.(pp_vals; precision=0), " $bar "))
         push!(rows, modded_row)
     end
 
@@ -182,7 +183,7 @@ end
 Produce basic map information (name, mapper, playcount, etc.) and write it to `buf`.
 """
 function map_basics!(buf::IO, map::Beatmap, mode::Mode)
-    tmp = "[$(map_name(map))]($osu/b/$(map.id)) [(↓)]($osu/d/$(map.set_id)) "
+    tmp = "[$(map_name(map))]($osu/b/$(map.id)) [($download)]($osu/d/$(map.set_id)) "
     tmp *= "by [$(map.mapper)]($osu/u/$(map.mapper))"
     if map.status == "Unranked"
         # Unranked maps always come from osusearch, and they never have max combo set.
@@ -234,7 +235,7 @@ function player_table!(buf::IO, player::User, mode::Mode)
         "[$(player.name)]($osu/u/$(player.id))",
         "#$(strfmt(player.rank))",
         strfmt(player.pp),
-        strfmt(player.accuracy; precision=2),
+        "$(strfmt(player.accuracy; precision=2))%",
         strfmt(player.playcount),
     ]
     rows = [header, row]
@@ -246,8 +247,8 @@ function player_table!(buf::IO, player::User, mode::Mode)
             map = get(map)
             str = "[$(map_name(map))]($osu/b/$(map.id)) "
             mods = mods_from_int(play.mods)
-            str *= isempty(mods) ? "$BAR " : "+$(join(mods)) $BAR "
-            str *= "$(strfmt(play.accuracy; precision=2))% $BAR $(strfmt(get(play.pp)))pp"
+            str *= isempty(mods) ? "$bar " : "+$(join(mods)) $bar "
+            str *= "$(strfmt(play.accuracy; precision=2))% $bar $(strfmt(get(play.pp)))pp"
             push!(header, "Top Play")
             push!(row, str)
         end
