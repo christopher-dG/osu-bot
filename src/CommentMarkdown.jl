@@ -18,6 +18,25 @@ const download = "&#x2b07;"
 const source_url = "https://github.com/christopher-dG/OsuBot.jl"
 const me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
 const ignore_mods = [:NF, :PF, :AP, :RL, :AT]
+const memes = [
+    "pls enjoy gaem",
+    "play more",
+    "Ye XD",
+    "imperial dead bicycle lol",
+    "nice pass ecks dee",
+    "kirito is legit",
+    "can just shut up",
+    "thank mr monstrata",
+    "fc cry thunder and say that me again",
+    "tbh i don't think fils has the aim for this",
+    "fuck azer",
+    "omg kappadar big fan",
+    "reese get the camera",
+    "cookiezi hdhr when",
+    "TATOE",
+    "hello there",
+    "rrtyui :(",
+]
 
 """
     map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode) -> Void
@@ -154,23 +173,6 @@ function build_comment(
         mode = get(mode, OsuTypes.STD)
     end
     player_table!(buf, player, mode)
-    memes = [
-        "pls enjoy gaem",
-        "play more",
-        "Ye XD",
-        "imperial dead bicycle lol",
-        "nice pass ecks dee",
-        "kirito is legit",
-        "can just shut up",
-        "thank mr monstrata",
-        "fc cry thunder and say that me again",
-        "tbh i don't think fils has the aim for this",
-        "fuck azer",
-        "omg kappadar big fan",
-        "reese get the camera",
-        "cookiezi hdhr when",
-        "TATOE",
-    ]
     meme = memes[Int(ceil(rand() * length(memes)))]
     write(buf, "\n***\n\n^($meme - )[^Source]($source_url)^( | )[^Developer]($me)")
 
