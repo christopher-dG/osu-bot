@@ -3,21 +3,14 @@ module Reddit
 using PyCall
 using YAML
 
-@pyimport praw
-
-"""
-    login() -> Void
-
-Authenticate a Reddit bot user defined by the global Reddit config.
-"""
-function login()
+function __init__()
+    @pyimport praw
     config = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))
     global bot = praw.Reddit(;
         map(pair -> Symbol(pair.first) => pair.second, config["reddit"])...,
     )
     global subreddit = bot[:subreddit](config["reddit"]["subreddit"])
     log("Logged into Reddit")
-    return nothing
 end
 
 """
@@ -33,11 +26,11 @@ function posts(channel::Channel)
         for post in reverse(collect(subreddit[:new]()))  # Oldest posts first.
             if !in(post[:id], ids)
                 push!(ids, post[:id])
+                length(ids) > 100 && shift!(ids)  # Remove the oldest entry.
                 put!(channel, post)
             end
         end
         sleep(10)
-        ids = ids[max(1, end - 1000):end]  # I don't know whether or not this works...
     end
 end
 

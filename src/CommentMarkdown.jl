@@ -173,8 +173,7 @@ function build_comment(
         mode = get(mode, OsuTypes.STD)
     end
     player_table!(buf, player, mode)
-    meme = memes[Int(ceil(rand() * length(memes)))]
-    write(buf, "\n***\n\n^($meme - )[^Source]($source_url)^( | )[^Developer]($me)")
+    write(buf, "\n***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)")
 
     return String(take!(buf))
 end

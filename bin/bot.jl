@@ -35,7 +35,6 @@ end
 
 if abspath(PROGRAM_FILE) == @__FILE__
     log("Running with dry=$(dry)")
-    Reddit.login()
     channel = Channel(1)
     @async Reddit.posts(channel)
     @async while true

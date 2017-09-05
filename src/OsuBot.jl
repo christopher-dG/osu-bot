@@ -1,3 +1,4 @@
+__precompile__()
 module OsuBot  # It's too bad 'osu!bot' breaks so many naming conventions.
 
 export OsuTypes, Osu, Utils, Reddit, Oppai, CommentMarkdown
