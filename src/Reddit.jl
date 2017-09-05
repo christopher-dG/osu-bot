@@ -38,6 +38,7 @@ function posts(channel::Channel)
                 put!(channel, post)
             end
         end
+        gc()  # Shouldn't be necessary; this is a PyCall bug (#436).
         sleep(10)
     end
 end
