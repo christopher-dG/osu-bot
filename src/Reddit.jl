@@ -3,7 +3,14 @@ module Reddit
 using PyCall
 using YAML
 
-function __init__()
+export login, posts, comments, reply
+
+"""
+    login() -> Void
+
+Log in to Reddit and bind the global bot and subreddit variables.
+"""
+function login()
     @pyimport praw
     config = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))
     global bot = praw.Reddit(;
@@ -11,6 +18,7 @@ function __init__()
     )
     global subreddit = bot[:subreddit](config["reddit"]["subreddit"])
     log("Logged into Reddit")
+    return nothing
 end
 
 """
