@@ -23,7 +23,7 @@ on failure.
 function download(id::Int)
     path = joinpath(tmpdir, "$id.osu")
     if isfile(path)
-        warn("File already exists at $path; reusing")
+        log("File already exists at $path; reusing")
         return path
     end
     url = "https://osu.ppy.sh/osu/$id"

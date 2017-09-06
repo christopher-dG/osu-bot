@@ -232,8 +232,10 @@ function player_table!(buf::IO, player::User, mode::Mode)
         end
     end
     header = ["Player", "Rank", "pp", "Acc", "Playcount"]
+    # Usernames are short enough (15 characters max) to go on one line in their table cell.
+    username = replace(player.name, " ", "&nbsp;")
     row = [
-        "[$(player.name)]($osu/u/$(player.id))",
+        "[$username]($osu/u/$(player.id))",
         "#$(strfmt(player.rank))",
         strfmt(player.pp),
         "$(strfmt(player.accuracy; precision=2))%",
