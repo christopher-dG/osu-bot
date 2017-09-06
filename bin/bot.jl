@@ -4,6 +4,7 @@ using OsuBot
 import Base.log
 
 const title_regex = r"(.+)\|(.+)-(.+)\[(.+)\].*"
+const acc_regex = r"(\d+(?:[,.]\d*)?)%"
 const osu = "https://osu.ppy.sh"
 const dry = in("DRY", ARGS) || in("TEST", ARGS)
 
@@ -23,12 +24,13 @@ function from_title(title::AbstractString)
     isnull(beatmap) && warn("Beatmap was not found")
     mods = Utils.mods_from_string(title)
     title_end = strip(title[search(title, caps[4]).stop + 2:end])
-    acc = match(r"(\d{1,2}\.?\d{1,2})%", title_end)
+    acc = match(acc_regex, title_end)
     acc = if acc == nothing
         Nullable{Real}()
     else
-        log("Found accuracy in title: $(acc.captures[1])")
-        Nullable(parse(Float64, acc.captures[1]))
+        acc = min(parse(Float64, replace(acc.captures[1], ",", ".")), 100.0)
+        log("Found accuracy in title: $acc%")
+        Nullable(acc)
     end
     return CommentMarkdown.build_comment(get(player), beatmap, mods, acc, mode)
 end
