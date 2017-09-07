@@ -44,22 +44,35 @@ function posts(channel::Channel)
 end
 
 """
-    comments() -> PyObject
+    comments(channel::Channel) -> Void
 
-Get a generator to indefinitely stream comments from the global subreddit as they arrive.
+Similar to `posts` but for comments.
 """
-comments() = subreddit[:stream][:comments]()
+function comments(channel::Channel)
+    ids = String[]  # Ordered [oldest, ..., newest].
+    while true
+        for comment in reverse(collect(subreddit[:comments]()))  # Oldest posts first.
+            if !in(comment[:id], ids)
+                push!(ids, comment[:id])
+                length(ids) > 100 && shift!(ids)  # Remove the oldest entry.
+                put!(channel, comment)
+            end
+        end
+        gc()  # Shouldn't be necessary; this is a PyCall bug (#436).
+        sleep(10)
+    end
+end
 
 """
-    reply(post::PyObject, comment::AbstractString) -> PyObject
+    reply(obj::PyObject, comment::AbstractString; sticky::Bool=false) -> Void
 
-Reply to `post` with `comment` and sticky it, then upvote and save the post.
+Reply to a post or comment with `comment`, then upvote and save it.
 """
-function reply(post::PyObject, comment::AbstractString)
-    comment = post[:reply](comment)
-    comment[:mod][:distinguish](; sticky=true)
-    post[:save]()
-    post[:upvote]()
+function reply(obj::PyObject, comment::AbstractString; sticky::Bool=false)
+    comment = obj[:reply](comment)
+    sticky && comment[:mod][:distinguish](; sticky=true)
+    obj[:save]()
+    obj[:upvote]()
 end
 
 log(msg) = (info("$(basename(@__FILE__)): $msg"); true)

@@ -10,7 +10,7 @@ using OsuBot.Osu
 using OsuBot.OsuTypes
 using OsuBot.Utils
 
-export build_comment
+export build_comment, footer
 
 const osu = "https://osu.ppy.sh"
 const bar = "&#124;"
@@ -37,6 +37,15 @@ const memes = [
     "hello there",
     "rrtyui :(",
 ]
+
+"""
+    footer!(buf::IO) -> Int
+
+Append a comment footer to `buf`.
+"""
+function footer!(buf::IO)
+    write(buf, "\n***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)")
+end
 
 """
     map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode) -> Void
@@ -177,7 +186,7 @@ function build_comment(
         mode = get(mode, OsuTypes.STD)
     end
     player_table!(buf, player, mode)
-    write(buf, "\n***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)")
+    footer!(buf)
 
     return String(take!(buf))
 end
