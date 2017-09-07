@@ -3,7 +3,7 @@ module Reddit
 using PyCall
 using YAML
 
-export login, posts, comments, reply
+export login, posts, mentions, reply
 
 """
     login() -> Void
@@ -44,21 +44,21 @@ function posts(channel::Channel)
 end
 
 """
-    comments(channel::Channel) -> Void
+    mentions(channel::Channel) -> Void
 
-Similar to `posts` but for comments.
+Similar to `posts` but for comment mentions.
 """
-function comments(channel::Channel)
-    ids = String[]  # Ordered [oldest, ..., newest].
+function mentions(channel::Channel)
+    ids = String[]
     while true
-        for comment in reverse(collect(subreddit[:comments]()))  # Oldest posts first.
+        for comment in reverse(collect(bot[:inbox][:mentions](; limit=50)))
             if !in(comment[:id], ids)
                 push!(ids, comment[:id])
-                length(ids) > 100 && shift!(ids)  # Remove the oldest entry.
+                length(ids) > 50 && shift!(ids)
                 put!(channel, comment)
             end
         end
-        gc()  # Shouldn't be necessary; this is a PyCall bug (#436).
+        gc()
         sleep(10)
     end
 end

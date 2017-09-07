@@ -37,20 +37,20 @@ function from_title(title::AbstractString)
 end
 
 """
-    player_reply(comment) -> Void
+    player_reply(line::AbstractString) -> String
 
-Reply to a comment with a player table generated from `comment`'s body.
-`comment` is a PyObject.
+Generate a player table from a line beginning with "!player" and followed by the player
+name or id.
 """
-function player_reply(comment)
-    token = split(comment[:body], " "; limit=2)[end]
+function player_reply(line::AbstractString)
+    token = split(line, " "; limit=2)[end]  # Get rid of "!player".
     player = if startswith(token, ":")
         log("Getting player from id: $(token[2:end])")
         id = try
             parse(Int, token[2:end])
         catch e
             log("Couldn't parse a player id from $(token[2:end]): $e")
-            return
+            return ""
         end
         Osu.user(id)
     else
@@ -62,30 +62,37 @@ function player_reply(comment)
         try
             # TODO: Parse a game mode.
             CommentMarkdown.player_table!(buf, get(player), OsuTypes.STD)
-            CommentMarkdown.footer!(buf)
-            reply_str = String(take!(buf))
-            log("Replying to $(abbrev(comment[:body])):\n$(reply_str)")
-            !dry && Reddit.reply(comment, reply_str)
+            reply = String(take!(buf))
+            log("Generated a player table for: $line")
+            return strip(reply)
         catch e
             log("Comment generation/transmission failed: $e")
         end
     else
         log("Couldn't get player from $token")
     end
-    return
+    return ""
 end
 
-function map_reply(comment)
-    tokens = split(comment[:body])[2:end]
-    idx = search(tokens[end], "+").stop
-    # mods_from_string expects a post title containng a ']'.
-    mods = idx == -1 ? 0 : Utils.mods_from_string("]$(tokens[end][idx:end])")
+"""
+    map_reply(line::AbstractString) -> String
+"""
+function map_reply(line::AbstractString)
+    tokens = split(line)[2:end]  # Get rid of "!map".
+    map_id = tokens[1]
+    mods = if length(tokens) > 1
+        # mods_from_string expects a score post title containing a ']'.
+        log("Getting mods from $(tokens[end])")
+        Utils.mods_from_string("]$(tokens[end])")
+    else
+        0
+    end
     log("Found mods: $mods")
     id = try
         parse(Int, tokens[1])
     catch e
-        log("Couldn't parse a map id from $(join(tokens, " ")): $e")
-        return
+        log("Couldn't parse a map id from $(tokens[1]): $e")
+        return ""
     end
     beatmap = Osu.beatmap(id)
     if !isnull(beatmap)
@@ -95,17 +102,16 @@ function map_reply(comment)
             CommentMarkdown.map_basics!(buf, beatmap, beatmap.mode)
             write(buf, "\n\n")
             CommentMarkdown.map_table!(buf, beatmap, 100, mods, beatmap.mode)
-            CommentMarkdown.footer!(buf)
-            reply_str = String(take!(buf))
-            log("Replying to $(abbrev(comment[:body])):\n$(reply_str)")
-            !dry && Reddit.reply(comment, reply_str)
+            reply = String(take!(buf))
+            log("Genererated a map table for: $line")
+            return strip(reply)
         catch e
             log("Comment generation/transmission failed: $e")
         end
     else
         log("Couldn't get beatmap from $(join(tokens, " "))")
     end
-    return
+    return ""
 end
 
 function score_reply(comment)
@@ -116,41 +122,55 @@ if abspath(PROGRAM_FILE) == @__FILE__
     Reddit.login()
     posts_chan = Channel(1)
     @async Reddit.posts(posts_chan)
-    # @async while true
-    #     post = take!(posts_chan)
-    #     try
-    #         !dry && post[:saved] && log("'$(post[:title])' is already saved") && continue
-    #         post[:is_self] && log("'$(post[:title])' is a self post") && continue
-    #         m = match(title_regex, post[:title])
-    #         m == nothing && log("'$(post[:title])' is not a score post") && continue
-    #         title = post[:title]
-    #         log("Found a score post: $title")
-    #         try
-    #             comment_str = from_title(title)
-    #             log("Commenting on $(post[:title]): \n$comment_str")
-    #             !dry && Reddit.reply(post, comment_str; sticky=true)
-    #         catch e
-    #             log("Comment generation/transmission failed: $e")
-    #         end
-    #     catch e
-    #         log(e)
-    #     end
-    # end
-
-    comments_chan = Channel(1)
-    @async Reddit.comments(comments_chan)
     @async while true
-        comment = take!(comments_chan)
+        post = take!(posts_chan)
+        try
+            !dry && post[:saved] && log("'$(post[:title])' is already saved") && continue
+            post[:is_self] && log("'$(post[:title])' is a self post") && continue
+            m = match(title_regex, post[:title])
+            m == nothing && log("'$(post[:title])' is not a score post") && continue
+            title = post[:title]
+            log("Found a score post: $title")
+            try
+                comment_str = from_title(title)
+                log("Commenting on $(post[:title]): \n$comment_str")
+                !dry && Reddit.reply(post, comment_str; sticky=true)
+            catch e
+                log("Comment generation/transmission failed: $e")
+            end
+        catch e
+            log(e)
+        end
+    end
+
+    mention = Regex("/?u/$(Reddit.bot[:user][:me]()[:name])")
+    mentions_chan = Channel(1)
+    @async Reddit.mentions(mentions_chan)
+    @async while true
+        comment = take!(mentions_chan)
+        comment[:body] = strip(replace(comment[:body], mention, ""))
+        reply = ""
         short = abbrev(comment[:body])
+        log("Found a comment: $short")
         !dry && comment[:saved] && log("'$short' is already saved") && continue
-        if startswith(comment[:body], "!player")
-            player_reply(comment)
-        elseif startswith(comment[:body], "!map")
-            map_reply(comment)
-        elseif startswith(comment[:body], "!score")
-            score_reply(comment)
+        for line in split(comment[:body], "\n")
+            if startswith(line, "!player")
+                reply *= player_reply(line)
+                reply *= "\n\n"
+            elseif startswith(line, "!map")
+                reply *= map_reply(line)
+                reply *= "\n\n"
+            elseif startswith(line, "!score")
+                reply *= score_reply(line)
+                reply *= "\n\n"
+            end
+        end
+        if !isempty(reply)
+            reply *= "$(CommentMarkdown.footer())"
+            log("Replying to '$short':\n$reply")
+            Reddit.reply(comment, reply)
         else
-            log("Ignoring comment: $short")
+            log("Ignoring: $short")
         end
     end
 

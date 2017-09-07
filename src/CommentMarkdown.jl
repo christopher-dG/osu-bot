@@ -38,14 +38,7 @@ const memes = [
     "rrtyui :(",
 ]
 
-"""
-    footer!(buf::IO) -> Int
-
-Append a comment footer to `buf`.
-"""
-function footer!(buf::IO)
-    write(buf, "\n***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)")
-end
+footer() = "***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)"
 
 """
     map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode) -> Void
@@ -186,7 +179,7 @@ function build_comment(
         mode = get(mode, OsuTypes.STD)
     end
     player_table!(buf, player, mode)
-    footer!(buf)
+    write(buf, "\n\n$(footer())")
 
     return String(take!(buf))
 end
