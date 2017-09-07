@@ -7,6 +7,7 @@ export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, User,
     Mode
 
 const fmt = DateFormat("y-m-d H:M:S")
+const event_regex = r"/b/[0-9]+\?m=[0-9]'>(.+ - .+ \[.+\])</a> \((.*)\)"
 
 @enum Mode STD TAIKO CTB MANIA
 
@@ -233,11 +234,10 @@ struct Event
     mode::Nullable{Mode}
 
     function Event(d::Dict)
-        regex = r"/b/[0-9]+\?m=[0-9]'>(.+) - (.+) \[(.+)\]</a> \((.*)\)"
         try
-            caps = match(regex, d["display_html"]).captures
-            map_str = "$(caps[1]) - $(caps[2]) [$(caps[3])]"
-            mode = uppercase(caps[4])
+            caps = match(event_regex, d["display_html"]).captures
+            caps = replace.(caps, "&quot;", "\"")
+            mode = uppercase(caps[2])
             mode = if mode == "OSU!"
                 STD
             elseif mode == "TAIKO"
@@ -247,7 +247,7 @@ struct Event
             elseif mode == "OSU!MANIA"
                 MANIA
             end
-            new(map_str, parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]), mode)
+            new(caps[1], parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]), mode)
         catch
             new("", parse(Int, d["beatmap_id"]), parse(Int, d["beatmapset_id"]), nothing)
         end

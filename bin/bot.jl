@@ -3,7 +3,7 @@ using OsuBot
 
 import Base.log
 
-const title_regex = r"(.+)\|(.+)-(.+)\[(.+)\].*"
+const title_regex = r"(.+)\|(.+ - .+\[.+\]).*"
 const acc_regex = r"(\d+(?:[,.]\d*)?)%"
 const osu = "https://osu.ppy.sh"
 const dry = in("DRY", ARGS) || in("TEST", ARGS)
@@ -19,11 +19,10 @@ function from_title(title::AbstractString)
     caps = strip.(match(title_regex, title).captures)
     player = Osu.user(Utils.parse_player(caps[1]))
     isnull(player) && error("Player $(caps[1]) not found")
-    map_str = "$(caps[2]) - $(caps[3]) [$(caps[4])]"
-    beatmap, mode = Utils.search(get(player), map_str)
+    beatmap, mode = Utils.search(get(player), caps[2])
     isnull(beatmap) && warn("Beatmap was not found")
     mods = Utils.mods_from_string(title)
-    title_end = strip(title[search(title, caps[4]).stop + 2:end])
+    title_end = strip(title[search(title, caps[2]).stop + 2:end])
     acc = match(acc_regex, title_end)
     acc = if acc == nothing
         Nullable{Real}()

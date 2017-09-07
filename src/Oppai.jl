@@ -12,7 +12,7 @@ using OsuBot.Utils
 export get_diff, get_pp
 
 const tmpdir = joinpath(tempdir(), "osubot")
-mkpath(tmpdir)
+!isdir(tmpdir) && mkdir(tmpdir)
 
 """
     download(id::Int) -> String
