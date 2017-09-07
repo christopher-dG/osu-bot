@@ -47,7 +47,11 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
     modded = mods != mod_map[:NOMOD]
     log("Getting map table for $(map_name(beatmap)) with$(modded ? "" : "out") mods")
 
-    header, nomod_row = modded ? ([""], ["NoMod"]) : ([], [])
+    header, nomod_row = if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO])
+        [""], ["NoMod"]
+    else
+        String[], String[]
+    end
     rows = [header, nomod_row]
     push!(header, "CS", "AR", "OD", "HP", "SR", "BPM", "Length")
     map_diff = get_diff(beatmap)
@@ -70,11 +74,11 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
                 pp_vals[acc] = pp
             end
         end
+        accs = sort(collect(keys(pp_vals)))
+        push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $bar ")))")
+        push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $bar "))
     end
 
-    accs = sort(collect(keys(pp_vals)))
-    push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $bar ")))")
-    push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $bar "))
 
     mod_list = mods_from_int(mods)
     if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO]) && !isempty(setdiff(mod_list, ignore_mods))
