@@ -121,6 +121,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     log("Running with dry=$(dry)")
     Reddit.login()
     posts_chan = Channel(1)
+
     @async Reddit.posts(posts_chan)
     @async while true
         post = take!(posts_chan)
@@ -143,16 +144,19 @@ if abspath(PROGRAM_FILE) == @__FILE__
         end
     end
 
-    mention = Regex("/?u/$(Reddit.bot[:user][:me]()[:name])")
+    name = Reddit.bot[:user][:me]()[:name]
+    has_reply(comment) = any(r -> r[:author][:name] == name, comment[:replies])
+    mention = Regex("/?u/$name")
     mentions_chan = Channel(1)
+
     @async Reddit.mentions(mentions_chan)
     @async while true
         comment = take!(mentions_chan)
+        !dry && has_reply(comment) && log("'$short' already has a reply") && continue
         comment[:body] = strip(replace(comment[:body], mention, ""))
-        reply = ""
         short = abbrev(comment[:body])
         log("Found a comment: $short")
-        !dry && comment[:saved] && log("'$short' is already saved") && continue
+        reply = ""
         for line in split(comment[:body], "\n")
             if startswith(line, "!player")
                 reply *= player_reply(line)
