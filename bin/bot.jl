@@ -1,4 +1,5 @@
 #!/usr/bin/env julia
+
 using OsuBot
 
 import Base.log
@@ -41,9 +42,10 @@ Generate a comment string from a post title. Errors on failure.
 function from_title(title::AbstractString)
     caps = strip.(match(title_regex, title).captures)
     player = Osu.user(Utils.parse_player(caps[1]))
-    isnull(player) && error("Player $(caps[1]) not found")
-    beatmap, mode = Utils.search(get(player), caps[2])
+    isnull(player) && warn("Player $(caps[1]) not found")
+    beatmap, mode = Utils.search(player, caps[2])
     isnull(beatmap) && warn("Beatmap was not found")
+    isnull(player) && isnull(beatmap) && error("Neither player nor map could be found")
     mods = Utils.mods_from_string(title)
     title_end = strip(title[search(title, caps[2]).stop + 2:end])
     acc = match(acc_regex, title_end)
@@ -54,7 +56,7 @@ function from_title(title::AbstractString)
         log("Found accuracy in title: $acc%")
         Nullable(acc)
     end
-    return CommentMarkdown.build_comment(get(player), beatmap, mods, acc, mode)
+    return CommentMarkdown.build_comment(player, beatmap, mods, acc, mode)
 end
 
 """

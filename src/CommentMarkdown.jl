@@ -132,7 +132,7 @@ end
 
 """
     build_comment(
-        player::User,
+        player::Nullable{User},
         beatmap::Nullable{<:Beatmap},
         mods::Int,
         acc::Nullable{<:Real},
@@ -145,31 +145,42 @@ play by `player` and use its accuracy. When `mode` has no value we don't yet kno
 mode, so we'll use the default beatmap mode, ignoring autoconverts.
 """
 function build_comment(
-    player::User,
+    player::Nullable{User},
     beatmap::Nullable{<:Beatmap},
     mods::Int,
     acc::Nullable{<:Real},
     mode::Nullable{Mode},
 )
-    map_str = isnull(beatmap) ? "null" : map_name(get(beatmap))
-    log("player=$(player.name), beatmap=$map_str, mods=$mods, acc=$acc, mode=$mode")
+    isnull(player) && isnull(beatmap) && error("Both player and beatmap are null")
+
+    player_s = isnull(player) ? "null" : get(player).name
+    map_s = isnull(beatmap) ? "null" : map_name(get(beatmap))
+    acc_s = isnull(acc) ? "null" : "$(get(acc))%"
+    mode_s = isnull(mode) ? "null" : get(mode)
+    log("player=$player_s, beatmap=$map_s, mods=$mods, acc=$acc_s, mode=$mode_s")
+
     buf = IOBuffer()
     if !isnull(beatmap)
         map = get(beatmap)
         mode = isnull(mode) ? map.mode : get(mode)
         map_basics!(buf, map, mode)
-        write(buf, "\n\n")
+        write(buf, "\n")
         # Either use the supplied accuracy value from the title, or go find one.
         # If things fail, set it to 100 so that no extra pp value is generated.
         acc = if isnull(acc)
-            log("Title didn't contain acc; looking for a play by $(player.name)")
-            plays = beatmap_scores(map.id, player.id; mode=mode)
-             if !isnull(plays)
-                plays = get(plays)
-                try first(plays).accuracy catch e log(e); 100 end
-            else
-                log("Couldn't find a play")
+            if isnull(player)
+                log("Title didn't contain acc and player is null")
                 100
+            else
+                log("Title didn't contain acc; looking for a play by $(player.name)")
+                plays = beatmap_scores(map.id, player.id; mode=mode)
+                if !isnull(plays)
+                    plays = get(plays)
+                    try first(plays).accuracy catch e log(e); 100 end
+                else
+                    log("Couldn't find a play")
+                    100
+                end
             end
         else
             get(acc)
@@ -179,10 +190,22 @@ function build_comment(
     else
         mode = get(mode, OsuTypes.STD)
     end
-    player_table!(buf, player, mode)
-    write(buf, "\n\n$(footer())")
 
-    return String(take!(buf))
+    if !isnull(player)
+        player_table!(buf, get(player), mode)
+        write(buf, "\n")
+    end
+
+    write(buf, footer())
+
+    comment = String(take!(buf))
+
+    # If for some reason neither the map or player information was generated, don't reply.
+    if length(split(comment, "\n")) <= 1
+        error("Only a footer was generated")
+    else
+        return comment
+    end
 end
 
 """

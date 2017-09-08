@@ -239,13 +239,13 @@ function request(url::AbstractString)
     end
     if response == nothing
         log("No response from server")
-        error()
+        error("No reponse")
     elseif response.status != 200
         log("Error code $(response.status) from server")
-        error()
+        error("Response code $(response.status)")
     elseif response.body.len < 50
         log("Empty response from server")
-        error()
+        error("Empty response")
     end
     return JSON.parse(String(take!(response)))
 end

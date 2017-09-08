@@ -17,6 +17,7 @@ export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp, par
 const search_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["search_key"]
 const search_url = "https://osusearch.com/api/search?key=$search_key&{{#:args}}{{.}}&{{/:args}}"
 const order = [:EZ, :HD, :HT, :DT, :NC, :HR, :FL, :NF, :SD, :PF, :RL, :SO, :AP, :AT]
+const map_regex = r"(.*) - (.*) \[(.*)\]"
 
 """
     map_name(map::Beatmap) -> String
@@ -93,15 +94,50 @@ end
 
 """
     search(
-        player::User,
+        player::Nullable{User},
         map_str::AbstractString
     ) -> Tuple{Nullable{Beatmap}, Nullable{Mode}}
 
 Search for a map called `map_str`. If we find the map in `player`'s recent events, then
 also return the game mode that it was played in (this helps deal with autoconverts).
 """
-function search(player::User, map_str::AbstractString)
-    log("Searching for $map_str with $(player.name)")
+function search(player::Nullable{User}, map_str::AbstractString)
+    if isnull(player)
+        log("Searching for $map_str without a player")
+    else
+        log("Searching for $map_str with $(get(player).name)")
+
+        # Player's recent events is the most reliable source.
+        map, mode = search_events(get(player), map_str)
+        if !isnull(map)
+            return map, mode
+        end
+
+        # Player's recent plays is a bit more iffy.
+        map = search_recent(get(player), map_str)
+        if !isnull(map)
+            return map, Nullable{Mode}()
+        end
+    end
+
+    # osusearch.com is kind of a toss up.
+    map = search_osusearch(map_str)
+    return if !isnull(map)
+        map, Nullable{Mode}()
+    else
+        Nullable{Beatmap}(), Nullable{Mode}()
+    end
+end
+
+"""
+    search_events(
+        player::User,
+        map_str::AbstractString
+    ) -> Tuple{Nullable{<:Beatmap}, Nullable{Mode}}
+
+Search `player`'s recent events for a play on `map_str`.
+"""
+function search_events(player::User, map_str::AbstractString)
     log("Searching $(length(player.events)) recent events")
     idx = findfirst(e -> uppercase(e.map_str) == uppercase(map_str), player.events)
     if idx != 0
@@ -117,11 +153,20 @@ function search(player::User, map_str::AbstractString)
             return map, event.mode
         end
     end
+    log("Couldn't find beatmap in recent events")
+    return Nullable{Beatmap}(), Nullable{Mode}()
+end
 
-    log("Searching recent plays")
+"""
+    search_recent(player::User, map_str::AbstractString) -> Nullable{<:Beatmap}
+
+Search `player`'s recent plays for a play on `map_str`.
+"""
+function search_recent(player::User, map_str::AbstractString)
     # We have no way to know what game mode we're looking for, so this won't work unless
     # unless it's standard.
-    recent = get(player_recent(player.id; lim=50), [])
+    log("Searching $(player.name)'s recent plays")
+    recent = get(player_recent(player.id; lim=50), Score[])
     # TODO: This duplicate elimination doesn't seem to be working.
     seen = []
     for play in recent
@@ -130,33 +175,52 @@ function search(player::User, map_str::AbstractString)
         if !isnull(map)
             push!(seen, get(map).id)
             if uppercase(map_name(get(map))) == uppercase(map_str)
-                return map, Nullable{Mode}()
+                return map
             end
         end
     end
+    log("Couldn't find beatmap in recent plays")
+    return Nullable{Beatmap}()
+end
 
+"""
+    search_osusearch(map_str::AbstractString) -> Nullable{<:Beatmap}
+
+Search osusearch.com for `map_str`.
+"""
+function search_osusearch(map_str::AbstractString)
     log("Searching osusearch.com")
-    try
-        artist, title, diff = match(r"(.*) - (.*) \[(.*)\]", map_str).captures
-        args = ["title=$title", "artist=$artist", "diff_name=$diff"]
-        url = replace(replace(render(search_url, args=args), " ", "+"), "&#x2F;", "/")
-        maps = Osu.request(url)["beatmaps"]
-        maps = filter(
-            m -> ==(
-                uppercase("$(m["artist"]) - $(m["title"]) [$(m["difficulty_name"])]"),
-                uppercase(map_str),
-            ),
-            maps,
-        )
-        fav = maps[indmax([m["favorites"] for m in maps])]
-        map_dict = Dict([pair.first => string(pair.second) for pair in fav])
-        map = make_map(map_dict)
-        log("Found map $(map_name(map))")
-        return Nullable(map), Nullable{Mode}()
-    catch e
-        log(e)
-        log("No map found") && return Nullable{Beatmap}(), Nullable{Mode}()
+    m = match(map_regex, map_str)
+    if m == nothing
+        log("map_str was not a well-formed map name: '$map_str'")
+        return Nullable{Beatmap}()
     end
+
+    artist, title, diff = m.captures
+    args = ["title=$title", "artist=$artist", "diff_name=$diff"]
+    url = replace(replace(render(search_url, args=args), " ", "+"), "&#x2F;", "/")
+
+    maps = try
+        Osu.request(url)["beatmaps"]
+    catch
+        log("Couldn't find beatmap on osusearch.com")
+        return Nullable{Beatmap}()
+    end
+    filter!(
+        m -> ==(
+            uppercase("$(m["artist"]) - $(m["title"]) [$(m["difficulty_name"])]"),
+            uppercase(map_str),
+        ),
+        maps,
+    )
+
+    if isempty(maps)
+        log("Couldn't find beatmap on osusearch.com")
+        return Nullable{Beatmap}()
+    end
+
+    fav = maps[indmax(map(m -> m["favorites"], maps))]
+    return Nullable(make_map(Dict([pair.first => string(pair.second) for pair in fav])))
 end
 
 """
