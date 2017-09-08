@@ -68,7 +68,7 @@ struct StdBeatmap <: Beatmap
     bpm::AbstractFloat  # Song BPM.
     length::Dates.Second  # Song length.
     status::AbstractString  # Ranked status.
-    approved_date::Date  # Date ranked/loved/qualified.
+    approved_date::Nullable{Date}  # Date ranked/loved/qualified.
     plays::Int  # Play count.
     combo::Int  # Max combo.
     mode::Mode  # Game mode.
@@ -77,7 +77,7 @@ struct StdBeatmap <: Beatmap
         status_key = haskey(d, "approved") ? "approved" : "beatmap_status"
         status = get(status_map, parse(Int, d[status_key]), "Unknown")
         date_key = haskey(d, "approved_date") ? "approved_date" : "date"
-        approved_date = Date(replace(d[date_key], "T", " "), fmt)
+        approved_date = try Date(replace(d[date_key], "T", " "), fmt) catch end
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
@@ -122,7 +122,7 @@ struct TaikoBeatmap <: Beatmap
     bpm::AbstractFloat  # Song BPM.
     length::Dates.Second  # Song length.
     status::AbstractString  # Ranked status.
-    approved_date::Date  # Date ranked/loved/qualified.
+    approved_date::Nullable{Date}  # Date ranked/loved/qualified.
     plays::Int  # Play count.
     mode::Mode  # Game mode.
 
@@ -130,7 +130,7 @@ struct TaikoBeatmap <: Beatmap
         status_key = haskey(d, "approved") ? "approved" : "beatmap_status"
         status = get(status_map, parse(Int, d[status_key]), "Unknown")
         date_key = haskey(d, "approved_date") ? "approved_date" : "date"
-        approved_date = Date(replace(d[date_key], "T", " "), fmt)
+        approved_date = try Date(replace(d[date_key], "T", " "), fmt) catch end
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
@@ -173,7 +173,7 @@ struct OtherBeatmap <: Beatmap
     bpm::AbstractFloat  # Song BPM.
     length::Dates.Second  # Song length.
     status::AbstractString  # Ranked status.
-    approved_date::Date  # Date ranked/loved/qualified.
+    approved_date::Nullable{Date}  # Date ranked/loved/qualified.
     plays::Int  # Play count.
     mode::Mode  # Game mode.
 
@@ -181,7 +181,7 @@ struct OtherBeatmap <: Beatmap
         status_key = haskey(d, "approved") ? "approved" : "beatmap_status"
         status = get(status_map, parse(Int, d[status_key]), "Unknown")
         date_key = haskey(d, "approved_date") ? "approved_date" : "date"
-        approved_date = Date(replace(d[date_key], "T", " "), fmt)
+        approved_date = try Date(replace(d[date_key], "T", " "), fmt) catch end
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),

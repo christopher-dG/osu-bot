@@ -195,7 +195,10 @@ function map_basics!(buf::IO, map::Beatmap, mode::Mode)
     tmp *= "by [$(map.mapper)]($osu/u/$(map.mapper))"
     if map.status == "Unranked"
         # Unranked maps always come from osusearch, and they never have max combo set.
-        tmp *= " || $(map.status) ($(map.approved_date))"
+        tmp *= " || $(map.status)"
+        if !isnull(map.approved_date)
+            tmp *= " ($(get(map.approved_date)))"
+        end
         Markdown.plain(buf, Markdown.Header(tmp, 5))
         return nothing
     end
@@ -218,7 +221,8 @@ function map_basics!(buf::IO, map::Beatmap, mode::Mode)
         # Non-standard maps don't have max combo set, nor do maps from osusearch.
         tmp *= "$(strfmt(map.combo; precision=0))x max combo || "
     end
-    tmp *= "$(map.status) ($(map.approved_date)) || "
+    tmp *= "$(map.status)"
+    tmp *= isnull(map.approved_date) ? " || " : " ($(get(map.approved_date))) || "
     tmp *= "$(strfmt(map.plays; precision=0)) plays"
     Markdown.plaininline(buf, Markdown.Bold(tmp))
     return nothing
