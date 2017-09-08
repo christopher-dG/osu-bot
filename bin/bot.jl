@@ -175,10 +175,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
             comment = take!(mentions_chan)
             short = abbrev(comment[:body])
             !dry && has_reply(comment) && log("'$short' already has a reply") && continue
-            comment[:body] = strip(replace(comment[:body], mention, ""))
+            body = strip(replace(comment[:body], mention, ""))
+
             log("Found a comment: $short")
             reply = ""
-            for line in split(comment[:body], "\n")
+            for line in strip.(split(body, "\n"))
                 if startswith(line, "!player")
                     reply *= player_reply(line)
                     reply *= "\n\n"

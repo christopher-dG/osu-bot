@@ -19,4 +19,4 @@ RUN apt-get update && \
     apt-get -y purge $PKGS && \
     apt-get -y autoremove
 
-ENTRYPOINT ["bash", "/root/OsuBot/bin/entrypoint.sh"]
+ENTRYPOINT ["/root/OsuBot/bin/entrypoint.sh"]

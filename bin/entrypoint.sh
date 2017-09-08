@@ -5,5 +5,5 @@ if [[ $1 = 'bash' ]]; then
 elif [[ $1 = 'julia' ]]; then
     exec julia
 else
-    exec julia $APP/bin/bot.jl "$@"
+    exec $APP/bin/bot.jl "$@"
 fi
