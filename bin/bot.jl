@@ -21,8 +21,14 @@ function has_reply(comment)
     try
         comment[:refresh]()  # Required to fill the replies vector.
     catch e
-        log("Refreshing comment failed, so not replying: $e")
-        return true
+        # https://github.com/praw-dev/praw/issues/838#issuecomment-325230667
+        log("$e\nRefreshing comment failed, trying a second time")
+        try
+            comment[:refresh]()
+            log("Second attempt succeeded")
+        catch e
+            log("Second attempt failed: $e")
+        end
     end
     return any(r -> r[:author][:name] == name, comment[:replies])
 end
