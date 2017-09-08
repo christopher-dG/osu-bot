@@ -18,7 +18,12 @@ function abbrev(comment::AbstractString)
 end
 
 function has_reply(comment)
-    comment[:refresh]()  # Required to fill the replies vector.
+    try
+        comment[:refresh]()  # Required to fill the replies vector.
+    catch e
+        log("Refreshing comment failed, so not replying: $e")
+        return true
+    end
     return any(r -> r[:author][:name] == name, comment[:replies])
 end
 
