@@ -191,6 +191,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
                 reply *= "$(CommentMarkdown.footer())"
                 log("Replying to '$short':\n$reply")
                 !dry && Reddit.reply(comment, reply)
+                !dry && comment[:mark_read]()
             else
                 log("Ignoring: $short")
             end
