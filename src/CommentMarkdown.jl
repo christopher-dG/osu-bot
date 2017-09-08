@@ -17,6 +17,7 @@ const bar = "&#124;"
 const download = "&#x2b07;"
 const source_url = "https://github.com/christopher-dG/OsuBot.jl"
 const me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
+const readme = "$source_url/blob/master/README.md#summoning-the-bot"
 const ignore_mods = [:NF, :PF, :AP, :RL, :AT]
 const memes = [
     "pls enjoy gaem",
@@ -38,7 +39,7 @@ const memes = [
     "rrtyui :(",
 ]
 
-footer() = "***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)"
+footer() = "***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)^( | )[^Usage]($readme)"
 
 """
     map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode) -> Void

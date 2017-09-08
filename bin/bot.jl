@@ -3,14 +3,24 @@ using OsuBot
 
 import Base.log
 
+args = uppercase.(ARGS)
+const do_posts = !in("NOPOSTS", args)
+const do_mentions = !in("NOCOMMENTS", args)
+const dry = in("DRY", args)
 const title_regex = r"(.+)\|(.+ - .+\[.+\]).*"
 const acc_regex = r"(\d+(?:[,.]\d*)?)%"
-const osu = "https://osu.ppy.sh"
-const dry = in("DRY", ARGS) || in("TEST", ARGS)
 
 log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
-abbrev(comment::AbstractString) = length(comment) > 80 ? "$(comment[1:80])..." : comment
+function abbrev(comment::AbstractString)
+    short = length(comment) > 80 ? "$(comment[1:80])..." : comment
+    return replace(short, "\n", "\\n")
+end
+
+function has_reply(comment)
+    comment[:refresh]()  # Required to fill the replies vector.
+    return any(r -> r[:author][:name] == name, comment[:replies])
+end
 
 """
     from_title(title::AbstractString) -> String
@@ -43,24 +53,13 @@ Generate a player table from a line beginning with "!player" and followed by the
 name or id.
 """
 function player_reply(line::AbstractString)
+    # TODO: Parse a game mode, probably as :MODE at the end of the line.
     token = split(line, " "; limit=2)[end]  # Get rid of "!player".
-    player = if startswith(token, ":")
-        log("Getting player from id: $(token[2:end])")
-        id = try
-            parse(Int, token[2:end])
-        catch e
-            log("Couldn't parse a player id from $(token[2:end]): $e")
-            return ""
-        end
-        Osu.user(id)
-    else
-        log("Getting player from username: $token")
-        Osu.user(token)
-    end
+    log("Getting player from username: $token")
+    player = Osu.user(token)
     if !isnull(player)
         buf = IOBuffer()
         try
-            # TODO: Parse a game mode.
             CommentMarkdown.player_table!(buf, get(player), OsuTypes.STD)
             reply = String(take!(buf))
             log("Generated a player table for: $line")
@@ -80,18 +79,31 @@ end
 function map_reply(line::AbstractString)
     tokens = split(line)[2:end]  # Get rid of "!map".
     map_id = tokens[1]
-    mods = if length(tokens) > 1
+    mods, acc = if length(tokens) > 1
+        args = join(tokens[2:end], " ")
+
+        log("Getting mods from $args")
         # mods_from_string expects a score post title containing a ']'.
-        log("Getting mods from $(tokens[end])")
-        Utils.mods_from_string("]$(tokens[end])")
+        mods = Utils.mods_from_string("]$args")
+        acc = match(acc_regex, args)
+        acc = if acc == nothing
+            log("Didn't find acc in comment")
+            100
+        else
+            log("Found acc in comment")
+            min(parse(Float64, replace(acc.captures[1], ",", ".")), 100)
+        end
+
+        log("acc=$acc%, mods=$mods")
+        mods, acc
     else
-        0
+        log("Didn't find any extra arguments")
+        0, 100
     end
-    log("Found mods: $mods")
     id = try
-        parse(Int, tokens[1])
+        parse(Int, map_id)
     catch e
-        log("Couldn't parse a map id from $(tokens[1]): $e")
+        log("Couldn't parse a map id from $map_id: $e")
         return ""
     end
     beatmap = Osu.beatmap(id)
@@ -101,7 +113,7 @@ function map_reply(line::AbstractString)
             beatmap = get(beatmap)
             CommentMarkdown.map_basics!(buf, beatmap, beatmap.mode)
             write(buf, "\n\n")
-            CommentMarkdown.map_table!(buf, beatmap, 100, mods, beatmap.mode)
+            CommentMarkdown.map_table!(buf, beatmap, acc, mods, beatmap.mode)
             reply = String(take!(buf))
             log("Genererated a map table for: $line")
             return strip(reply)
@@ -114,67 +126,63 @@ function map_reply(line::AbstractString)
     return ""
 end
 
-function score_reply(comment)
-end
-
 if abspath(PROGRAM_FILE) == @__FILE__
-    log("Running with dry=$(dry)")
+    log("Running with args: do_posts=$(do_posts), do_mentions=$(do_mentions), dry=$(dry)")
     Reddit.login()
-    posts_chan = Channel(1)
 
-    @async Reddit.posts(posts_chan)
-    @async while true
-        post = take!(posts_chan)
-        try
-            !dry && post[:saved] && log("'$(post[:title])' is already saved") && continue
-            post[:is_self] && log("'$(post[:title])' is a self post") && continue
-            m = match(title_regex, post[:title])
-            m == nothing && log("'$(post[:title])' is not a score post") && continue
-            title = post[:title]
-            log("Found a score post: $title")
+    if do_posts
+        posts_chan = Channel(1)
+        @async Reddit.posts(posts_chan)
+        @async while true
+            post = take!(posts_chan)
             try
-                comment_str = from_title(title)
-                log("Commenting on $(post[:title]): \n$comment_str")
-                !dry && Reddit.reply(post, comment_str; sticky=true)
+                !dry && post[:saved] && log("'$(post[:title])' is already saved") && continue
+                post[:is_self] && log("'$(post[:title])' is a self post") && continue
+                m = match(title_regex, post[:title])
+                m == nothing && log("'$(post[:title])' is not a score post") && continue
+                title = post[:title]
+                log("Found a score post: $title")
+                try
+                    comment_str = from_title(title)
+                    log("Commenting on $(post[:title]): \n$comment_str")
+                    !dry && Reddit.reply(post, comment_str; sticky=true)
+                catch e
+                    log("Comment generation/transmission failed: $e")
+                end
             catch e
-                log("Comment generation/transmission failed: $e")
+                log(e)
             end
-        catch e
-            log(e)
         end
     end
 
-    name = Reddit.bot[:user][:me]()[:name]
-    has_reply(comment) = any(r -> r[:author][:name] == name, comment[:replies])
-    mention = Regex("/?u/$name")
-    mentions_chan = Channel(1)
-
-    @async Reddit.mentions(mentions_chan)
-    @async while true
-        comment = take!(mentions_chan)
-        !dry && has_reply(comment) && log("'$short' already has a reply") && continue
-        comment[:body] = strip(replace(comment[:body], mention, ""))
-        short = abbrev(comment[:body])
-        log("Found a comment: $short")
-        reply = ""
-        for line in split(comment[:body], "\n")
-            if startswith(line, "!player")
-                reply *= player_reply(line)
-                reply *= "\n\n"
-            elseif startswith(line, "!map")
-                reply *= map_reply(line)
-                reply *= "\n\n"
-            elseif startswith(line, "!score")
-                reply *= score_reply(line)
-                reply *= "\n\n"
+    if do_mentions
+        name = Reddit.bot[:user][:me]()[:name]
+        mention = Regex("/?u/$name")
+        mentions_chan = Channel(1)
+        @async Reddit.mentions(mentions_chan)
+        @async while true
+            comment = take!(mentions_chan)
+            short = abbrev(comment[:body])
+            !dry && has_reply(comment) && log("'$short' already has a reply") && continue
+            comment[:body] = strip(replace(comment[:body], mention, ""))
+            log("Found a comment: $short")
+            reply = ""
+            for line in split(comment[:body], "\n")
+                if startswith(line, "!player")
+                    reply *= player_reply(line)
+                    reply *= "\n\n"
+                elseif startswith(line, "!map")
+                    reply *= map_reply(line)
+                    reply *= "\n\n"
+                end
             end
-        end
-        if !isempty(reply)
-            reply *= "$(CommentMarkdown.footer())"
-            log("Replying to '$short':\n$reply")
-            Reddit.reply(comment, reply)
-        else
-            log("Ignoring: $short")
+            if !ismatch(r"\A\s*\z", reply)
+                reply *= "$(CommentMarkdown.footer())"
+                log("Replying to '$short':\n$reply")
+                !dry && Reddit.reply(comment, reply)
+            else
+                log("Ignoring: $short")
+            end
         end
     end
 
