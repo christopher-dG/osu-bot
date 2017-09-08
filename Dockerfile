@@ -19,5 +19,4 @@ RUN apt-get update && \
     apt-get -y purge $PKGS && \
     apt-get -y autoremove
 
-CMD []
-ENTRYPOINT ["julia", "/root/OsuBot/bin/bot.jl"]
+ENTRYPOINT ["bash", "/root/OsuBot/bin/entrypoint.sh"]
