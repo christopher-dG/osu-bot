@@ -164,7 +164,7 @@ function build_comment(
         map = get(beatmap)
         mode = isnull(mode) ? map.mode : get(mode)
         map_basics!(buf, map, mode)
-        write(buf, "\n")
+        write(buf, "\n\n")
         # Either use the supplied accuracy value from the title, or go find one.
         # If things fail, set it to 100 so that no extra pp value is generated.
         acc = if isnull(acc)
@@ -237,7 +237,7 @@ function map_basics!(buf::IO, map::Beatmap, mode::Mode)
             tmp *= "+$(join(mods_from_int(top.mods))) - "
         end
         # `beatmap_scores` also always comes with `pp` set.
-        tmp *= "$(strfmt(top.accuracy;precision=2))% - "
+        tmp *= "$(strfmt(top.accuracy; precision=2))% - "
         tmp *= "$(strfmt(get(top.pp); precision=0))pp) || "
     end
     if isa(map, StdBeatmap) && map.combo != -1

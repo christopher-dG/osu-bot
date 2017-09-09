@@ -17,7 +17,16 @@ export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp, par
 const search_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["search_key"]
 const search_url = "https://osusearch.com/api/search?key=$search_key&{{#:args}}{{.}}&{{/:args}}"
 const order = [:EZ, :HD, :HT, :DT, :NC, :HR, :FL, :NF, :SD, :PF, :RL, :SO, :AP, :AT]
-const map_regex = r"(.*) - (.*) \[(.*)\]"
+const map_regex = r"(.*) - (.*)\[(.*)\]"
+
+"""
+    compare(x::AbstractString, y::AbstractString) -> Bool
+
+Compare two strings, ignoring case and whitespace.
+"""
+function compare(x::AbstractString, y::AbstractString)
+    return uppercase(replace(x, r"\s", "")) == uppercase(replace(y, r"\s", ""))
+end
 
 """
     map_name(map::Beatmap) -> String
@@ -139,7 +148,7 @@ Search `player`'s recent events for a play on `map_str`.
 """
 function search_events(player::User, map_str::AbstractString)
     log("Searching $(length(player.events)) recent events")
-    idx = findfirst(e -> uppercase(e.map_str) == uppercase(map_str), player.events)
+    idx = findfirst(e -> compare(e.map_str, map_str), player.events)
     if idx != 0
         event = player.events[idx]
         map = try
@@ -174,7 +183,7 @@ function search_recent(player::User, map_str::AbstractString)
         map = beatmap(play.map_id)
         if !isnull(map)
             push!(seen, get(map).id)
-            if uppercase(map_name(get(map))) == uppercase(map_str)
+            if compare(map_name(get(map)), map_str)
                 return map
             end
         end
