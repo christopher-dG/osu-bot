@@ -18,6 +18,31 @@ const search_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["s
 const search_url = "https://osusearch.com/api/search?key=$search_key&{{#:args}}{{.}}&{{/:args}}"
 const order = [:EZ, :HD, :HT, :DT, :NC, :HR, :FL, :NF, :SD, :PF, :RL, :SO, :AP, :AT]
 const map_regex = r"(.*) - (.*)\[(.*)\]"
+const ignores =  [
+    "UNNOTICED",
+    "UNNOTICED?",
+    "RIPPLE",
+    "GATARI",
+    "STANDARD",
+    "STD",
+    "O!STD",
+    "OSU!STD",
+    "OSU!STANDARD",
+    "CTB",
+    "O!CATCH",
+    "OSU!CATCH",
+    "CATCH",
+    "OSU!CTB",
+    "O!CTB",
+    "MANIA",
+    "O!MANIA",
+    "OSU!MANIA",
+    "OSU!M",
+    "O!M",
+    "TAIKO",
+    "OSU!TAIKO",
+    "O!TAIKO",
+]
 
 """
     compare(x::AbstractString, y::AbstractString) -> Bool
@@ -291,27 +316,8 @@ function parse_player(s::AbstractString)
         end
     end
 
-    # Usernames can have brackets but people tend to put auxilary information in them
-    # before the player name, i.e. "[Unnoticed] Player | ...".
-    ignores =  [
-        "UNNOTICED",
-        "STANDARD",
-        "STD",
-        "O!STD",
-        "OSU!STD",
-        "CTB",
-        "O!CATCH",
-        "OSU!CTB",
-        "O!CTB",
-        "MANIA",
-        "O!MANIA",
-        "OSU!MANIA",
-        "OSU!M",
-        "O!M",
-        "TAIKO",
-        "OSU!TAIKO",
-        "O!TAIKO",
-    ]
+    # Usernames can have square brackets but people tend to put auxilary information in
+    # them before the player name, i.e. "[Unnoticed] Player | ...".
     for cap in matchall(r"(\[[^\[^\]]*\])", s)
         if in(replace(uppercase(cap), " ", "")[2:end-1], ignores)
             range = search(s, cap)

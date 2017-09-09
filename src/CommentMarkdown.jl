@@ -30,7 +30,6 @@ const memes = [
     "thank mr monstrata",
     "fc cry thunder and say that me again",
     "tbh i don't think fils has the aim for this",
-    "fuck azer",
     "omg kappadar big fan",
     "reese get the camera",
     "cookiezi hdhr when",
