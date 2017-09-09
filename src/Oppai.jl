@@ -66,7 +66,9 @@ function get_pp(map::Beatmap, acc::Real, mods::Int; taiko::Bool=false)
     cmd = `oppai $path -ojson $acc% $mods $taiko`
     return try
         oppai(cmd)["pp"]
-    catch
+    catch e
+        log("oppai failed: $e")
+        rm(path)
         nothing
     end
 end

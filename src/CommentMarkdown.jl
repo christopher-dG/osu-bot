@@ -77,13 +77,22 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
             end
         end
         accs = sort(collect(keys(pp_vals)))
-        push!(header, "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $bar ")))")
-        push!(nomod_row, join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $bar "))
+        if !isempty(pp_vals)
+            push!(
+                header,
+                "pp ($(join(map(v -> "$v%", strfmt.(accs; precision=2)), " $bar ")))",
+            )
+            push!(
+                nomod_row,
+                join(map(acc -> strfmt(pp_vals[acc]; precision=0), accs), " $bar "),
+            )
+        else
+            modded = false
+        end
     end
 
-
-    mod_list = mods_from_int(mods)
     if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO]) && !isempty(setdiff(mod_list, ignore_mods))
+        mod_list = mods_from_int(mods)
         modded_row = ["+$(join(mod_list))"]
         map_diff = get_diff(beatmap, mods)
         push!(
