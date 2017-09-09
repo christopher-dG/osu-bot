@@ -28,7 +28,8 @@ function has_reply(comment)
             comment[:refresh]()
             log("Second attempt succeeded")
         catch e
-            log("Second attempt failed: $e")
+            log("Second attempt failed, assuming there is a reply: $e")
+            return true
         end
     end
     return any(r -> r[:author][:name] == name, comment[:replies])
