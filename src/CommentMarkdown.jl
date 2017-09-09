@@ -91,8 +91,8 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
         end
     end
 
+    mod_list = mods_from_int(mods)
     if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO]) && !isempty(setdiff(mod_list, ignore_mods))
-        mod_list = mods_from_int(mods)
         modded_row = ["+$(join(mod_list))"]
         map_diff = get_diff(beatmap, mods)
         push!(
@@ -224,7 +224,7 @@ Produce basic map information (name, mapper, playcount, etc.) and write it to `b
 function map_basics!(buf::IO, map::Beatmap, mode::Mode)
     mapper = get(map.mapper_id, map.mapper)
     tmp = "[$(map_name(map))]($osu/b/$(map.id)) [($download)]($osu/d/$(map.set_id)) "
-    tmp *= "by [$(map.mapper)]($osu/u/$mapper))"
+    tmp *= "by [$(map.mapper)]($osu/u/$mapper)"
     if map.status == "Unranked"
         # Unranked maps always come from osusearch, and they never have max combo set.
         tmp *= " || $(map.status)"
