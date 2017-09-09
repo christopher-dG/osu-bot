@@ -172,8 +172,8 @@ function build_comment(
                 log("Title didn't contain acc and player is null")
                 100
             else
-                log("Title didn't contain acc; looking for a play by $(player.name)")
-                plays = beatmap_scores(map.id, player.id; mode=mode)
+                log("Title didn't contain acc; looking for a play by $(get(player).name)")
+                plays = beatmap_scores(map.id, get(player).id; mode=mode)
                 if !isnull(plays)
                     plays = get(plays)
                     try first(plays).accuracy catch e log(e); 100 end
@@ -214,8 +214,9 @@ end
 Produce basic map information (name, mapper, playcount, etc.) and write it to `buf`.
 """
 function map_basics!(buf::IO, map::Beatmap, mode::Mode)
+    mapper = get(map.mapper_id, map.mapper)
     tmp = "[$(map_name(map))]($osu/b/$(map.id)) [($download)]($osu/d/$(map.set_id)) "
-    tmp *= "by [$(map.mapper)]($osu/u/$(map.mapper))"
+    tmp *= "by [$(map.mapper)]($osu/u/$mapper))"
     if map.status == "Unranked"
         # Unranked maps always come from osusearch, and they never have max combo set.
         tmp *= " || $(map.status)"

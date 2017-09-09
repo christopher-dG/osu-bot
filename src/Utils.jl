@@ -205,7 +205,7 @@ function search_osusearch(map_str::AbstractString)
         return Nullable{Beatmap}()
     end
 
-    artist, title, diff = m.captures
+    artist, title, diff = strip.(m.captures)
     args = ["title=$title", "artist=$artist", "diff_name=$diff"]
     url = replace(replace(render(search_url, args=args), " ", "+"), "&#x2F;", "/")
 

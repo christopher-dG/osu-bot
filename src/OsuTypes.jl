@@ -3,10 +3,17 @@ Types that represent concepts/objects in osu!.
 """
 module OsuTypes
 
+using HTTP
+using JSON
+using YAML
+
 export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, User, Score,
     Mode
 
 const fmt = DateFormat("y-m-d H:M:S")
+const osu = "https://osu.ppy.sh"
+const osu_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["osu_key"]
+const id_regex = r"<td width=\"0%\">Creator:</td><td class=\"colour\"><a href=\"/u/(\d+)\">.+<a/></td>"
 const event_regex = r"/b/[0-9]+\?m=[0-9]'>(.+ - .+ \[.+\])</a> \((.*)\)"
 
 @enum Mode STD TAIKO CTB MANIA
@@ -60,6 +67,7 @@ struct StdBeatmap <: Beatmap
     title::AbstractString  # Song title.
     diff::AbstractString  # Diff name.
     mapper::AbstractString  # Mapper name.
+    mapper_id::Nullable{Int}  # Mapper id.
     stars::AbstractFloat  # Star rating.
     cs::AbstractFloat  # Circle size.
     od::AbstractFloat  # Overall difficulty.
@@ -78,13 +86,22 @@ struct StdBeatmap <: Beatmap
         status = get(status_map, parse(Int, d[status_key]), "Unknown")
         date_key = haskey(d, "approved_date") ? "approved_date" : "date"
         approved_date = try Date(replace(d[date_key], "T", " "), fmt) catch end
+        # The following is to correct the mapper name in case of name changes.
+        # id is mapper id not player id, name is mapper name not player name.
+        id = mapper_id(d["beatmap_id"])
+        name = if isnull(id)
+            get(d, "creator", get(d, "mapper", ""))
+        else
+            get(mapper_name(get(id)), get(d, "creator", get(d, "mapper", "")))
+        end
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
             d["artist"],
             d["title"],
             get(d, "version", get(d, "difficulty_name", "")),
-            get(d, "creator", get(d, "mapper", "")),
+            name,
+            id,
             parse(Float64, get(d, "difficultyrating", get(d, "difficulty", ""))),
             parse(Float64, get(d, "diff_size", get(d, "difficulty_cs", ""))),
             parse(Float64, get(d, "diff_overall", get(d, "difficulty_od", ""))),
@@ -114,6 +131,7 @@ struct TaikoBeatmap <: Beatmap
     title::AbstractString  # Song title.
     diff::AbstractString  # Diff name.
     mapper::AbstractString  # Mapper name.
+    mapper_id::Nullable{Int}  # Mapper id.
     stars::AbstractFloat  # Star rating.
     cs::AbstractFloat  # Circle size.
     od::AbstractFloat  # Overall difficulty.
@@ -131,13 +149,22 @@ struct TaikoBeatmap <: Beatmap
         status = get(status_map, parse(Int, d[status_key]), "Unknown")
         date_key = haskey(d, "approved_date") ? "approved_date" : "date"
         approved_date = try Date(replace(d[date_key], "T", " "), fmt) catch end
+        # The following is to correct the mapper name in case of name changes.
+        # id is mapper id not player id, name is mapper name not player name.
+        id = mapper_id(d["beatmap_id"])
+        name = if isnull(id)
+            get(d, "creator", get(d, "mapper", ""))
+        else
+            get(mapper_name(get(id)), get(d, "creator", get(d, "mapper", "")))
+        end
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
             d["artist"],
             d["title"],
             get(d, "version", get(d, "difficulty_name", "")),
-            get(d, "creator", get(d, "mapper", "")),
+            name,
+            id,
             parse(Float64, get(d, "difficultyrating", get(d, "difficulty", ""))),
             parse(Float64, get(d, "diff_size", get(d, "difficulty_cs", ""))),
             parse(Float64, get(d, "diff_overall", get(d, "difficulty_od", ""))),
@@ -165,6 +192,7 @@ struct OtherBeatmap <: Beatmap
     title::AbstractString  # Song title.
     diff::AbstractString  # Diff name.
     mapper::AbstractString  # Mapper name.
+    mapper_id::Nullable{Int}
     stars::AbstractFloat  # Star rating.
     cs::AbstractFloat  # Circle size.
     od::AbstractFloat  # Overall difficulty.
@@ -182,13 +210,22 @@ struct OtherBeatmap <: Beatmap
         status = get(status_map, parse(Int, d[status_key]), "Unknown")
         date_key = haskey(d, "approved_date") ? "approved_date" : "date"
         approved_date = try Date(replace(d[date_key], "T", " "), fmt) catch end
+        # The following is to correct the mapper name in case of name changes.
+        # id is mapper id not player id, name is mapper name not player name.
+        id = mapper_id(d["beatmap_id"])
+        name = if isnull(id)
+            get(d, "creator", get(d, "mapper", ""))
+        else
+            get(mapper_name(get(id)), get(d, "creator", get(d, "mapper", "")))
+        end
         new(
             parse(Int, d["beatmap_id"]),
             parse(Int, d["beatmapset_id"]),
             d["artist"],
             d["title"],
             get(d, "version", get(d, "difficulty_name", "")),
-            get(d, "creator", get(d, "mapper", "")),
+            name,
+            id,
             parse(Float64, get(d, "difficultyrating", get(d, "difficulty", ""))),
             parse(Float64, get(d, "diff_size", get(d, "difficulty_cs", ""))),
             parse(Float64, get(d, "diff_overall", get(d, "difficulty_od", ""))),
@@ -360,6 +397,50 @@ function accuracy(
             countgeki + count300 + 2countkatu/3 + count100/3 + count50/6,
             countgeki + count300 + countkatu + count100 + count50 + misses,
         )
+    end
+end
+
+"""
+    mapper_id(map_id::Union{Int, AbstractString}) -> Nullable{Int}
+
+Try to get the user id of a map's mapper. Probably belongs more in OsuBot.Osu but creates
+some circular imports.
+"""
+function mapper_id(map_id::Union{Int, AbstractString})
+    url = "$osu/b/$map_id"
+    log("Making request to $url")
+    r = try
+        HTTP.get(url)
+    catch e
+        log(e)
+        return Nullable{Int}()
+    end
+    body = String(take!(r))
+    m = match(id_regex, body)
+    return if m == nothing
+        log("No match found for mapper id")
+        Nullable{Int}()
+    else
+        id = m.captures[1]
+        log("Found match: $id")
+        Nullable{Int}(parse(Int, id))
+    end
+end
+
+"""
+    mapper_name(mapper_id::Int) -> Nullable{String}
+
+Get a mapper's name from their id, which deals with name changes. This should also be
+in OsuBot.Osu.
+"""
+function mapper_name(mapper_id::Int)
+    url = "$osu/api/get_user?k=$osu_key&u=$mapper_id&type=id&event_days=0"
+    log("Making request to $(replace(url, osu_key, "[secure]"))")
+    return try
+        return Nullable(first(JSON.parse(String(take!(HTTP.get(url)))))["username"])
+    catch e
+        log(e)
+        return Nullable{String}()
     end
 end
 

@@ -40,12 +40,12 @@ function mapset(id::Int; mode::Mode=OsuTypes.STD, lim::Int=500)
 end
 
 """
-    user(id::Int, mode::Mode=OsuTypes.STD) -> Nullable{User}
+    user(id::Int; mode::Mode=OsuTypes.STD) -> Nullable{User}
 
 Get a user by `id`.
 """
-function user(id::Int; mode::Mode=OsuTypes.STD)
-    args = ["u=$id", "type=id", "m=$(Int(mode))", "event_days=31"]
+function user(id::Int; mode::Mode=OsuTypes.STD, event_days::Int=31)
+    args = ["u=$id", "type=id", "m=$(Int(mode))", "event_days=$event_days"]
     url = render(osu_url; cmd="get_user", args=args)
     return Nullable{User}(try User(first(request(url))) catch e log(e) end)
 end
