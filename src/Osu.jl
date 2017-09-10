@@ -6,13 +6,12 @@ module Osu
 using HTTP
 using JSON
 using Mustache
-using YAML
 
 using OsuBot.OsuTypes
 
 export beatmap, mapset, user, beatmap_scores, player_recent, player_best
 
-const osu_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["osu_key"]
+const osu_key = ENV["OSU_API_KEY"]
 const osu_url = "https://osu.ppy.sh/api/{{:cmd}}?k=$osu_key&{{#:args}}{{.}}&{{/:args}}"
 
 """

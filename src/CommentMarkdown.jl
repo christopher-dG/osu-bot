@@ -172,7 +172,7 @@ function build_comment(
         map = get(beatmap)
         mode = isnull(mode) ? map.mode : get(mode)
         map_basics!(buf, map, mode)
-        write(buf, "\n\n")
+        write(buf, "\n")
         # Either use the supplied accuracy value from the title, or go find one.
         # If things fail, set it to 100 so that no extra pp value is generated.
         acc = if isnull(acc)

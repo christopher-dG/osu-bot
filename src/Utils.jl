@@ -5,7 +5,6 @@ module Utils
 
 using Formatting
 using Mustache
-using YAML
 
 using OsuBot.OsuTypes
 using OsuBot.Osu
@@ -14,7 +13,7 @@ import Base.search
 
 export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp, parse_player
 
-const search_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["search_key"]
+const search_key = ENV["OSUSEARCH_API_KEY"]
 const search_url = "https://osusearch.com/api/search?key=$search_key&{{#:args}}{{.}}&{{/:args}}"
 const order = [:EZ, :HD, :HT, :DT, :NC, :HR, :FL, :NF, :SD, :PF, :RL, :SO, :AP, :AT]
 const map_regex = r"(.*) - (.*)\[(.*)\]"

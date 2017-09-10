@@ -5,14 +5,13 @@ module OsuTypes
 
 using HTTP
 using JSON
-using YAML
 
 export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, User, Score,
     Mode
 
 const fmt = DateFormat("y-m-d H:M:S")
 const osu = "https://osu.ppy.sh"
-const osu_key = YAML.load(open(joinpath(dirname(@__DIR__), "config.yml")))["osu_key"]
+const osu_key = ENV["OSU_API_KEY"]
 const id_regex = r"<td width=\"0%\">Creator:</td><td class=\"colour\"><a href=\"/u/(\d+)\">.+<a/></td>"
 const event_regex = r"/b/[0-9]+\?m=[0-9]'>(.+ - .+ \[.+\])</a> \((.*)\)"
 
