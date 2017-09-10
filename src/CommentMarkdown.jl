@@ -314,12 +314,12 @@ function player_table!(buf::IO, player::User, mode::Mode)
 end
 
 """
-    leaderboard!(buf::IO, map_id::Int; n::Int=5) -> Void
+    leaderboard!(buf::IO, map_id::Int; mods::Int=mod_map[:FREEMOD], n::Int=5) -> Void
 
 Produce a table containing the top `n` plays for a map and write it to `buf`.
 """
-function leaderboard!(buf::IO, map::Beatmap)
-    scores = beatmap_scores(map.id; lim=5)
+function leaderboard!(buf::IO, map::Beatmap; mods::Int=mod_map[:FREEMOD], n::Int=5)
+    scores = beatmap_scores(map.id; mods=mods, lim=n)
     isnull(scores) && error("Scores could not be retrieved")
     scores = get(scores)
     combo = try "Combo (/$(map.combo)x)" catch "Combo" end

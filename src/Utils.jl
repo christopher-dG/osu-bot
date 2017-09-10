@@ -93,7 +93,7 @@ mods separated by spaces. This should always be called on whole post title.
 """
 function mods_from_string(s::AbstractString)
     mods = 0
-    s = uppercase(s[search(s, "]").stop + 1:end])
+    s = uppercase(contains(s, "]") ? s[search(s, "]").stop + 1:end] : s)
     idx = search(s, "+").stop + 1
 
     # The "easy case" is when there's a '+' before the mods.

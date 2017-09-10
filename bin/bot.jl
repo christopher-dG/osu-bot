@@ -69,7 +69,7 @@ Generate a player table for a !player command.
 function player_reply(line::AbstractString)
     # TODO: Parse a game mode, probably as :MODE at the end of the line.
     token = split(line, " "; limit=2)[end]  # Get rid of "!player".
-
+    (all(isspace, token) || token == "!player") && error("Command is not well-formed: $line")
     log("Getting player from username: $token")
     player = Osu.user(token)
     if !isnull(player)
@@ -94,13 +94,13 @@ Generate map info for a !map command.
 """
 function map_reply(line::AbstractString)
     tokens = split(line)[2:end]  # Get rid of "!map".
-    map_id = tokens[1]
+    isempty(tokens) && error("Command is not well-formed: $line")
+    map_id = first(tokens)
     mods, acc = if length(tokens) > 1
         args = join(tokens[2:end], " ")
 
         log("Getting mods and acc from $args")
-        # mods_from_string expects a score post title containing a ']'.
-        mods = Utils.mods_from_string("]$args")
+        mods = Utils.mods_from_string(args)
         acc = match(acc_regex, args)
         acc = if acc == nothing
             log("Didn't find acc in comment")
@@ -147,21 +147,40 @@ end
 Generate the map leaderboard for a !leaderboard command.
 """
 function leaderboard_reply(line::AbstractString)
-    token = split(line, " "; limit=2)[end]  # Get rid of "!leaderboard".
+    tokens = split(line)[2:end]  # Get rid of "!leaderboard".
     id = try
-        parse(Int, token)
+        parse(Int, first(tokens))
     catch e
-        error("Couldn't parse a map id from $token: $e")
+        error("Couldn't parse a map id from $(first(tokens)): $e")
     end
     beatmap = Osu.beatmap(id)
     if isnull(beatmap)
         error("Couldn't get a beatmap from $id")
     end
+
+    n, mods = 5, OsuTypes.mod_map[:FREEMOD]
+    if length(tokens) > 1
+        log("Getting n and mods from $(join(tokens, " "))")
+        for token in tokens[2:end]  # Number of scores to show.
+            if all(isdigit, token) && token != "0"
+                n = min(parse(Int, token), 10)  # Don't show more than 10.
+            else  # Try to parse mods.
+                maybe_mods = Utils.mods_from_string(token)
+                if maybe_mods != 0
+                    mods = maybe_mods
+                end
+            end
+        end
+    else
+        log("Command does not contain any extra tokens")
+    end
+
     buf = IOBuffer()
     CommentMarkdown.map_basics!(buf, get(beatmap), OsuTypes.STD; minimal=true)
     write(buf, "\n")
     try
-        CommentMarkdown.leaderboard!(buf, get(beatmap))
+        log("Getting leaderboard for map $id")
+        CommentMarkdown.leaderboard!(buf, get(beatmap); mods=mods, n=n)
     catch e
         error("Couln't generate leaderboard: $e")
     end
@@ -219,8 +238,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
                     try reply *= "$(leaderboard_reply(line))\n\n" catch e log(e) end
                 end
             end
-            if !ismatch(r"\A\s*\z", reply)  # Make sure that at least one command worked.
-                reply *= "$(CommentMarkdown.footer())"
+            if !all(isspace, reply)  # Make sure that at least one command worked.
+                reply *= CommentMarkdown.footer()
                 log("Replying to '$short':\n$reply")
                 !dry && Reddit.reply(comment, reply)
                 !dry && comment[:mark_read]()

@@ -31,7 +31,8 @@ order in the reply.
 | Command | Arguments | Description | Usage |
 | :-: | :-: | :-: | :-: |
 | `!player` | `username` | Creates a player information table for the given player. For now, this will always retrieve stats for osu!std. | `!player Vaxei` |
-| `!map` | `beatmap_id [+mods] [acc%]` | Creates a map information table for a single diff, optionally with given mods and accuracy. Note that the argument must be a *beatmap* id, and not a *beatmapset* id. | `!map 1233051 +HD 98.5%`
+| `!map` | `beatmap_id [+mods] [acc%]` | Creates a map information table for a single diff, optionally with given mods and accuracy. Note that the argument must be a *beatmap* id, and not a *beatmapset* id. | `!map 1233051 +HD 98.5%` |
+| `!leaderboard` | `beatmap_id [n] [+mods]` | Displays a map's leaderboard. By default, the top 5 scores of any mod combination are showed. | `!leaderboard 1316353 10 +HR`
 
 A comment using multiple commands might look like this:
 
