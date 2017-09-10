@@ -93,7 +93,18 @@ mods separated by spaces. This should always be called on whole post title.
 """
 function mods_from_string(s::AbstractString)
     mods = 0
-    s = uppercase(contains(s, "]") ? s[search(s, "]").stop + 1:end] : s)
+    # If we pass in a score post title which contains ']' and '|', we can safely ignore
+    # the player and map name.
+    s = if contains(s, "]")
+        if contains(s, "|")
+            s[search(s, "]", search(s, "|").stop).stop + 1:end]
+        else
+            s[search(s, "]") + 1:end]
+        end
+    else
+        s
+    end
+    s = uppercase(s)
     idx = search(s, "+").stop + 1
 
     # The "easy case" is when there's a '+' before the mods.

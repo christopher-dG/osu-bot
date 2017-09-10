@@ -43,8 +43,9 @@ Generate a comment string from a post title. Errors on failure.
 """
 function from_title(title::AbstractString)
     caps = strip.(match(title_regex, title).captures)
-    player = Osu.user(Utils.parse_player(caps[1]))
-    isnull(player) && warn("Player $(caps[1]) not found")
+    player_name = Utils.parse_player(caps[1])
+    player = Osu.user(player_name)
+    isnull(player) && warn("Player $player_name not found")
     beatmap, mode = Utils.search(player, caps[2])
     isnull(beatmap) && warn("Beatmap was not found")
     isnull(player) && isnull(beatmap) && error("Neither player nor map could be found")

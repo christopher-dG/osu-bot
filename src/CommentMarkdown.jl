@@ -48,14 +48,12 @@ footer() = "***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer](
 Produce a table containing difficulty and pp values, and write it to `buf`.
 """
 function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode)
-    modded = mods != mod_map[:NOMOD]
+    mod_list = mods_from_int(mods)
+    modded = mods != mod_map[:NOMOD] && in(mode, [OsuTypes.STD, OsuTypes.TAIKO])
+    modded &= !isempty(setdiff(mod_list, ignore_mods))
     log("Getting map table for $(map_name(beatmap)) with$(modded ? "" : "out") mods")
 
-    header, nomod_row = if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO])
-        [""], ["NoMod"]
-    else
-        String[], String[]
-    end
+    header, nomod_row = modded ? ([""], ["NoMod"]) : (String[], String[])
     rows = [header, nomod_row]
     push!(header, "CS", "AR", "OD", "HP", "SR", "BPM", "Length")
     map_diff = get_diff(beatmap)
@@ -94,7 +92,7 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
     end
 
     mod_list = mods_from_int(mods)
-    if modded && in(mode, [OsuTypes.STD, OsuTypes.TAIKO]) && !isempty(setdiff(mod_list, ignore_mods))
+    if modded
         modded_row = ["+$(join(mod_list))"]
         map_diff = get_diff(beatmap, mods)
         push!(
