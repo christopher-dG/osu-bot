@@ -24,6 +24,7 @@ function has_reply(comment)
     catch e
         # https://github.com/praw-dev/praw/issues/838#issuecomment-325230667
         log("$e\nRefreshing comment failed, trying a second time")
+        sleep(10)
         try
             comment[:refresh]()
             log("Second attempt succeeded")
