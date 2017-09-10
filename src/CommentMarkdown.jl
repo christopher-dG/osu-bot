@@ -15,6 +15,8 @@ export build_comment, footer
 const osu = "https://osu.ppy.sh"
 const bar = "&#124;"
 const download = "&#x2b07;"
+const space = "&nbsp;"
+const hyphen = "&#x2011;"
 const source_url = "https://github.com/christopher-dG/OsuBot.jl"
 const me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
 const readme = "$source_url/blob/master/README.md#summoning-the-bot"
@@ -120,7 +122,7 @@ function map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::
 end
 
 function map_table!(buf::IO, beatmap::OtherBeatmap, acc::Real, mods::Int, mode::Mode)
-    header, row = ["CS", "AR", "OD", "HP", "SR", "BPM", "Length"], []
+    header, row = ["CS", "AR", "OD", "HP", "SR", "BPM", "Length"], String[]
     rows = [header, row]
     map_diff = get_diff(beatmap)
     push!(
@@ -217,14 +219,19 @@ function build_comment(
 end
 
 """
-    map_basics!(buf::IO, map::Beatmap, mode::Mode) -> Void
+    map_basics!(buf::IO, map::Beatmap, mode::Mode; minimal::Bool=false) -> Void
 
 Produce basic map information (name, mapper, playcount, etc.) and write it to `buf`.
+If `minimal` is set, only get the map name and mapper name.
 """
-function map_basics!(buf::IO, map::Beatmap, mode::Mode)
+function map_basics!(buf::IO, map::Beatmap, mode::Mode; minimal::Bool=false)
     mapper = get(map.mapper_id, map.mapper)
     tmp = "[$(map_name(map))]($osu/b/$(map.id)) [($download)]($osu/d/$(map.set_id)) "
     tmp *= "by [$(map.mapper)]($osu/u/$mapper)"
+    if minimal
+        Markdown.plain(buf, Markdown.Header(tmp, 5))
+        return nothing
+    end
     if map.status == "Unranked"
         # Unranked maps always come from osusearch, and they never have max combo set.
         tmp *= " || $(map.status)"
@@ -257,6 +264,8 @@ function map_basics!(buf::IO, map::Beatmap, mode::Mode)
     tmp *= isnull(map.approved_date) ? " || " : " ($(get(map.approved_date))) || "
     tmp *= "$(strfmt(map.plays; precision=0)) plays"
     Markdown.plaininline(buf, Markdown.Bold(tmp))
+    # Markdown.Header always ends with a newline, so add one here too for consistency.
+    write(buf, "\n")
     return nothing
 end
 
@@ -276,7 +285,7 @@ function player_table!(buf::IO, player::User, mode::Mode)
     end
     header = ["Player", "Rank", "pp", "Acc", "Playcount"]
     # Usernames are short enough (15 characters max) to go on one line in their table cell.
-    username = replace(player.name, " ", "&nbsp;")
+    username = replace(player.name, " ", space)
     row = [
         "[$username]($osu/u/$(player.id))",
         "#$(strfmt(player.rank))",
@@ -302,6 +311,37 @@ function player_table!(buf::IO, player::User, mode::Mode)
     table = Markdown.Table(rows, repeat([:c]; outer=[length(header)]))
     Markdown.plain(buf, table)
     return nothing
+end
+
+"""
+    leaderboard!(buf::IO, map_id::Int; n::Int=5) -> Void
+
+Produce a table containing the top `n` plays for a map and write it to `buf`.
+"""
+function leaderboard!(buf::IO, map::Beatmap)
+    scores = beatmap_scores(map.id; lim=5)
+    isnull(scores) && error("Scores could not be retrieved")
+    scores = get(scores)
+    combo = try "Combo (/$(map.combo)x)" catch "Combo" end
+    header, rows = ["", "Player", "Mods", "Acc", "pp", combo, "Date"], Vector{String}[]
+    for (i, score) in enumerate(scores)
+        mods = mods_from_int(score.mods)
+        misses = score.misses == 0 ? "" : " ($(score.misses)x miss)"
+        push!(
+            rows,
+            [
+                string(i),
+                "[$(get(score.username))]($osu/u/$(get(score.user_id)))",
+                isempty(mods) ? "None" : "+$(join(mods))",
+                "$(strfmt(score.accuracy; precision=2))%",
+                strfmt(get(score.pp); precision=0),
+                "$(score.combo)x$misses",
+                replace("$(Date(score.date))", "-", hyphen),
+            ],
+        )
+    end
+    table = Markdown.Table([header, rows...], repeat([:c]; outer=[length(header)]))
+    Markdown.plain(buf, table)
 end
 
 log(msg) = (info("$(basename(@__FILE__)): $msg"); true)

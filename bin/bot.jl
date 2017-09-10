@@ -64,32 +64,33 @@ end
 """
     player_reply(line::AbstractString) -> String
 
-Generate a player table from a line beginning with "!player" and followed by the player
-name or id.
+Generate a player table for a !player command.
 """
 function player_reply(line::AbstractString)
     # TODO: Parse a game mode, probably as :MODE at the end of the line.
     token = split(line, " "; limit=2)[end]  # Get rid of "!player".
+
     log("Getting player from username: $token")
     player = Osu.user(token)
     if !isnull(player)
         buf = IOBuffer()
         try
             CommentMarkdown.player_table!(buf, get(player), OsuTypes.STD)
-            reply = String(take!(buf))
+            reply = strip(String(take!(buf)))
             log("Generated a player table for: $line")
-            return strip(reply)
+            return reply
         catch e
-            log("Comment generation/transmission failed: $e")
+            error("Generating a player table failed: $e")
         end
     else
-        log("Couldn't get player from $token")
+        error("Couldn't get player from $token")
     end
-    return ""
 end
 
 """
     map_reply(line::AbstractString) -> String
+
+Generate map info for a !map command.
 """
 function map_reply(line::AbstractString)
     tokens = split(line)[2:end]  # Get rid of "!map".
@@ -97,7 +98,7 @@ function map_reply(line::AbstractString)
     mods, acc = if length(tokens) > 1
         args = join(tokens[2:end], " ")
 
-        log("Getting mods from $args")
+        log("Getting mods and acc from $args")
         # mods_from_string expects a score post title containing a ']'.
         mods = Utils.mods_from_string("]$args")
         acc = match(acc_regex, args)
@@ -108,37 +109,63 @@ function map_reply(line::AbstractString)
             log("Found acc in comment")
             min(parse(Float64, replace(acc.captures[1], ",", ".")), 100)
         end
-
         log("acc=$acc%, mods=$mods")
         mods, acc
     else
         log("Didn't find any extra arguments")
         0, 100
     end
+
     id = try
         parse(Int, map_id)
     catch e
-        log("Couldn't parse a map id from $map_id: $e")
-        return ""
+        error("Couldn't parse a map id from $map_id: $e")
     end
+
     beatmap = Osu.beatmap(id)
     if !isnull(beatmap)
         buf = IOBuffer()
         try
             beatmap = get(beatmap)
             CommentMarkdown.map_basics!(buf, beatmap, beatmap.mode)
-            write(buf, "\n\n")
+            write(buf, "\n")
             CommentMarkdown.map_table!(buf, beatmap, acc, mods, beatmap.mode)
-            reply = String(take!(buf))
+            reply = strip(String(take!(buf)))
             log("Genererated a map table for: $line")
-            return strip(reply)
+            return reply
         catch e
-            log("Comment generation/transmission failed: $e")
+            error("Generating map info failed: $e")
         end
     else
-        log("Couldn't get beatmap from $(join(tokens, " "))")
+        error("Couldn't get beatmap from $(join(tokens, " "))")
     end
-    return ""
+end
+
+"""
+    leaderboard_reply(line::AbstractString) -> String
+
+Generate the map leaderboard for a !leaderboard command.
+"""
+function leaderboard_reply(line::AbstractString)
+    token = split(line, " "; limit=2)[end]  # Get rid of "!leaderboard".
+    id = try
+        parse(Int, token)
+    catch e
+        error("Couldn't parse a map id from $token: $e")
+    end
+    beatmap = Osu.beatmap(id)
+    if isnull(beatmap)
+        error("Couldn't get a beatmap from $id")
+    end
+    buf = IOBuffer()
+    CommentMarkdown.map_basics!(buf, get(beatmap), OsuTypes.STD; minimal=true)
+    write(buf, "\n")
+    try
+        CommentMarkdown.leaderboard!(buf, get(beatmap))
+    catch e
+        error("Couln't generate leaderboard: $e")
+    end
+    reply = strip(String(take!(buf)))
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
@@ -185,14 +212,14 @@ if abspath(PROGRAM_FILE) == @__FILE__
             reply = ""
             for line in strip.(split(body, "\n"))
                 if startswith(line, "!player")
-                    reply *= player_reply(line)
-                    reply *= "\n\n"
+                    try reply *= "$(player_reply(line))\n\n" catch e log(e) end
                 elseif startswith(line, "!map")
-                    reply *= map_reply(line)
-                    reply *= "\n\n"
+                    try reply *= "$(map_reply(line))\n\n" catch e log(e) end
+                elseif startswith(line, "!leaderboard")
+                    try reply *= "$(leaderboard_reply(line))\n\n" catch e log(e) end
                 end
             end
-            if !ismatch(r"\A\s*\z", reply)
+            if !ismatch(r"\A\s*\z", reply)  # Make sure that at least one command worked.
                 reply *= "$(CommentMarkdown.footer())"
                 log("Replying to '$short':\n$reply")
                 !dry && Reddit.reply(comment, reply)

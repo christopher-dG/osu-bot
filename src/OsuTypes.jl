@@ -333,6 +333,7 @@ struct Score
     accuracy::AbstractFloat  # Accuracy of the play, in percent.
     pp::Nullable{Int}  # pp for the play (not always supplied).
     combo::Int  # Max combo on the play.
+    misses::Int  # Number of misses on the play.
 
     function Score(d::Dict)
         new(
@@ -353,6 +354,7 @@ struct Score
             ),
             Nullable{Int}(haskey(d, "pp") ? round(parse(Float64, d["pp"])) : nothing),
             parse(Int, d["maxcombo"]),
+            parse(Int, d["countmiss"]),
         )
     end
 end
