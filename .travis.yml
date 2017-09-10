@@ -5,14 +5,21 @@ os:
 julia:
   - 0.6
   - nightly
+addons:
+  apt:
+    packages:
+      - python3-pip
 matrix:
   allow_failures:
     - julia: nightly
   fast_finish: true
 notifications:
   email: false
+before_script:
+  - pip3 install --user praw
+  - export PYTHON=$(which python3)
+  - export PATH=$(pwd):$PATH
 script:
-  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'Pkg.clone(pwd()); Pkg.build("OsuBot"); Pkg.test("OsuBot"; coverage=true)'
 after_success:
   - julia -e 'cd(Pkg.dir("OsuBot")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'

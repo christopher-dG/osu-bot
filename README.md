@@ -1,5 +1,7 @@
 # OsuBot
 
+[![Build Status](https://travis-ci.org/christopher-dG/OsuBot.jl.svg?branch=master)](https://travis-ci.org/christopher-dG/OsuBot.jl)
+
 [/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap
 and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.
 
