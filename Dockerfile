@@ -14,8 +14,8 @@ RUN apt-get update && \
     apt-get -y install $PKGS && \
     pip3 install $PYTHONPKGS && \
     cd $APP && \
-    mv oppai /usr/local/bin/ && \
-    julia -e 'Pkg.clone(pwd()); cp("config.yml", Pkg.dir("OsuBot", "config.yml")); using OsuBot' && \
+    mv bin/oppai /usr/local/bin/ && \
+    bash -c "source config.sh; julia -e 'Pkg.clone(pwd()); using OsuBot'" && \
     apt-get -y purge $PKGS && \
     apt-get -y autoremove
 

@@ -4,6 +4,13 @@ using PyCall
 
 export login, posts, mentions, reply
 
+const user_agent = ENV["REDDIT_USER_AGENT"]
+const client_id = ENV["REDDIT_CLIENT_ID"]
+const client_secret = ENV["REDDIT_CLIENT_SECRET"]
+const username = ENV["REDDIT_USERNAME"]
+const password = ENV["REDDIT_PASSWORD"]
+const subreddit_name = ENV["REDDIT_SUBREDDIT"]
+
 """
     login() -> Void
 
@@ -12,13 +19,13 @@ Log in to Reddit and bind the global bot and subreddit variables.
 function login()
     @pyimport praw
     global bot = praw.Reddit(;
-        user_agent=ENV["REDDIT_USER_AGENT"],
-        client_id=ENV["REDDIT_CLIENT_ID"],
-        client_secret=ENV["REDDIT_CLIENT_SECRET"],
-        username=ENV["REDDIT_USERNAME"],
-        password=ENV["REDDIT_PASSWORD"],
+        user_agent=user_agent,
+        client_id=client_id,
+        client_secret=client_secret,
+        username=username,
+        password=password,
     )
-    global subreddit = bot[:subreddit](ENV["REDDIT_SUBREDDIT"])
+    global subreddit = bot[:subreddit](subreddit_name)
     log("Logged into Reddit")
     return nothing
 end

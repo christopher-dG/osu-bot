@@ -1,7 +1,4 @@
 *
-!config.yml
-!REQUIRE
-!src
+!config.sh
 !bin
-!oppai
 !.git
