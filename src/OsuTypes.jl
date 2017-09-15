@@ -12,7 +12,7 @@ export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, User,
 const fmt = DateFormat("y-m-d H:M:S")
 const osu = "https://osu.ppy.sh"
 const osu_key = ENV["OSU_API_KEY"]
-const id_regex = r"<td width=\"0%\">Creator:</td><td class=\"colour\"><a href=\"/u/(\d+)\">.+<a/></td>"
+const id_regex = r"Creator:</td><td class=[\"']colour[\"']><a href=[\"']/u/(\d+)"
 const event_regex = r"/b/[0-9]+\?m=[0-9]'>(.+ - .+ \[.+\])</a> \((.*)\)"
 
 @enum Mode STD TAIKO CTB MANIA
