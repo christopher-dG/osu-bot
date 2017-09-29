@@ -300,7 +300,7 @@ function strfmt(el::Real; precision::Int=1)
     return if round(el) == el || precision == 0
         format(round(el); commas=true)
     else
-        format(trunc(el, precision); commas=true)
+        format(round(el, precision); commas=true)
     end
 end
 
