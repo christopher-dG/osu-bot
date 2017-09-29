@@ -110,7 +110,8 @@ function get_diff(beatmap::Beatmap, mods::Int)
     end
     mods = isempty(mods) ? "" : "+$(join(mods))"
     taiko = isa(beatmap, TaikoBeatmap) ? "-taiko" : ""
-    cmd = `oppai $path -ojson $mods $taiko`
+    # AR has shown to be occaionally missing in the .osu file, so fill it in manually.
+    cmd = `oppai $path -ojson $mods ar$(beatmap.ar) $taiko`
     d = oppai(cmd)
     return Dict{Symbol, Union{AbstractString, Real}}(
         :AR => d["ar"],
