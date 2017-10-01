@@ -40,7 +40,13 @@ This function does not return, so wrap it in `@async`.
 function posts(channel::Channel)
     ids = String[]  # Ordered [oldest, ..., newest].
     while true
-        for post in reverse(collect(subreddit[:new]()))  # Oldest posts first.
+        new_posts = try
+            reverse(collect(subreddit[:new]())) # Oldest posts first.
+        catch e
+            log(e)
+            continue
+        end
+        for post in new_posts
             if !in(post[:id], ids)
                 push!(ids, post[:id])
                 length(ids) > 100 && shift!(ids)  # Remove the oldest entry.
@@ -60,7 +66,13 @@ Similar to `posts` but for comment mentions.
 function mentions(channel::Channel)
     ids = String[]
     while true
-        for comment in reverse(collect(bot[:inbox][:mentions](; limit=50)))
+         comments = try
+            reverse(collect(bot[:inbox][:mentions](; limit=50)))
+        catch e
+            log(e)
+            continue
+        end
+        for comment in comments
             if !in(comment[:id], ids)
                 push!(ids, comment[:id])
                 length(ids) > 50 && shift!(ids)
