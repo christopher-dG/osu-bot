@@ -12,9 +12,14 @@ COPY . $APP
 RUN apt-get update && \
     apt-get -y install $KEEP_PKGS && \
     apt-get -y install $PKGS && \
+    git clone https://github.com/Francesco149/oppai-ng oppai && \
+    cd oppai && \
+    ./build && \
+    install oppai /usr/local/bin/oppai && \
+    cd .. && \
+    rm -rf oppai && \
     pip3 install $PYTHONPKGS && \
     cd $APP && \
-    mv bin/oppai /usr/local/bin/ && \
     bash -c "source config.sh; julia -e 'Pkg.clone(pwd()); using OsuBot'" && \
     apt-get -y purge $PKGS && \
     apt-get -y autoremove

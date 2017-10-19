@@ -31,7 +31,6 @@ const memes = [
     "can just shut up",
     "thank mr monstrata",
     "fc cry thunder and say that me again",
-    "tbh i don't think fils has the aim for this",
     "omg kappadar big fan",
     "reese get the camera",
     "cookiezi hdhr when",

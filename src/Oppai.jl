@@ -64,12 +64,20 @@ function get_pp(map::Beatmap, acc::Real, mods::Int; taiko::Bool=false)
     mods = isempty(mods) ? "" : "+$(join(mods))"
     taiko = taiko || isa(map, TaikoBeatmap) ? "-taiko" : ""
     cmd = `oppai $path -ojson $acc% $mods $taiko`
-    return try
+    result = try
         oppai(cmd)["pp"]
     catch e
         log("oppai failed: $e")
         rm(path)
+        return nothing
+    end
+    # For "broken" maps (Helblinde - Solace of Oblivion [Aspire] for example),
+    # the returned pp value is -1 to represent infinity.
+    return if result == -1
+        log("oppai returned infinite pp value")
         nothing
+    else
+        result
     end
 end
 
