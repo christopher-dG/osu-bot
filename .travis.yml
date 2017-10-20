@@ -16,9 +16,14 @@ matrix:
 notifications:
   email: false
 before_script:
+  - git clone https://github.com/Francesco149/oppai-ng
+  - cd oppai-ng
+  - ./build
+  - install -D oppai $HOME/bin/oppai
+  - export PATH=$PATH:$HOME/bin
+  - cd ..
   - pip3 install --user praw
   - export PYTHON=$(which python3)
-  - export PATH=$(pwd)/bin:$PATH
 script:
   - julia -e 'Pkg.clone(pwd()); Pkg.build("OsuBot"); Pkg.test("OsuBot"; coverage=true)'
 after_success:
