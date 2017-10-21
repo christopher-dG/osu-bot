@@ -51,9 +51,19 @@ If you'd like to see a new command, please [get in touch](#contact)!
 
 ### Development Dependencies
 
-* [Docker](https://www.docker.com/)
-* [`oppai`](https://github.com/Francesco149/oppai-ng) binary somewhere on your
-  `$PATH`
+* [Julia](https://julialang.org)
+* [Python](https://python.org)
+* [PRAW](https://github.com/praw-dev/praw)
+* [oppai](https://github.com/Francesco149/oppai-ng) somewhere on your `$PATH`
+* The following environment variables:
+  * `REDDIT_USER_AGENT`
+  * `REDDIT_CLIENT_ID`
+  * `REDDIT_CLIENT_SECRET`
+  * `REDDIT_USERNAME`
+  * `REDDIT_PASSWORD`
+  * `REDDIT_SUBREDDIT`
+  * `OSU_API_KEY`
+  * `OSUSEARCH_API_KEY`
 
 ### Contact
 
@@ -73,4 +83,5 @@ Credit for mod/pp calculations goes to
 If you want to thank me in some way, I'll happily accept
 [the gift of supporter](https://osu.ppy.sh/users/3172543).
 
-**This project is not affiliated with [osu!](https://osu.ppy.sh) in any way.**
+**This project is not affiliated with [osu!](https://osu.ppy.sh/home) in any
+way.**
