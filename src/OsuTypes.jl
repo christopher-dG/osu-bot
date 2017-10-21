@@ -235,7 +235,7 @@ struct OtherBeatmap <: Beatmap
             status,
             approved_date,
             parse(Int, get(d, "playcount", get(d, "play_count", "0"))),
-            first(Mode[parse(Int, d["mode"])]),
+            parse(Int, d["mode"]),
         )
     end
 end
@@ -246,8 +246,10 @@ end
 Get a beatmap of the appropriate type from `view`.
 """
 function make_map(view::Dict)
-    mode = parse(Int, get(view, "mode", get(view, "gamemode", "-1")))
-    mode == -1 && error()
+    if !haskey(view, "mode")  # Map from osusearch, has "gamemode" instead.
+        view["mode"] = view["gamemode"]
+    end
+    mode = parse(Int, view["mode"])
     return if mode == Int(STD)
         StdBeatmap(view)
     elseif mode == Int(TAIKO)
