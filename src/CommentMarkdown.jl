@@ -285,7 +285,7 @@ function player_table!(buf::IO, player::User, mode::Mode)
     username = replace(player.name, " ", space)
     row = [
         "[$username]($osu/u/$(player.id))",
-        "#$(strfmt(player.rank))",
+        "#$(strfmt(player.rank))$space(#$(strfmt(player.country_rank))$space$(player.country))",
         strfmt(player.pp),
         "$(strfmt(player.accuracy; precision=2))%",
         strfmt(player.playcount),

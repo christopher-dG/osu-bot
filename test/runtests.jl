@@ -2,8 +2,8 @@ using OsuBot
 using Base.Test
 
 const data_dir = Pkg.dir("OsuBot", "test", "data")
-beatmap = open(deserialize, joinpath(data_dir, "necrofantasia"))
-player = open(deserialize, joinpath(data_dir, "adamqs"))
+beatmap = open(deserialize, joinpath(data_dir, "acidburst"))
+player = open(deserialize, joinpath(data_dir, "yaong"))
 
 const nomod = r"""
 \A##### \[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+\) by \[.+\]\(https://osu\.ppy\.sh/u/.+\)
@@ -15,7 +15,7 @@ const nomod = r"""
 
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 \|:-+:\|:-+:\|:-+:\|:-+:\|:-+:\|:-+:\|
-\|\s+\[.+\]\(https://osu.ppy\.sh/u/\d+\)\s+\|\s+#\d+\s+\|\s+[\d,]+\s+\|\s+[\d\.]+%\s+\|\s+[\d,]*\s+\|\s+\[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) .* &#124; [\d\.]+% &#124; \d+pp \|
+\|\s+\[.+\]\(https://osu.ppy\.sh/u/\d+\)\s+\|\s+#\d+&nbsp;\(#\d+&nbsp;.+\)\s+\|\s+[\d,]+\s+\|\s+[\d\.]+%\s+\|\s+[\d,]*\s+\|\s+\[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) .* &#124; [\d\.]+% &#124; \d+pp \|
 
 \*\*\*
 
@@ -32,7 +32,7 @@ const modded = r"""
 
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 \|:-+:\|:-+:\|:-+:\|:-+:\|:-+:\|:-+:\|
-\|\s+\[.+\]\(https://osu.ppy\.sh/u/\d+\)\s+\|\s+#\d+\s+\|\s+[\d,]+\s+\|\s+[\d\.]+%\s+\|\s+[\d,]*\s+\|\s+\[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) .* &#124; [\d\.]+% &#124; \d+pp \|
+\|\s+\[.+\]\(https://osu.ppy\.sh/u/\d+\)\s+\|\s+#\d+&nbsp;\(#\d+&nbsp;.+\)\s+\|\s+[\d,]+\s+\|\s+[\d\.]+%\s+\|\s+[\d,]*\s+\|\s+\[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) .* &#124; [\d\.]+% &#124; \d+pp \|
 
 \*\*\*
 
@@ -66,7 +66,7 @@ const noplayer_modded = r"""
 const nomap = r"""
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 \|:-+:\|:-+:\|:-+:\|:-+:\|:-+:\|:-+:\|
-\|\s+\[.+\]\(https://osu.ppy\.sh/u/\d+\)\s+\|\s+#\d+\s+\|\s+[\d,]+\s+\|\s+[\d\.]+%\s+\|\s+[\d,]*\s+\|\s+\[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) .* &#124; [\d\.]+% &#124; \d+pp \|
+\|\s+\[.+\]\(https://osu.ppy\.sh/u/\d+\)\s+\|\s+#\d+&nbsp;\(#\d+&nbsp;.+\)\s+\|\s+[\d,]+\s+\|\s+[\d\.]+%\s+\|\s+[\d,]*\s+\|\s+\[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) .* &#124; [\d\.]+% &#124; \d+pp \|
 
 \*\*\*
 

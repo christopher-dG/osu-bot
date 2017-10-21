@@ -300,6 +300,8 @@ struct User
     name::AbstractString  # Username.
     pp::Int  # Raw pp.
     rank::Int  # Overall rank.
+    country::AbstractString
+    country_rank::Int
     accuracy::AbstractFloat  # Overall accuracy.
     playcount::Int  # Ranked playcount.
     events::Vector{Event}  # Recent events.
@@ -310,6 +312,8 @@ struct User
             d["username"],
             round(parse(Float64, d["pp_raw"])),
             parse(Int, d["pp_rank"]),
+            d["country"],
+            parse(Int, d["pp_country_rank"]),
             parse(Float64, d["accuracy"]),
             parse(Int, d["playcount"]),
             map(e -> Event(e), d["events"]),
