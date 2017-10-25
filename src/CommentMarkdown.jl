@@ -37,9 +37,17 @@ const memes = [
     "TATOE",
     "hello there",
     "rrtyui :(",
+    "0 pp if unranked",
 ]
 
 footer() = "***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)^( | )[^Usage]($readme)"
+
+"""
+    nonbreaking(s::AbstractString) -> String
+
+Force `s` onto one line by replacing all breaking characters with non-breaking alternatives.
+"""
+nonbreaking(s::AbstractString) = replace(s, ['-', ' '], c -> c == "-" ? hyphen : space)
 
 """
     map_table!(buf::IO, beatmap::Beatmap, accuracy::Real, mods::Int, mode::Mode) -> Void
@@ -245,7 +253,7 @@ function map_basics!(buf::IO, map::Beatmap, mode::Mode; minimal::Bool=false)
         top = first(get(plays))
         # Output from `beatmap_scores` always has both `username` and `user_id` fields,
         # so we shouldn't need to handle `NullException`s.
-        tmp = "#1: [$(get(top.username))]($osu/u/$(get(top.user_id))) ("
+        tmp = "#1: [$(nonbreaking(get(top.username)))]($osu/u/$(get(top.user_id))) ("
         if top.mods != mod_map[:NOMOD]
             tmp *= "+$(join(mods_from_int(top.mods))) - "
         end
@@ -281,10 +289,8 @@ function player_table!(buf::IO, player::User, mode::Mode)
         end
     end
     header = ["Player", "Rank", "pp", "Acc", "Playcount"]
-    # Usernames are short enough (15 characters max) to go on one line in their table cell.
-    username = replace(player.name, " ", space)
     row = [
-        "[$username]($osu/u/$(player.id))",
+        "[$(nonbreaking(player.name))]($osu/u/$(player.id))",
         "#$(strfmt(player.rank))$space(#$(strfmt(player.country_rank))$space$(player.country))",
         strfmt(player.pp),
         "$(strfmt(player.accuracy; precision=2))%",
@@ -328,7 +334,7 @@ function leaderboard!(buf::IO, map::Beatmap; mods::Int=mod_map[:FREEMOD], n::Int
             rows,
             [
                 string(i),
-                "[$(get(score.username))]($osu/u/$(get(score.user_id)))",
+                "[$(nonbreaking(get(score.username)))]($osu/u/$(get(score.user_id)))",
                 isempty(mods) ? "None" : "+$(join(mods))",
                 "$(strfmt(score.accuracy; precision=2))%",
                 strfmt(get(score.pp); precision=0),
