@@ -1,30 +1,19 @@
 # Documentation: http://docs.travis-ci.com/user/languages/julia/
 language: julia
-os:
-  - linux
-julia:
-  - 0.6
-  - nightly
-addons:
-  apt:
-    packages:
-      - python3-pip
-matrix:
-  allow_failures:
-    - julia: nightly
-  fast_finish: true
+os: linux
+julia: 0.6
+services: docker
 notifications:
   email: false
 before_script:
-  - git clone https://github.com/Francesco149/oppai-ng
-  - cd oppai-ng
-  - ./build
-  - install -D oppai $HOME/bin/oppai
-  - export PATH=$PATH:$HOME/bin
-  - cd ..
-  - pip3 install --user praw
-  - export PYTHON=$(which python3)
-script:
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("OsuBot"); Pkg.test("OsuBot"; coverage=true)'
-after_success:
-  - julia -e 'cd(Pkg.dir("OsuBot")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
+  - echo "export REDDIT_USER_AGENT=\"$REDDIT_USER_AGENT\"" >> config.sh
+  - echo "export REDDIT_CLIENT_ID=\"$REDDIT_CLIENT_ID\"" >> config.sh
+  - echo "export REDDIT_CLIENT_SECRET=\"$REDDIT_CLIENT_SECRET\"" >> config.sh
+  - echo "export REDDIT_USERNAME=\"$REDDIT_USERNAME\"" >> config.sh
+  - echo "export REDDIT_PASSWORD=\"$REDDIT_PASSWORD\"" >> config.sh
+  - echo "export REDDIT_SUBREDDIT=\"$REDDIT_SUBREDDIT\"" >> config.sh
+  - echo "export OSU_API_KEY=\"$OSU_API_KEY\"" >> config.sh
+  - echo "export OSUSEARCH_API_KEY=\"$OSUSEARCH_API_KEY\"" >> config.sh
+  - docker build -t $DOCKERHUB_USERNAME/images:osu-bot .
+script: docker run --rm $DOCKERHUB_USERNAME/images:osu-bot test
+after_success: if [ "$TRAVIS_JULIA_VERSION" = "0.6" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD && docker push $DOCKERHUB_USERNAME/images:osu-bot; fi
