@@ -1,7 +1,5 @@
-# Documentation: http://docs.travis-ci.com/user/languages/julia/
-language: julia
+language: generic
 os: linux
-julia: 0.6
 services: docker
 notifications:
   email: false
@@ -16,4 +14,4 @@ before_script:
   - echo "export OSUSEARCH_API_KEY=\"$OSUSEARCH_API_KEY\"" >> config.sh
   - docker build -t $DOCKERHUB_USERNAME/images:osu-bot .
 script: docker run --rm $DOCKERHUB_USERNAME/images:osu-bot test
-after_success: if [ "$TRAVIS_JULIA_VERSION" = "0.6" ] && [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD && docker push $DOCKERHUB_USERNAME/images:osu-bot; fi
+after_success: if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD && docker push $DOCKERHUB_USERNAME/images:osu-bot; fi

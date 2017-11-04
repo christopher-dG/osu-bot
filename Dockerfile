@@ -1,4 +1,4 @@
-FROM julia:0.6.0
+FROM julia:0.6.1
 
 ENV APP /root/OsuBot
 ENV KEEP_PKGS python3-pip
