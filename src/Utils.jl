@@ -10,6 +10,7 @@ using OsuBot.OsuTypes
 using OsuBot.Osu
 
 import Base.search
+import OsuBot.log
 
 export map_name, mods_from_int, mods_from_string, search, strfmt, timestamp, parse_player
 
@@ -343,7 +344,5 @@ function parse_player(s::AbstractString)
     log("Player name: $s")
     return s
 end
-
-log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end

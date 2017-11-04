@@ -9,6 +9,8 @@ using JSON
 using OsuBot.OsuTypes
 using OsuBot.Utils
 
+import OsuBot.log
+
 export get_diff, get_pp
 
 const tmpdir = joinpath(tempdir(), "osubot")
@@ -131,7 +133,5 @@ function get_diff(beatmap::Beatmap, mods::Int)
         :LEN => Utils.timestamp(beatmap.length.value / speed),
     )
 end
-
-log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end

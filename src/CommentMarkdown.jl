@@ -10,6 +10,8 @@ using OsuBot.Osu
 using OsuBot.OsuTypes
 using OsuBot.Utils
 
+import OsuBot.log
+
 export build_comment, footer
 
 const osu = "https://osu.ppy.sh"
@@ -346,7 +348,5 @@ function leaderboard!(buf::IO, map::Beatmap; mods::Int=mod_map[:FREEMOD], n::Int
     table = Markdown.Table([header, rows...], repeat([:c]; outer=[length(header)]))
     Markdown.plain(buf, table)
 end
-
-log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end

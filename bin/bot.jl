@@ -3,6 +3,7 @@
 using OsuBot
 
 import Base.log
+import OsuBot.log
 
 args = uppercase.(ARGS)
 const do_posts = !in("NOPOSTS", args)
@@ -10,8 +11,6 @@ const do_mentions = !in("NOCOMMENTS", args)
 const dry = in("DRY", args)
 const title_regex = r"(.+)\|(.+ - .+\[.+\]).*"
 const acc_regex = r"(\d+(?:[,.]\d*)?)%"
-
-log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 function abbrev(comment::AbstractString)
     short = length(comment) > 80 ? "$(comment[1:80])..." : comment

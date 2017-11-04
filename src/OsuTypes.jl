@@ -6,8 +6,11 @@ module OsuTypes
 using HTTP
 using JSON
 
-export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, User, Score,
-    Mode
+import OsuBot.log
+
+export mod_map, make_map, Beatmap, StdBeatmap, TaikoBeatmap, OtherBeatmap, User, Score, Mode
+
+
 
 const fmt = DateFormat("y-m-d H:M:S")
 const osu = "https://osu.ppy.sh"
@@ -450,7 +453,5 @@ function mapper_name(mapper_id::Int)
         return Nullable{String}()
     end
 end
-
-log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end

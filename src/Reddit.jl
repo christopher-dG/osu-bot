@@ -2,6 +2,8 @@ module Reddit
 
 using PyCall
 
+import OsuBot.log
+
 export login, posts, mentions, reply
 
 const user_agent = ENV["REDDIT_USER_AGENT"]
@@ -95,7 +97,5 @@ function reply(obj::PyObject, comment::AbstractString; sticky::Bool=false)
     obj[:save]()
     obj[:upvote]()
 end
-
-log(msg) = (info("$(basename(@__FILE__)): $msg"); true)
 
 end

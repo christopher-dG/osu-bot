@@ -9,6 +9,8 @@ using Mustache
 
 using OsuBot.OsuTypes
 
+import OsuBot.log
+
 export beatmap, mapset, user, beatmap_scores, player_recent, player_best
 
 const osu_key = ENV["OSU_API_KEY"]
@@ -245,7 +247,5 @@ function request(url::AbstractString)
     end
     return JSON.parse(String(take!(response)))
 end
-
-log(msg) = info("$(basename(@__FILE__)): $msg")
 
 end
