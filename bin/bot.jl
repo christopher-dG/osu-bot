@@ -2,7 +2,6 @@
 
 using OsuBot
 
-import Base.log
 import OsuBot.log
 
 args = uppercase.(ARGS)
