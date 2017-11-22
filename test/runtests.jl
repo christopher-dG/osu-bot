@@ -19,7 +19,7 @@ const nomod = r"""
 
 \*\*\*
 
-\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)\z"""
+\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)"""
 
 const modded = r"""
 \A##### \[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+\) by \[.+\]\(https://osu\.ppy\.sh/u/.+\)
@@ -36,7 +36,7 @@ const modded = r"""
 
 \*\*\*
 
-\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)\z"""
+\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)"""
 
 const noplayer_nomod = r"""
 \A##### \[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+\) by \[.+\]\(https://osu\.ppy\.sh/u/.+\)
@@ -48,7 +48,7 @@ const noplayer_nomod = r"""
 
 \*\*\*
 
-\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)\z"""
+\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)"""
 
 const noplayer_modded = r"""
 \A##### \[.+ - .+ \[.+\]\]\(https://osu\.ppy\.sh/b/\d+\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+\) by \[.+\]\(https://osu\.ppy\.sh/u/.+\)
@@ -61,7 +61,7 @@ const noplayer_modded = r"""
 
 \*\*\*
 
-\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)\z"""
+\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)"""
 
 const nomap = r"""
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
@@ -70,7 +70,7 @@ const nomap = r"""
 
 \*\*\*
 
-\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)\z"""
+\^\(.+ - \)\[\^Source\]\(https://github\.com/christopher-dG/OsuBot\.jl\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^Usage\]\(https://github\.com/christopher-dG/OsuBot\.jl/blob/master/README\.md#summoning-the-bot\)"""
 
 @testset "OsuBot.jl" begin
     @testset "Utils.jl" begin

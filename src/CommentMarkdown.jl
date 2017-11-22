@@ -42,7 +42,7 @@ const memes = [
     "0 pp if unranked",
 ]
 
-footer() = "***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)^( | )[^Usage]($readme)"
+footer() = "***\n\n^($(rand(memes)) - )[^Source]($source_url)^( | )[^Developer]($me)^( | )[^Usage]($readme)^( | )[^([Unnoticed]: Unranked leaderboards)](https://github.com/christopher-dG/unnoticed/wiki)"
 
 """
     nonbreaking(s::AbstractString) -> String
