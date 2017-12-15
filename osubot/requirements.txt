@@ -1,0 +1,4 @@
+markdown-strings
+osuapi
+praw
+requests
