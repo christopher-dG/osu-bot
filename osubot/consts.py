@@ -53,3 +53,6 @@ mod_order = [
     "EZ", "HD", "HT", "DT", "NC", "HR", "FL", "NF",
     "SD", "PF", "RX", "AP", "SO", "AT", "V2", "TD",
 ]
+
+# Misc stuff
+oppai = "./oppai"

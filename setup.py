@@ -13,7 +13,6 @@ setup(
         "markdown-strings",
         "osuapi",
         "praw",
-        "pyttanko",
         "requests",
     ],
     zip_safe=True,

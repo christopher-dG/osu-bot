@@ -1,5 +1,4 @@
 markdown-strings
 osuapi
 praw
-pyttanko
 requests
