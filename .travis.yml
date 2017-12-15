@@ -1,0 +1,11 @@
+language: python
+notifications:
+  email: false
+python: 3.6
+install: pip install tox
+script: tox
+after_success:
+  - pip install awscli
+  - aws configure set region us-east-1
+  - ./pkg.sh
+  - aws lambda update-function-code --function-name osu-bot-score-post --zip-file fileb://pkg.zip > /dev/null
