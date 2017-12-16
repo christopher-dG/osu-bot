@@ -1,5 +1,3 @@
-import re
-
 from . import consts
 from . import parse_title
 
@@ -47,7 +45,7 @@ def main(title):
     """Main driver function going from submission title to posting a reply."""
     print("Post title: %s" % title)
 
-    if not re.match(consts.title_re, title):
+    if not consts.title_re.match(title):
         print("Not a score post")
         return False
 

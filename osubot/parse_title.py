@@ -1,17 +1,14 @@
-import re
-
 from . import consts
 from .beatmap_search import search
 
 
 def getplayer(title):
     """Get the player from the post title."""
-    cap = re.findall(consts.player_re, title)
-    if not cap:
+    match = consts.player_re.search(title)
+    if not match:
         return None
-    cap = cap[0].strip()
 
-    name = cap  # TODO: Strip away annotations.
+    name = match.group(1).strip()  # TODO: Strip away annotations.
 
     player = consts.osu_api.get_user(name)
     return player[0] if player else None
@@ -19,12 +16,12 @@ def getplayer(title):
 
 def getmap(title, player=None):
     """Search for the beatmap."""
-    cap = re.findall(consts.map_re, title)
-    if not cap:
-        print("Couldn't get betmap name match")
+    match = consts.map_re.search(title)
+    if not match:
+        print("Couldn't get beatmap name match")
         return None
 
-    return search(player, cap[0].strip())
+    return search(player, match.group(1).strip())
 
 
 def getmode(title, beatmap=None):
@@ -38,10 +35,10 @@ def getmode(title, beatmap=None):
 
 def getmods(title):
     """Search for mods in title."""
-    cap = re.findall(consts.tail_re, title)
-    if not cap:
+    match = consts.tail_re.search(title)
+    if not match:
         return consts.nomod
-    tail = cap[0]
+    tail = match.group(1)
 
     if "+" in tail and tail.index("+") < (len(tail) - 1):
         tokens = tail[(tail.index("+") + 1):].split()
@@ -58,7 +55,7 @@ def getmods(title):
 
 def getmods_token(token):
     """Get mods from a single token."""
-    token = re.sub(consts.scorev2_re, "V2", token.upper().replace(",", ""))
+    token = consts.scorev2_re.sub("V2", token.upper().replace(",", ""))
     if len(token) % 2:
         return consts.nomod
     return sum(set(
@@ -68,5 +65,8 @@ def getmods_token(token):
 
 def getacc(title):
     """Search for accuracy in title."""
-    cap = re.findall(consts.acc_re, title)
-    return float(cap[0]) / 100 if cap else None
+    match = consts.tail_re.search(title)
+    if not match:
+        return None
+    match = consts.acc_re.search(match.group(1))
+    return float(match.group(1)) / 100 if match else None

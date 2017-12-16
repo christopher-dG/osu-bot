@@ -1,4 +1,3 @@
-import re
 import requests
 
 from . import consts
@@ -30,10 +29,10 @@ def search_events(player, beatmap):
     slug = beatmap.upper().replace(" ", "")
 
     for event in player.events:
-        cap = re.findall(consts.event_re, event.display_html)
-        if not cap:
+        match = consts.event_re.search(event.display_html)
+        if not match:
             continue
-        if cap[0].upper().replace(" ", "") == slug:
+        if match.group(1).upper().replace(" ", "") == slug:
             b_id = event.beatmap_id
             try:
                 return consts.osu_api.get_beatmaps(beatmap_id=b_id)[0]
@@ -67,11 +66,11 @@ def search_recent(player, beatmap):
 
 def search_osusearch(beatmap):
     """Search osusearch.com for beatmap."""
-    try:
-        artist, title, diff = re.findall(consts.map_pieces_re, beatmap)[0]
-    except Exception as e:
-        print("Beatmap string was not well formed: %s" % e)
+    match = consts.map_pieces_re.search(beatmap)
+    if not match:
+        print("Beatmap string '%s' was not well formed" % beatmap)
         return None
+    artist, title, diff = match.groups()
 
     url = "%s?key=%s" % (consts.osusearch_url, consts.osusearch_key)
     url += "&artist=%s" % artist.strip()

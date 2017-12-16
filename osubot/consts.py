@@ -15,12 +15,12 @@ reddit_client_id = os.environ["REDDIT_CLIENT_ID"]
 reddit_client_secret = os.environ["REDDIT_CLIENT_SECRET"]
 
 # Regex stuff
-title_re = re.compile("(.+)\|(.+)-(.+)\[(.+)\]")
+title_re = re.compile(".+\|.+-.+\[.+\]")
 map_re = re.compile(".+\|(.+-.+\[.+\])")
 map_pieces_re = re.compile(".+\|(.+)-(.+)\[(.+)\]")
 player_re = re.compile("(.+)\|")
 event_re = re.compile("<a href=[\"']/b/\d+\?m=\d[\"']>(.+ - .+ \[.+\])</a>")  # noqa
-acc_re = re.compile("(\d+(?:[,.]\d*)?)%")
+acc_re = re.compile("(\d{1,3}(?:[\.,]\d+)?)%")
 tail_re = re.compile(".+\|.+-.+\[.+\](.+)")
 scorev2_re = re.compile("SV2|SCOREV2")
 
@@ -28,8 +28,10 @@ scorev2_re = re.compile("SV2|SCOREV2")
 std, taiko, ctb, mania = range(0, 4)
 mode2str = {std: "Standard", taiko: "Taiko", ctb: "CTB", mania: "Mania"}
 mode2osuapi = {
-    std: osuapi.OsuMode.osu, taiko: osuapi.OsuMode.taiko,
-    ctb: osuapi.OsuMode.ctb, mania: osuapi.OsuMode.mania,
+    std: osuapi.OsuMode.osu,
+    taiko: osuapi.OsuMode.taiko,
+    ctb: osuapi.OsuMode.ctb,
+    mania: osuapi.OsuMode.mania,
 }
 mods2int = {
     "": 1 >> 1,
