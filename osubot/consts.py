@@ -7,6 +7,7 @@ osu_key = os.environ["OSU_API_KEY"]
 osu_api = osuapi.OsuApi(osu_key, connector=osuapi.ReqConnector())
 osusearch_url = "https://osusearch.com/api/search"
 osusearch_key = os.environ["OSUSEARCH_API_KEY"]
+osu_url = "https://osu.ppy.sh"
 
 # Reddit stuff
 reddit_user = "osu-bot"
@@ -19,20 +20,60 @@ title_re = re.compile(".+\|.+-.+\[.+\]")
 map_re = re.compile(".+\|(.+-.+\[.+\])")
 map_pieces_re = re.compile(".+\|(.+)-(.+)\[(.+)\]")
 player_re = re.compile("(.+)\|")
-event_re = re.compile("<a href=[\"']/b/\d+\?m=\d[\"']>(.+ - .+ \[.+\])</a>")  # noqa
+event_re = re.compile("<a href=[\"']/b/\d+\?m=\d[\"']>(.+ - .+ \[.+\])</a> \((.+)\)")  # noqa
 acc_re = re.compile("(\d{1,3}(?:[\.,]\d+)?)%")
 tail_re = re.compile(".+\|.+-.+\[.+\](.+)")
 scorev2_re = re.compile("SV2|SCOREV2")
+paren_re = re.compile("\((.+)\)")
+bracket_re = re.compile("\[(.+)\]")
+mapper_id_re = re.compile("Creator:</td><td class=[\"']colour[\"']><a href=[\"']/u/(\d+)")  # noqa
 
 # Game stuff
 std, taiko, ctb, mania = range(0, 4)
 mode2str = {std: "Standard", taiko: "Taiko", ctb: "CTB", mania: "Mania"}
-mode2osuapi = {
+int2osuapimode = {
     std: osuapi.OsuMode.osu,
     taiko: osuapi.OsuMode.taiko,
     ctb: osuapi.OsuMode.ctb,
     mania: osuapi.OsuMode.mania,
 }
+eventstr2mode = {
+    "osu!": std,
+    "Taiko": taiko,
+    "Catch the Beat": ctb,
+    "osu!mania": mania,
+}
+mode_annots = {
+    "STANDARD": std,
+    "STD": std,
+    "O!STD": std,
+    "OSU!STD": std,
+    "OSU!STANDARD": std,
+    "TAIKO": taiko,
+    "OSU!TAIKO": taiko,
+    "O!TAIKO": taiko,
+    "CTB": ctb,
+    "O!CATCH": ctb,
+    "OSU!CATCH": ctb,
+    "CATCH": ctb,
+    "OSU!CTB": ctb,
+    "O!CTB": ctb,
+    "MANIA": mania,
+    "O!MANIA": mania,
+    "OSU!MANIA": mania,
+    "OSU!M": mania,
+    "O!M": mania,
+}
+status2str = {
+    -2: "Unranked",
+    -1: "Unranked",
+    0: "Unranked",
+    1: "Ranked",
+    2: "Ranked",
+    3: "Qualified",
+    4: "Loved",
+}
+
 mods2int = {
     "": 1 >> 1,
     "NF": 1 << 0,
@@ -60,5 +101,22 @@ mod_order = [
     "SD", "PF", "RX", "AP", "SO", "AT", "V2", "TD",
 ]
 
+# Markdown/HTML stuff
+dl = "&#x2b07;"  # Downwards arrow
+bar = "&#124;"  # Vertical bar
+spc = "&nbsp;"  # Non-breaking space
+
 # Misc stuff
-oppai = "/tmp/oppai"
+oppai_bin = "/tmp/oppai"
+title_ignores = [
+    "UNNOTICED",
+    "UNNOTICED?",
+    "RIPPLE",
+    "GATARI",
+    "UNSUBMITTED"
+    "OFFLINE",
+    "RESTRICTED",
+    "BANNED",
+    "UNRANKED",
+    "LOVED",
+]

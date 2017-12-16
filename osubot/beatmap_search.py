@@ -24,15 +24,24 @@ def search(player, beatmap):
     return None
 
 
-def search_events(player, beatmap):
-    """Search player's recent events for beatmap."""
+def search_events(player, beatmap, mode=False, b_id=None):
+    """
+    Search player's recent events for beatmap.
+    If mode is False, returns the beatmap.
+    Otherwise, returns the game mode of the event.
+    """
     slug = beatmap.upper().replace(" ", "")
 
     for event in player.events:
         match = consts.event_re.search(event.display_html)
         if not match:
             continue
-        if match.group(1).upper().replace(" ", "") == slug:
+        if (
+                (b_id is not None and event.beatmap_id == b_id) or
+                match.group(1).upper().replace(" ", "") == slug
+        ):
+            if mode:
+                return consts.eventstr2mode[match.group(2)]
             b_id = event.beatmap_id
             try:
                 return consts.osu_api.get_beatmaps(beatmap_id=b_id)[0]
