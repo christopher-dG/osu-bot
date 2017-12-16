@@ -28,3 +28,40 @@ def test_getmods_token():
     assert osubot.context.getmods_token("HDHRHR") == 24
     assert osubot.context.getmods_token("HDHRSCOREV2") == 536870936
     assert osubot.context.getmods_token("HDHRSV2DT") == 536871000
+
+
+def test_accuracy():
+    class Foo:
+        def __init__(self, n3, n1, n5, ng, nk, nm):
+            self.count300 = n3
+            self.count100 = n1
+            self.count50 = n5
+            self.countgeki = ng
+            self.countkatu = nk
+            self.countmiss = nm
+
+    assert abs(osubot.utils.accuracy(
+        Foo(1344, 236, 2, 206, 82, 8),
+        osubot.consts.std,
+    ) - 89.5) < 0.005
+    assert abs(osubot.utils.accuracy(
+        Foo(2401, 436, 0, 13, 4, 92),
+        osubot.consts.taiko,
+    ) - 89.42) < 0.005
+    assert abs(osubot.utils.accuracy(
+        Foo(2655, 171, 435, 339, 3, 31),
+        osubot.consts.ctb,
+    ) - 98.97) < 0.005
+    assert abs(osubot.utils.accuracy(
+        Foo(902, 13, 4, 1882, 180, 16),
+        osubot.consts.mania,
+    ) - 97.06) < 0.005
+
+
+def test_map_str():
+    class Foo:
+        def __init__(self, a, t, v):
+            self.artist = a
+            self.title = t
+            self.version = v
+    assert osubot.utils.map_str(Foo("foo", "bar", "baz")) == "foo - bar [baz]"

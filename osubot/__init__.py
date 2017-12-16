@@ -1,4 +1,4 @@
-from . import consts, context
+from . import consts, context, markdown
 
 
 def main(title):
@@ -11,5 +11,7 @@ def main(title):
 
     ctx = context.build_ctx(title)
     print(ctx)
+    reply = markdown.build_comment(ctx)
+    print(reply)
 
     return True
