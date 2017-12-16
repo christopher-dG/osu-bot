@@ -2,6 +2,20 @@ import requests
 
 from . import consts
 
+osufile = {"id": -1, "text": ""}  # Cached text of a .osu file.
+
+
+def download_beatmap(ctx):
+    """Download a .osu file."""
+    if osufile["id"] == ctx.beatmap.beatmap_id:
+        return osufile["text"]
+    resp = requests.get("%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
+    if resp.status_code != 200:
+        return None
+    osufile["id"] = ctx.beatmap.beatmap_id
+    osufile["text"] = resp.text
+    return resp.text
+
 
 def mapper_id(ctx):
     """Get the mapper ID of a beatmap."""

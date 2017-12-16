@@ -1,0 +1,128 @@
+import json
+import math
+import subprocess
+
+from . import consts, scrape
+from .utils import combine_mods
+
+osufile = {"id": -1, "text": ""}  # Cached text of a .osu file.
+
+
+def oppai_pp(ctx, acc, modded=True, taiko=False):
+    """Get pp with oppai."""
+    text = scrape.download_beatmap(ctx)
+    if text is None:
+        return None
+
+    ar = ctx.beatmap.diff_approach
+    taiko = "-taiko" if taiko else ""
+    if modded and ctx.mods != consts.mods2int[""]:
+        mods = combine_mods(ctx.mods)
+    else:
+        mods = ""
+
+    cmd = "echo %s | %s - %f%% ar%d %s %s -ojson" % \
+          (text, consts.oppai_bin, acc, ar, mods, taiko)
+    try:
+        out = subprocess.check_output(cmd, shell=True)
+    except Exception as e:
+        print("oppai command '%s' failed: %s" % (cmd, e))
+        return None
+
+    try:
+        return json.loads(out).get("pp", None)
+    except Exception as e:
+        print("Converting oppai output to JSON failed: %s" % e)
+        return None
+
+
+def std_pp(ctx, acc, modded=True):
+    """Get pp for a standard map."""
+    return oppai_pp(ctx, acc, modded=modded)
+
+
+def taiko_pp(ctx, acc, modded=True):
+    """Get pp for a Taiko map."""
+    return oppai_pp(ctx, acc, modded=modded, taiko=True)
+
+
+def ctb_pp(ctx, acc, modded=True):
+    """Get pp for a CTB play."""
+    if modded:
+        return None
+    max_combo = ctb_max_combo(ctx)
+    if max_combo is None:
+        return None
+
+    sr = ctx.beatmap.difficultyrating
+    ar = ctx.beatmap.diff_approach
+
+    # Disclaimer: I did not write this.
+    pp = pow(((5 * sr / 0.0049) - 4), 2) / 100000
+    length_bonus = 0.95 + 0.4 * min(1, max_combo / 3000)
+    if max_combo > 3000:
+        length_bonus += math.log10(max_combo / 3000) * 0.5
+    pp *= length_bonus
+    # pp *= pow(0.97, nmiss)  # Irrelevant here, we assume FC.
+    # pp *= pow(combo / max_combo, 0.8)  # Irrelevant here, we assume FC.
+    if ar > 9:
+        pp *= 1 + 0.1 * (ar - 9)
+
+    return pp * pow(acc, 5.5)
+
+
+def mania_pp(ctx, acc, modded=True, score=None):
+    """Get pp for a mania map. This is not guaranteed to be accurate."""
+    if modded:
+        return None  # TODO: Look into https://github.com/semyon422/omppc.
+    nobjs = scrape.map_objects(ctx)
+    if nobjs is None:
+        return None
+    nobjs = nobjs[0] + nobjs[1]
+
+    # Score approximation is very rough.
+    if score is None:
+        if acc < 0.94:
+            score = 750000
+        elif acc < 0.96:
+            score = 850000
+        elif acc < 0.985:
+            score = 900000
+        elif acc < 0.995:
+            score = 950000
+        else:
+            score = 980000
+
+    sr = ctx.beatmap.difficultyrating
+    od = ctx.beatmap.diff_overall
+
+    # Disclaimer: I did not write this.
+    f = 64 - 3 * od
+    k = 2.5 * pow((150 / f) * pow(acc, 16), 1.8) * \
+        min(1.15, pow(nobjs / 1500, 0.3))
+    l = (pow(5 * max(1, sr / 0.0825) - 4, 3) / 110000) * \
+        (1 + 0.1 * min(1, nobjs / 1500))
+    if score < 500000:
+        m = score / 500000 * 0.1
+    elif score < 600000:
+        m = (score - 500000) / 100000 * 0.2 + 0.1
+    elif score < 700000:
+        m = (score - 600000) / 100000 * 0.35 + 0.3
+    elif score < 800000:
+        m = (score - 700000) / 100000 * 0.2 + 0.65
+    elif score < 900000:
+        m = (score - 800000) / 100000 * 0.1 + 0.85
+    else:
+        m = (score - 900000) / 100000 * 0.05 + 0.95
+
+    return pow(pow(k, 1.1) + pow(l * m, 1.1), 1 / 1.1) * 1.1
+
+
+def ctb_max_combo(ctx):
+    """Find or approximate a CTB map's max combo."""
+    combo = scrape.max_combo(ctx)
+    if combo is not None:
+        return combo
+    nobjs = scrape.map_objects(ctx)
+    # https://gist.github.com/christopher-dG/216e4a43618a9a68a03e9db48e30e66b
+    return (nobjs[0] + 2.4*nobjs[1]) if nobjs is not None else None
