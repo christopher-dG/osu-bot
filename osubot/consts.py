@@ -21,6 +21,8 @@ map_pieces_re = re.compile(".+\|(.+)-(.+)\[(.+)\]")
 player_re = re.compile("(.+)\|")
 event_re = re.compile("<a href=[\"']/b/\d+\?m=\d[\"']>(.+ - .+ \[.+\])</a>")  # noqa
 acc_re = re.compile("(\d+(?:[,.]\d*)?)%")
+tail_re = re.compile(".+\|.+-.+\[.+\](.+)")
+scorev2_re = re.compile("SV2|SCOREV2")
 
 # Game stuff
 std, taiko, ctb, mania = range(0, 4)
@@ -47,8 +49,10 @@ mods2int = {
     "AP": 1 << 13,
     "PF": 1 << 5 | 1 << 14,  # SD is always set along with PF.
     "V2": 1 << 29,
+    # TODO: Unranked Mania mods, maybe.
 }
 int2mods = {v: k for k, v in mods2int.items()}
+nomod = mods2int[""]
 mod_order = [
     "EZ", "HD", "HT", "DT", "NC", "HR", "FL", "NF",
     "SD", "PF", "RX", "AP", "SO", "AT", "V2", "TD",

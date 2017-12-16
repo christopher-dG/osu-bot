@@ -38,7 +38,32 @@ def getmode(title, beatmap=None):
 
 def getmods(title):
     """Search for mods in title."""
-    return consts.mods2int[""]
+    cap = re.findall(consts.tail_re, title)
+    if not cap:
+        return consts.nomod
+    tail = cap[0]
+
+    if "+" in tail and tail.index("+") < (len(tail) - 1):
+        tokens = tail[(tail.index("+") + 1):].split()
+        if tokens:
+            return getmods_token(tokens[0])
+
+    for token in tail.split():
+        mods = getmods_token(token)
+        if mods != consts.nomod:
+            return mods
+
+    return consts.nomod
+
+
+def getmods_token(token):
+    """Get mods from a single token."""
+    token = re.sub(consts.scorev2_re, "V2", token.upper().replace(",", ""))
+    if len(token) % 2:
+        return consts.nomod
+    return sum(set(
+        consts.mods2int.get(token[i:i+2], 0) for i in range(0, len(token), 2)
+    ))
 
 
 def getacc(title):

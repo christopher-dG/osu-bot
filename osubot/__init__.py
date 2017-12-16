@@ -33,7 +33,7 @@ def map_str(beatmap):
 def combine_mods(mods):
     mods_a = []
     for k, v in consts.mods2int.items():
-        if v & mods:
+        if v & mods == v:
             mods_a.append(k)
 
     ordered_mods = list(filter(lambda m: m in mods_a, consts.mod_order))
