@@ -55,4 +55,4 @@ mod_order = [
 ]
 
 # Misc stuff
-oppai = "./oppai"
+oppai = "/tmp/oppai"
