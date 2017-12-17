@@ -5,8 +5,8 @@ python: 3.6
 install: pip install tox
 script: tox
 after_success:
-  - ./pkg.sh
-  - if [ "$TRAVIS_BRANCH" != "master" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
   - pip install awscli
   - aws configure set region us-east-1
+  - ./pkg.sh
+  - if [ "$TRAVIS_BRANCH" != "master" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
   - aws lambda update-function-code --function-name osu-bot-score-post --zip-file fileb://pkg.zip > /dev/null
