@@ -1,8 +1,9 @@
+import markdown_strings as md
 import osubot
 
 
 def test_combine_mods():
-    assert osubot.utils.combine_mods(1 >> 1) == "NoMod"
+    assert osubot.utils.combine_mods(1 >> 1) == ""
     assert osubot.utils.combine_mods(1 << 3 | 1 << 9 | 1 << 6) == "+HDNC"
     assert osubot.utils.combine_mods(1 << 3 | 1 << 4) == "+HDHR"
     assert osubot.utils.combine_mods(1 << 10 | 1 << 5 | 1 << 14) == "+FLPF"
@@ -95,3 +96,21 @@ def test_safe_call():
     assert osubot.utils.safe_call(foo, 0, y=1) == 0
     assert osubot.utils.safe_call(foo, 1, y=0) == []
     assert osubot.utils.safe_call(foo, 1, y=0, alt=10) == 10
+
+
+def test_sep():
+    assert osubot.utils.sep(0) == "0"
+    assert osubot.utils.sep(1) == "1"
+    assert osubot.utils.sep(999) == "999"
+    assert osubot.utils.sep(9999) == "9,999"
+    assert osubot.utils.sep(999999999) == "999,999,999"
+
+
+def test_centre_table():
+    t = md.table([["foobar"] * 10] * 5)
+    lines = t.split("\n")
+    centred = osubot.markdown.centre_table(t)
+    centred_lines = centred.split("\n")
+    assert centred_lines[1] == ":-:|:-:|:-:|:-:|:-:"
+    assert lines[0] == centred_lines[0]
+    assert "\n".join(lines[2:]) == "\n".join(centred_lines[2:])

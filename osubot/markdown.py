@@ -7,7 +7,9 @@ from .utils import (
     api_wrap,
     combine_mods,
     map_str,
+    nonbreaking,
     round_to_str,
+    sep,
     str_to_timestamp,
 )
 
@@ -58,10 +60,13 @@ def map_header(ctx):
 
     max_combo = scrape.max_combo(ctx)
     if max_combo is not None:
-        buf += "%dx max combo || " % max_combo
+        buf += "%sx max combo || " % sep(max_combo)
     buf += "%s" % consts.status2str[b.approved.value]
     if b.approved_date:
         buf += " (%s)" % b.approved_date.date()
+    if b.playcount > 0:
+        buf += " || %s plays" % sep(b.playcount)
+
     subheader = md.bold(buf)
 
     return "%s\n%s" % (header, subheader)
@@ -143,15 +148,58 @@ def map_table(ctx):
         )
         cols[-1].append(modded_joined)
 
-    return md.table([[str(x) for x in col] for col in cols])
+    return centre_table(md.table([[str(x) for x in col] for col in cols]))
 
 
 def player_table(ctx):
     if not ctx.player:
         print("No player; skipping player table")
         return None
+    p = ctx.player
 
-    return None
+    rank = "#%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country)
+    cols = [
+        ["Player", nonbreaking(p.username)],
+        ["Rank", nonbreaking(rank)],
+        ["pp", sep(round(p.pp_raw))],
+        ["Acc", "%s%%" % round_to_str(p.accuracy, 2, force=True)],
+        ["Playcount", sep(p.playcount)],
+    ]
+
+    mode = ctx.mode if ctx.mode is not None else consts.std
+    scores = api_wrap(
+        consts.osu_api.get_user_best,
+        ctx.player.user_id,
+        mode=consts.int2osuapimode[mode],
+        limit=1,
+    )
+    if scores:
+        score = scores[0]
+        beatmaps = api_wrap(
+            consts.osu_api.get_beatmaps,
+            beatmap_id=score.beatmap_id,
+            mode=consts.int2osuapimode[mode],
+            include_converted=True,
+        )
+        if beatmaps:
+            bmap = beatmaps[0]
+            buf = md.link(
+                map_str(bmap),
+                "%s/b/%d" % (consts.osu_url, bmap.beatmap_id),
+            )
+
+            mods = combine_mods(score.enabled_mods.value)
+            if mods:
+                buf += " %s %s " % (mods, consts.bar)
+
+            buf += "%s%%" % round_to_str(accuracy(score, mode), 2, force=True)
+
+            if score.pp:
+                buf += " %s %spp" % (consts.bar, sep(round(score.pp)))
+
+            cols.append(["Top Play", buf])
+
+    return centre_table(md.table([[str(x) for x in col] for col in cols]))
 
 
 def footer(ctx):
@@ -197,6 +245,12 @@ def map_rank_one(ctx):
         buf += "%s - " % combine_mods(score.enabled_mods.value)
     buf += "%.2f%%" % accuracy(score, mode)
     if score.pp is not None:
-        buf += " - %dpp" % round(score.pp)
+        buf += " - %spp" % sep(round(score.pp))
     buf += ")"
     return buf
+
+
+def centre_table(t):
+    """Centre cells in a Markdown table."""
+    lines = t.split("\n")
+    return t.replace(lines[1], "|".join([":-:"] * (lines[0].count("|") - 1)))

@@ -17,7 +17,7 @@ def combine_mods(mods):
     "NC" in ordered_mods and ordered_mods.remove("DT")
     "PF" in ordered_mods and ordered_mods.remove("SD")
 
-    return "+%s" % "".join(ordered_mods) if ordered_mods else "NoMod"
+    return "+%s" % "".join(ordered_mods) if ordered_mods else ""
 
 
 def accuracy(s, mode):
@@ -89,3 +89,8 @@ def api_wrap(f, *args, **kwargs):
         return result
 
     return None
+
+
+def sep(n):
+    """Format n with commas."""
+    return"{:,}".format(n)

@@ -14,12 +14,13 @@ class Context:
 
     def __repr__(self):
         mode = "Unknown" if self.mode is None else consts.mode2str[self.mode]
+        mods = "NoMod" if self.mods == consts.nomod else combine_mods(self.mods)  # noqa
         acc = "None" if self.acc is None else "%.2f%%" % self.acc
         s = "Context:\n"
         s += "> Player:   %s\n" % self.player
         s += "> Beatmap:  %s\n" % map_str(self.beatmap)
         s += "> Mode:     %s\n" % mode
-        s += "> Mods:     %s\n" % combine_mods(self.mods)
+        s += "> Mods:     %s\n" % mods
         s += "> Acc:      %s" % acc
         return s
 

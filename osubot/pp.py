@@ -81,7 +81,7 @@ def mania_pp(ctx, acc, modded=True, score=None):
     f = 64 - 3 * od
     k = 2.5 * pow((150 / f) * pow(acc, 16), 1.8) * \
         min(1.15, pow(nobjs / 1500, 0.3))
-    l = (pow(5 * max(1, sr / 0.0825) - 4, 3) / 110000) * \
+    x = (pow(5 * max(1, sr / 0.0825) - 4, 3) / 110000) * \
         (1 + 0.1 * min(1, nobjs / 1500))
     if score < 500000:
         m = score / 500000 * 0.1
@@ -96,7 +96,7 @@ def mania_pp(ctx, acc, modded=True, score=None):
     else:
         m = (score - 900000) / 100000 * 0.05 + 0.95
 
-    return pow(pow(k, 1.1) + pow(l * m, 1.1), 1 / 1.1) * 1.1
+    return pow(pow(k, 1.1) + pow(x * m, 1.1), 1 / 1.1) * 1.1
 
 
 def oppai_pp(ctx, acc, modded=True, taiko=False):
