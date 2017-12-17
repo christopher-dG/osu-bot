@@ -40,7 +40,7 @@ def diff_modded(ctx):
     taiko = "-taiko" if ctx.mode == consts.taiko else ""
     mods = combine_mods(ctx.mods)
 
-    cmd = "echo %s | %s - ar%d %s %s -ojson" % \
+    cmd = "echo '%s' | %s - ar%d %s %s -ojson" % \
           (text, consts.oppai_bin, ar, mods, taiko)
     try:
         out = subprocess.check_output(cmd, shell=True)
@@ -54,9 +54,9 @@ def diff_modded(ctx):
         print("Converting oppai output to JSON failed: %s" % e)
         return None
 
-    if ctx.mods | ctx.mods2int["DT"]:  # This catches NC too.
+    if ctx.mods | consts.mods2int["DT"]:  # This catches NC too.
         scalar = 1.5
-    elif ctx.mods | ctx.mods2int["HR"]:
+    elif ctx.mods | consts.mods2int["HR"]:
         scalar = 1.3333
     else:
         scalar = 1

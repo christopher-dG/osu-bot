@@ -1,7 +1,13 @@
 import markdown_strings as md
 
-from . import consts, scrape
-from .utils import accuracy, combine_mods, map_str
+from . import consts, diff, pp, scrape
+from .utils import (
+    accuracy,
+    combine_mods,
+    map_str,
+    round_to_str,
+    str_to_timestamp,
+)
 
 
 def build_comment(ctx):
@@ -61,7 +67,65 @@ def map_table(ctx):
     if not ctx.beatmap:
         return None
 
-    return None
+    nomod = diff.diff_vals(ctx, modded=False)
+    if nomod is None:
+        return None
+    modded = diff.diff_vals(ctx, modded=True)
+
+    r = round_to_str
+    if modded:
+        cols = [
+            ["", "NoMod", combine_mods(ctx.mods)],
+            ["CS", r(nomod["cs"], 1), r(modded["cs"], 1)],
+            ["AR", r(nomod["ar"], 1), r(modded["ar"], 1)],
+            ["OD", r(nomod["od"], 1), r(modded["od"], 1)],
+            ["HP", r(nomod["hp"], 1), r(modded["hp"], 1)],
+            [
+                "SR",
+                r(nomod["sr"], 2, force=True),
+                r(modded["sr"], 2, force=True),
+            ],
+            ["BPM", round(nomod["bpm"]), round(modded["bpm"])],
+            [
+                "Length",
+                str_to_timestamp(nomod["length"]),
+                str_to_timestamp(modded["length"]),
+            ],
+        ]
+    else:
+        cols = [
+            ["CS", r(nomod["cs"], 1)],
+            ["AR", r(nomod["ar"], 1)],
+            ["OD", r(nomod["od"], 1)],
+            ["HP", r(nomod["hp"], 1)],
+            ["SR", r(nomod["sr"], 2, force=True)],
+            ["BPM", round(nomod["bpm"])],
+            ["Length", str_to_timestamp(nomod["length"])],
+        ]
+
+    pp_vals = {}
+    for acc in filter(bool, set([95, 98, 99, 100, ctx.acc])):
+        nomod_pp = pp.pp_val(ctx, acc, modded=False)
+        modded_pp = pp.pp_val(ctx, acc, modded=True)
+        if nomod_pp is not None and (not modded or modded_pp is not None):
+            pp_vals[acc] = nomod_pp, modded_pp
+
+    accs_joined = (" %s " % consts.bar).join(
+        "%s%%" % r(a, 2, force=True)
+        if int(a) != a else str(a) for a in sorted(pp_vals.keys()),
+    )
+    nomod_joined = (" %s " % consts.bar).join(
+        r(pp_vals[acc][0], 0) for acc in sorted(pp_vals.keys()),
+    )
+
+    cols.append(["pp (%s)" % accs_joined, nomod_joined])
+    if modded:
+        modded_joined = (" % s " % consts.bar).join(
+            r(pp_vals[acc][1], 0) for acc in sorted(pp_vals.keys()),
+        )
+        cols[-1].append(modded_joined)
+
+    return md.table([[str(x) for x in col] for col in cols])
 
 
 def player_table(ctx):
@@ -97,9 +161,9 @@ def map_rank_one(ctx):
 
     buf = "#1: %s (" % player_link
     if score.enabled_mods.value != consts.nomod:
-        buf += "%s - " % combine_mods(score.enabled_mods)
+        buf += "%s - " % combine_mods(score.enabled_mods.value)
     buf += "%.2f%%" % accuracy(score, mode)
     if score.pp is not None:
-        buf += " - %.2fpp" % score.pp
+        buf += " - %dpp" % round(score.pp)
     buf += ")"
     return buf

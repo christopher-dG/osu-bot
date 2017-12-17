@@ -8,35 +8,13 @@ from .utils import combine_mods
 osufile = {"id": -1, "text": ""}  # Cached text of a .osu file.
 
 
-def oppai_pp(ctx, acc, modded=True, taiko=False):
-    """Get pp with oppai."""
-    if not ctx.beatmap:
-        return None
-
-    text = scrape.download_beatmap(ctx)
-    if text is None:
-        return None
-
-    ar = ctx.beatmap.diff_approach
-    taiko = "-taiko" if taiko else ""
-    if modded and ctx.mods != consts.mods2int[""]:
-        mods = combine_mods(ctx.mods)
-    else:
-        mods = ""
-
-    cmd = "echo %s | %s - %f%% ar%d %s %s -ojson" % \
-          (text, consts.oppai_bin, acc, ar, mods, taiko)
-    try:
-        out = subprocess.check_output(cmd, shell=True)
-    except Exception as e:
-        print("oppai command '%s' failed: %s" % (cmd, e))
-        return None
-
-    try:
-        return json.loads(out).get("pp", None)
-    except Exception as e:
-        print("Converting oppai output to JSON failed: %s" % e)
-        return None
+def pp_val(ctx, acc, modded=True):
+    return {
+        consts.std: std_pp,
+        consts.taiko: taiko_pp,
+        consts.ctb: ctb_pp,
+        consts.mania: mania_pp,
+    }[ctx.mode](ctx, acc, modded=modded) if ctx.mode is not None else None
 
 
 def std_pp(ctx, acc, modded=True):
@@ -71,7 +49,7 @@ def ctb_pp(ctx, acc, modded=True):
     if ar > 9:
         pp *= 1 + 0.1 * (ar - 9)
 
-    return pp * pow(acc, 5.5)
+    return pp * pow(acc / 100, 5.5)
 
 
 def mania_pp(ctx, acc, modded=True, score=None):
@@ -85,19 +63,20 @@ def mania_pp(ctx, acc, modded=True, score=None):
 
     # Score approximation is very rough.
     if score is None:
-        if acc < 0.94:
+        if acc < 94:
             score = 750000
-        elif acc < 0.96:
+        elif acc < 96:
             score = 850000
-        elif acc < 0.985:
+        elif acc < 985:
             score = 900000
-        elif acc < 0.995:
+        elif acc < 995:
             score = 950000
         else:
             score = 980000
 
     sr = ctx.beatmap.difficultyrating
     od = ctx.beatmap.diff_overall
+    acc /= 100
 
     # Disclaimer: I did not write this.
     f = 64 - 3 * od
@@ -119,6 +98,37 @@ def mania_pp(ctx, acc, modded=True, score=None):
         m = (score - 900000) / 100000 * 0.05 + 0.95
 
     return pow(pow(k, 1.1) + pow(l * m, 1.1), 1 / 1.1) * 1.1
+
+
+def oppai_pp(ctx, acc, modded=True, taiko=False):
+    """Get pp with oppai."""
+    if not ctx.beatmap:
+        return None
+
+    text = scrape.download_beatmap(ctx)
+    if text is None:
+        return None
+
+    ar = ctx.beatmap.diff_approach
+    taiko = "-taiko" if taiko else ""
+    if modded and ctx.mods != consts.nomod:
+        mods = combine_mods(ctx.mods)
+    else:
+        mods = ""
+
+    cmd = "echo '%s' | %s - %f%% ar%d %s %s -ojson" % \
+          (text, consts.oppai_bin, acc, ar, mods, taiko)
+    try:
+        out = subprocess.check_output(cmd, shell=True)
+    except Exception as e:
+        print("oppai command '%s' failed: %s" % (cmd, e))
+        return None
+
+    try:
+        return json.loads(out).get("pp", None)
+    except Exception as e:
+        print("Converting oppai output to JSON failed: %s" % e)
+        return None
 
 
 def ctb_max_combo(ctx):

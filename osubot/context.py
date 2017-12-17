@@ -10,10 +10,10 @@ class Context:
         self.beatmap = beatmap  # osuapi.models.Beatmap, None if missing
         self.mode = mode  # Int (0-4, 0 if missing)
         self.mods = mods  # Int, 0 if missing
-        self.acc = acc  # Float (0-1, None if missing)
+        self.acc = acc  # Float (0-100, None if missing)
 
     def __repr__(self):
-        acc = "%.2f%%" % (self.acc * 100) if self.acc is not None else "None"
+        acc = "%.2f%%" % (self.acc) if self.acc is not None else "None"
         s = "Context:\n"
         s += "> Player:   %s\n" % self.player
         s += "> Beatmap:  %s\n" % map_str(self.beatmap)
@@ -129,4 +129,4 @@ def getacc(title):
     if not match:
         return None
     match = consts.acc_re.search(match.group(1))
-    return float(match.group(1)) / 100 if match else None
+    return float(match.group(1)) if match else None

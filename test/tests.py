@@ -72,3 +72,19 @@ def test_str_to_timestamp():
     assert osubot.utils.str_to_timestamp(10) == "00:10"
     assert osubot.utils.str_to_timestamp(340) == "05:40"
     assert osubot.utils.str_to_timestamp(3940) == "01:05:40"
+
+
+def test_nonbreaking():
+    assert osubot.utils.nonbreaking("") == ""
+    assert osubot.utils.nonbreaking("foobar") == "foobar"
+    assert osubot.utils.nonbreaking("foo bar") == "foo%sbar" % osubot.consts.spc  # noqa
+    assert osubot.utils.nonbreaking("foo-bar") == "foo%sbar" % osubot.consts.hyp  # noqa
+
+
+def test_round_to_string():
+    assert osubot.utils.round_to_str(1, 2) == "1"
+    assert osubot.utils.round_to_str(1, 2, force=True) == "1.00"
+    assert osubot.utils.round_to_str(1.4, 0) == "1"
+    assert osubot.utils.round_to_str(1.4, 1) == "1.4"
+    assert osubot.utils.round_to_str(1.4, 2) == "1.4"
+    assert osubot.utils.round_to_str(1.4, 2, force=True) == "1.40"

@@ -44,3 +44,20 @@ def str_to_timestamp(secs):
     secs = secs - hrs * 3600 - mins * 60
     ts = "%02d:%02d:%02d" % (hrs, mins, secs)
     return ts if hrs else ts[3:]
+
+
+def round_to_str(n, p, force=False):
+    """Round n to p digits, or less if force is not set. Returns a string."""
+    if p == 0:
+        return str(round(n))
+    if n == int(n) and not force:
+        return str(int(n))
+    if force:
+        assert type(p) == int
+        return eval("'%%.0%df' %% n" % p)
+    return str(round(n, p))
+
+
+def nonbreaking(s):
+    """Return a visually identical version of s that does not break lines."""
+    return s.replace(" ", consts.spc).replace("-", consts.hyp)
