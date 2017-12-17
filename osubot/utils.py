@@ -4,7 +4,8 @@ from . import cache, consts
 def map_str(beatmap):
     if not beatmap:
         return None
-    return "%s - %s [%s]" % (beatmap.artist, beatmap.title, beatmap.version)
+    s = "%s - %s [%s]" % (beatmap.artist, beatmap.title, beatmap.version)
+    return s.replace("^", "\^").replace("*", "\*").replace("_", "\_")
 
 
 def combine_mods(mods):

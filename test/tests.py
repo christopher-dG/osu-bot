@@ -66,6 +66,7 @@ def test_map_str():
             self.title = t
             self.version = v
     assert osubot.utils.map_str(Foo("foo", "bar", "baz")) == "foo - bar [baz]"
+    assert osubot.utils.map_str(Foo("foo^2", "b*ar", "b_az")) == "foo\^2 - b\*ar [b\_az]"  # noqa
 
 
 def test_str_to_timestamp():

@@ -16,6 +16,10 @@ from .utils import (
 
 def build_comment(ctx):
     """Build a full comment from ctx."""
+    if not ctx.player and not ctx.beatmap:
+        print("No player or beatmap; aborting")
+        return None
+
     comment = "\n\n".join(filter(
         bool,
         [
@@ -26,6 +30,7 @@ def build_comment(ctx):
             footer(ctx),
         ],
     ))
+
     return None if comment.startswith("***") else comment
 
 
@@ -157,6 +162,9 @@ def player_table(ctx):
         print("No player; skipping player table")
         return None
     p = ctx.player
+    if p.pp_rank is None:
+        print("Player is inactive in mode: %s" % consts.mode2str[ctx.mode])
+        return None
 
     rank = "#%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country)
     player_link = md.link(
@@ -216,8 +224,14 @@ def footer(ctx):
     buf += "^( | )"
     buf += md.link("^([Unnoticed]: Unranked leaderboards)", consts.unnoticed)
 
-    if ctx.beatmap and ctx.mode in [consts.ctb, consts.mania]:
-        buf += "^( | CTB/Mania pp is experimental)"
+    exp_pp = ctx.beatmap and ctx.beatmap.mode.value != ctx.mode
+    exp_pp |= ctx.mods in [consts.ctb, consts.mania]
+    if exp_pp:
+        if ctx.mode == consts.taiko:
+            mode = "Autoconverted Taiko"
+        else:
+            mode = consts.mode2str[ctx.mode]
+        buf += "^( | %s pp is experimental)" % mode
 
     return buf
 

@@ -42,17 +42,29 @@ def build_ctx(title):
     mods = getmods(title)
     acc = getacc(title)
 
+    # Once we know the game mode, we can ensure that the player and map
+    # are of the right mode (this really helps with autoconverts).
     if mode is not None and mode != consts.std:
         match = consts.player_re.search(title)
         if match:
             name = strip_annots(match.group(1))
-            updated_player = api_wrap(
+            updated_players = api_wrap(
                 consts.osu_api.get_user,
                 player.user_id if player else name,
                 mode=consts.int2osuapimode[mode],
             )
-            if updated_player:
-                player = updated_player[0]
+            if updated_players:
+                player = updated_players[0]
+
+        if beatmap is not None and beatmap.mode.value == consts.std:
+            updated_beatmaps = api_wrap(
+                consts.osu_api.get_beatmaps,
+                beatmap_id=beatmap.beatmap_id,
+                mode=consts.int2osuapimode[mode],
+                include_converted=True,
+            )
+            if updated_beatmaps:
+                beatmap = updated_beatmaps[0]
 
     return Context(player, beatmap, mode, mods, acc)
 
@@ -77,7 +89,7 @@ def strip_annots(s):
         if cap in ignores:
             name = name.replace("[%s]" % cap, "")
 
-    return name
+    return name.strip()
 
 
 def getmap(title, player=None):
@@ -97,7 +109,7 @@ def getmode(title, player=None, beatmap=None):
     Otherwise, use beatmap's mode.
     If beatmap is None, then return None for unknown.
     """
-    match = consts.player_re.match(title)
+    match = consts.player_re.match(title.upper())
     if not match:
         return None
     playername = match.group(1)

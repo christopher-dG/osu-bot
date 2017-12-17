@@ -56,7 +56,7 @@ def mapper_id(ctx):
 
 def max_combo(ctx):
     """Try to find the max combo of a beatmap."""
-    if ctx.beatmap.max_combo is not None:
+    if ctx.beatmap.max_combo is not None and ctx.beatmap.mode.value == ctx.mode:  # noqa
         return ctx.beatmap.max_combo
 
     combo = api_max_combo(ctx)
