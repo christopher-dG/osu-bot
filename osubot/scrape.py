@@ -1,15 +1,18 @@
+import os.path
 import requests
 
 from . import consts
 from .utils import api_wrap, safe_call
 
-osufile = {"id": -1, "text": ""}  # Cached text of a .osu file.
-
 
 def download_beatmap(ctx):
     """Download a .osu file."""
-    if osufile["id"] == ctx.beatmap.beatmap_id:
-        return osufile["text"]
+    if not ctx.beatmap:
+        return None
+    osu_path = "/tmp/%d.osu" % ctx.beatmap.beatmap_id
+    if os.path.isfile(osu_path):
+        return osu_path
+
     resp = safe_call(
         requests.get,
         "%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id),
@@ -20,9 +23,10 @@ def download_beatmap(ctx):
     if resp.status_code != 200:
         print("Downloading .osu file returned %d" % resp.status_code)
         return None
-    osufile["id"] = ctx.beatmap.beatmap_id
-    osufile["text"] = resp.text
-    return resp.text
+    with open(osu_path, "w") as f:
+        f.write(resp.text)
+
+    return osu_path
 
 
 def mapper_id(ctx):

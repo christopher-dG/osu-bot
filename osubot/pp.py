@@ -104,21 +104,19 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
     if not ctx.beatmap:
         return None
 
-    text = scrape.download_beatmap(ctx)
-    if text is None:
+    path = scrape.download_beatmap(ctx)
+    if path is None:
         return None
 
     ar = ctx.beatmap.diff_approach
-    taiko = "-taiko" if taiko else ""
+    cmd = [consts.oppai_bin, path, "%.3f%%" % acc, "ar%d" % ar, "-ojson"]
     if modded and ctx.mods != consts.nomod:
-        mods = combine_mods(ctx.mods)
-    else:
-        mods = ""
+        cmd.append(combine_mods(ctx.mods))
+    if taiko:
+        cmd.append("-taiko")
 
-    cmd = "echo '%s' | %s - %f%% ar%d %s %s -ojson" % \
-          (text, consts.oppai_bin, acc, ar, mods, taiko)
     try:
-        out = subprocess.check_output(cmd, shell=True)
+        out = subprocess.check_output(cmd)
     except Exception as e:
         print("oppai command '%s' failed: %s" % (cmd, e))
         return None

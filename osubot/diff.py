@@ -32,18 +32,18 @@ def diff_modded(ctx):
     if ctx.mode not in [consts.std, consts.taiko] or ctx.mods == consts.nomod:
         return None
 
-    text = scrape.download_beatmap(ctx)
-    if text is None:
+    path = scrape.download_beatmap(ctx)
+    if path is None:
         return None
 
     ar = ctx.beatmap.diff_approach
-    taiko = "-taiko" if ctx.mode == consts.taiko else ""
-    mods = combine_mods(ctx.mods)
-
-    cmd = "echo '%s' | %s - ar%d %s %s -ojson" % \
-          (text, consts.oppai_bin, ar, mods, taiko)
+    cmd = [consts.oppai_bin, path, "ar%d" % ar, "-ojson"]
+    if ctx.mods != consts.nomod:
+        cmd.append(combine_mods(ctx.mods))
+    if ctx.mode == consts.taiko:
+        cmd.append("-taiko")
     try:
-        out = subprocess.check_output(cmd, shell=True)
+        out = subprocess.check_output(cmd)
     except Exception as e:
         print("oppai command '%s' failed: %s" % (cmd, e))
         return None
