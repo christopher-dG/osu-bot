@@ -41,7 +41,10 @@ def map_header(ctx):
         return None
     b = ctx.beatmap
 
-    map_link = md.link(map_str(b), "%s/b/%d" % (consts.osu_url, b.beatmap_id))
+    map_url = "%s/b/%d" % (consts.osu_url, b.beatmap_id)
+    if ctx.mode is not None:
+        map_url += "?m=%d" % ctx.mode
+    map_link = md.link(map_str(b), map_url)
     dl_link = md.link(
         "(%s)" % consts.dl,
         "%s/d/%d" % (consts.osu_url, b.beatmap_id),
@@ -196,10 +199,10 @@ def player_table(ctx):
         )
         if beatmaps:
             bmap = beatmaps[0]
-            buf = md.link(
-                map_str(bmap),
-                "%s/b/%d" % (consts.osu_url, bmap.beatmap_id),
-            )
+            map_url = "%s/b/%d" % (consts.osu_url, bmap.beatmap_id)
+            if ctx.mode is not None:
+                map_url += "?m=%d" % ctx.mode
+            buf = md.link(map_str(bmap), map_url)
 
             mods = combine_mods(score.enabled_mods.value)
             if mods:

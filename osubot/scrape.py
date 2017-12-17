@@ -1,8 +1,7 @@
 import os.path
-import requests
 
 from . import consts
-from .utils import api_wrap, safe_call
+from .utils import api_wrap, request
 
 
 def download_beatmap(ctx):
@@ -13,45 +12,56 @@ def download_beatmap(ctx):
     if os.path.isfile(osu_path):
         return osu_path
 
-    resp = safe_call(
-        requests.get,
-        "%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id),
-        alt=None,
-    )
-    if resp is None:
-        return None
-    if resp.status_code != 200:
-        print("Downloading .osu file returned %d" % resp.status_code)
+    text = request("%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
+    if not text:
         return None
     with open(osu_path, "w") as f:
-        f.write(resp.text)
+        f.write(text)
 
     return osu_path
 
 
 def mapper_id(ctx):
     """Get the mapper ID of a beatmap."""
-    resp = safe_call(
-        requests.get,
-        "%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id),
-        alt=None,
-    )
-    if resp is None:
+    text = request("%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
+    if not text:
         return None
-    if resp.status_code != 200:
-        print("Request for beatmap web page returned %d" % resp.status_code)
-        return None
-    if "Creator" not in resp.text:
+    if consts.mapper_id_anchor not in text:
         print("No 'Creator' field in response text")
         return None
 
-    # For some reason the regex only matches on a substring of the HTML.
-    idx = resp.text.index("Creator:")
-    match = consts.mapper_id_re.match(resp.text[idx:idx+100])
+    idx = text.index(consts.mapper_id_anchor)
+    match = consts.mapper_id_re.match(text[idx:idx+100])
     if not match:
         print("No mapper ID match found")
         return None
     return match.group(1)
+
+
+def playstyle(ctx):
+    """Try to find the player's playstyle on their userpage."""
+    if not ctx.player:
+        print("Player is missing: Skipping playstyle")
+        return None
+
+    text = request("%s/u/%d" % (consts.osu_url, ctx.player.user_id))
+    if not text:
+        return None
+
+    if consts.playstyle_anchor not in text:
+        print("Playstyle anchor not found")
+        return None
+    idx = text.index(consts.playstyle_anchor)
+    website = text[idx:idx+200]
+
+    mouse = "M" if consts.playstyle_m_re.match(website) else None
+    keyboard = "KB" if consts.playstyle_kb_re.match(website) else None
+    tablet = "TB" if consts.playstyle_tb_re.match(website) else None
+    touch = "TD" if consts.playstyle_td_re.match(website) else None
+
+    joined = "+".join(filter(bool, [mouse, keyboard, tablet, touch]))
+
+    return None if not joined else joined
 
 
 def max_combo(ctx):
@@ -98,15 +108,8 @@ def api_max_combo(ctx):
 def web_max_combo(ctx):
     """Try to find the max combo from the top rank on the leaderboard."""
     # TODO: We could look at all the scores on the leaderboard.
-    resp = safe_call(
-        requests.get,
-        "%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id),
-        alt=None,
-    )
-    if resp is None:
-        return None
-    if resp.status_code != 200:
-        print("Request for website returned %d" % resp.status_code)
+    text = request("%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
+    if not text:
         return None
 
     if ctx.mode == consts.mania:
@@ -116,20 +119,20 @@ def web_max_combo(ctx):
         misses_anchor = consts.misses_anchor
         misses_re = consts.misses_re
 
-    if consts.combo_anchor not in resp.text:
+    if consts.combo_anchor not in text:
         print("Combo anchor not found")
         return None
-    idx = resp.text.index(consts.combo_anchor)
-    match = consts.combo_re.match(resp.text[idx:idx+100])
+    idx = text.index(consts.combo_anchor)
+    match = consts.combo_re.match(text[idx:idx+100])
     if not match:
         print("No combo match")
         return None
-    if misses_anchor not in resp.text:
+    if misses_anchor not in text:
         print("Misses anchor not found")
         return None
     combo = match.group(1)
-    idx = resp.text.index(misses_anchor)
-    match = misses_re.match(resp.text[idx:idx+100])
+    idx = text.index(misses_anchor)
+    match = misses_re.match(text[idx:idx+100])
     if not match:
         print("No misses match")
         return None

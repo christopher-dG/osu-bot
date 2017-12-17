@@ -1,7 +1,5 @@
-import requests
-
 from . import consts
-from .utils import api_wrap, safe_call
+from .utils import api_wrap, request
 
 
 def search(player, beatmap):
@@ -28,16 +26,12 @@ def search_events(player, beatmap, mode=False, b_id=None):
     If mode is False, returns the beatmap.
     Otherwise, returns the game mode of the event.
     """
-    slug = beatmap.upper().replace(" ", "")
-
     for event in player.events:
         match = consts.event_re.search(event.display_html)
         if not match:
             continue
-        if (
-                (b_id is not None and event.beatmap_id == b_id) or
-                match.group(1).upper().replace(" ", "") == slug
-        ):
+        if (b_id is not None and event.beatmap_id == b_id) or \
+           compare(match.group(1), beatmap):
             if mode:
                 return consts.eventstr2mode[match.group(2)]
             b_id = event.beatmap_id
@@ -67,7 +61,7 @@ def search_recent(player, beatmap):
         bmap = beatmaps[0]
 
         map_str = "%s - %s [%s]" % (bmap.artist, bmap.title, bmap.version)
-        if map_str.upper() == beatmap.upper():
+        if compare(map_str, beatmap):
             return bmap
 
     return None
@@ -90,17 +84,10 @@ def search_osusearch(beatmap):
 
     # TODO: Maybe canonicalize the URL.
 
-    resp = safe_call(
-        requests.get,
-        consts.osusearch_url,
-        alt=None,
-        params=params,
-    )
-    if resp is None:
+    resp = request(consts.osusearch_url, text=False, params=params)
+    if not resp:
         return None
-    if resp.status_code != 200:
-        print("osusearch returned %d" % resp.status_code)
-        return None
+
     try:
         d = resp.json()
     except Exception as e:
@@ -117,3 +104,10 @@ def search_osusearch(beatmap):
         beatmap_id=fav_map["beatmap_id"],
     )
     return beatmaps[0] if beatmaps else None
+
+
+def compare(x, y):
+    """Leniently compare two strings."""
+    x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
+    y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
+    return x.upper() == y.upper()

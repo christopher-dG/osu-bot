@@ -1,5 +1,27 @@
+import logging
 import markdown_strings as md
 import osubot
+import re
+
+logging.getLogger("urllib3").propagate = False
+
+full_score_post = re.compile("""\
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+\)
+\*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - \d+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
+
+\|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:
+\|\s+NoMod\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+\d+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+\|\s+\+(?:[A-Z2]{2})+\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+\d+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+
+\|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\) (?:\+(?:[A-Z2]{2})+ &#124; )?\d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+
+\*\*\*
+
+\^\(.+ - \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^\(\[Unnoticed\]: Unranked leaderboards\)\]\(https:\/\/github\.com\/christopher-dG\/unnoticed\/wiki\)\
+""")  # noqa
 
 
 def test_combine_mods():
@@ -115,3 +137,35 @@ def test_centre_table():
     assert centred_lines[1] == ":-:|:-:|:-:|:-:|:-:"
     assert lines[0] == centred_lines[0]
     assert "\n".join(lines[2:]) == "\n".join(centred_lines[2:])
+
+
+def test_compare():
+    assert osubot.beatmap_search.compare("", "")
+    assert not osubot.beatmap_search.compare("foo", "bar")
+    assert osubot.beatmap_search.compare("foo bar", "foobar")
+    assert osubot.beatmap_search.compare("foobar", "FOOBAR")
+    assert osubot.beatmap_search.compare("foo&bar", "FOO&amp;BAR")
+    assert osubot.beatmap_search.compare("foo\"bar", "FOO&quot;BAR")
+
+
+def test_safe_url():
+    assert osubot.utils.safe_url("") == ""
+    assert osubot.utils.safe_url("foobar") == "foobar"
+    assert osubot.utils.safe_url(osubot.consts.osu_key) == "###"
+    assert osubot.utils.safe_url(osubot.consts.osusearch_key) == "###"
+    assert osubot.utils.safe_url("?k=%s&b=1" % osubot.consts.osu_key) == "?k=###&b=1"  # noqa
+
+
+def test_end2end():
+    t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
+    ctx, reply = osubot.main(t)
+    assert str(ctx) == "\n".join([
+        "Context:",
+        "> Player:   Cookiezi",
+        "> Beatmap:  xi - FREEDOM DiVE [FOUR DIMENSIONS]",
+        "> Mode:     Standard",
+        "> Mods:     +HDHR",
+        "> Acc:      99.83%",
+    ])
+    print(reply)
+    assert full_score_post.match(reply)

@@ -34,6 +34,11 @@ misses_anchor = "<td><strong>Misses"
 misses_re = re.compile("<td><strong>Misses<\/strong><\/td><td>([0-9]+)<\/td>")
 mania_misses_anchor = "<td><strong>100 / 50 / Misses"
 mania_misses_re = re.compile("<td><strong>100 / 50 / Misses<\/strong><\/td><td>\d+ \/ \d+ \/ ([0-9]+)<\/td>")  # noqa
+playstyle_anchor = "playstyle-container"
+playstyle_m_re = re.compile("<div class=[\"']playstyle mouse using[\"']><\/div>")  # noqa
+playstyle_kb_re = re.compile("<div class=[\"']playstyle keyboard using[\"']><\/div>")  # noqa
+playstyle_tb_re = re.compile("<div class=[\"']playstyle tablet using[\"']><\/div>")  # noqa
+playstyle_td_re = re.compile("<div class=[\"']playstyle touch using[\"']><\/div>")  # noqa
 
 
 # Game stuff

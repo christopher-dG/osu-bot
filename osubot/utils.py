@@ -1,3 +1,5 @@
+import requests
+
 from . import cache, consts
 
 
@@ -92,6 +94,28 @@ def api_wrap(f, *args, **kwargs):
     return None
 
 
+def request(url, *args, text=True, **kwargs):
+    """Wrapper around requests.get."""
+    resp = safe_call(requests.get, url, *args, **kwargs)
+
+    if not resp:
+        print("Request to %s returned empty" % safe_url(url))
+        return None
+    if resp.status_code != 200:
+        print("Request to %s returned %d" % (safe_url(url), resp.status_code))
+        return None
+    if not resp.text:
+        print("Request to %s returned empty body" % safe_url(url))
+        return None
+
+    return resp.text if text else resp
+
+
 def sep(n):
     """Format n with commas."""
     return"{:,}".format(n)
+
+
+def safe_url(s):
+    """Obfuscate sensitive keys in a string."""
+    return s.replace(consts.osu_key, "###").replace(consts.osusearch_key, "###")  # noqa
