@@ -1,4 +1,5 @@
 import markdown_strings as md
+import random
 
 from . import consts, diff, pp, scrape
 from .utils import (
@@ -154,7 +155,18 @@ def player_table(ctx):
 
 
 def footer(ctx):
-    return None
+    buf = "^(%s - )" % random.choice(consts.memes)
+    buf += md.link("^Source", consts.repo_url)
+    buf += "^( | )"
+    buf += md.link("^Developer", consts.me)
+    # TODO: Add usage instructions link when commands are ready.
+    buf += "^( | )"
+    buf += md.link("^([Unnoticed]: Unranked leaderboards)", consts.unnoticed)
+
+    if ctx.beatmap and ctx.mode in [consts.ctb, consts.mania]:
+        buf += "^( | CTB/Mania pp is experimental)"
+
+    return buf
 
 
 def map_rank_one(ctx):

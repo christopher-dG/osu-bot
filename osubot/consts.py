@@ -129,3 +129,23 @@ title_ignores = [
     "UNRANKED",
     "LOVED",
 ]
+me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
+repo_url = "https://github.com/christopher-dG/osu-bot-serverless"
+unnoticed = "https://github.com/christopher-dG/unnoticed/wiki"
+memes = [
+    "pls enjoy gaem",
+    "play more",
+    "Ye XD",
+    "imperial dead bicycle lol",
+    "nice pass ecks dee",
+    "kirito is legit",
+    "can just shut up",
+    "thank mr monstrata",
+    "fc cry thunder and say that me again",
+    "omg kappadar big fan",
+    "reese get the camera",
+    "cookiezi hdhr when",
+    "hello there",
+    "rrtyui :(",
+    "0 pp if unranked",
+]
