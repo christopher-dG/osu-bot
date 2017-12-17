@@ -65,3 +65,10 @@ def test_map_str():
             self.title = t
             self.version = v
     assert osubot.utils.map_str(Foo("foo", "bar", "baz")) == "foo - bar [baz]"
+
+
+def test_str_to_timestamp():
+    assert osubot.utils.str_to_timestamp(0) == "00:00"
+    assert osubot.utils.str_to_timestamp(10) == "00:10"
+    assert osubot.utils.str_to_timestamp(340) == "05:40"
+    assert osubot.utils.str_to_timestamp(3940) == "01:05:40"

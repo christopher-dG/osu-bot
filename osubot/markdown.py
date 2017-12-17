@@ -6,18 +6,24 @@ from .utils import accuracy, combine_mods, map_str
 
 def build_comment(ctx):
     """Build a full comment from ctx."""
-    return "\n\n".join([
-        map_header(ctx),
-        map_table(ctx),
-        player_table(ctx),
-        "***",
-        footer(ctx),
-    ])
+    return "\n\n".join(filter(
+        bool,
+        [
+            map_header(ctx),
+            map_table(ctx),
+            player_table(ctx),
+            "***",
+            footer(ctx),
+        ],
+    ))
 
 
 def map_header(ctx):
     """Return a line or two with basic map information."""
+    if not ctx.beatmap:
+        return None
     b = ctx.beatmap
+
     map_link = md.link(map_str(b), "%s/b/%d" % (consts.osu_url, b.beatmap_id))
     dl_link = md.link(
         "(%s)" % consts.dl,
@@ -52,19 +58,28 @@ def map_header(ctx):
 
 
 def map_table(ctx):
-    return ""
+    if not ctx.beatmap:
+        return None
+
+    return None
 
 
 def player_table(ctx):
-    return ""
+    if not ctx.player:
+        return None
+
+    return None
 
 
 def footer(ctx):
-    return ""
+    return None
 
 
 def map_rank_one(ctx):
     """Fetch and format the top play for a beatmap."""
+    if not ctx.beatmap:
+        return None
+
     mode = ctx.mode if ctx.mode is not None else consts.std
     apimode = consts.int2osuapimode[mode]
     scores = consts.osu_api.get_scores(

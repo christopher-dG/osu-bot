@@ -10,6 +10,9 @@ osufile = {"id": -1, "text": ""}  # Cached text of a .osu file.
 
 def oppai_pp(ctx, acc, modded=True, taiko=False):
     """Get pp with oppai."""
+    if not ctx.beatmap:
+        return None
+
     text = scrape.download_beatmap(ctx)
     if text is None:
         return None

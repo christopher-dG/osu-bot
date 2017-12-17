@@ -35,3 +35,12 @@ def accuracy(s, mode):
         x = s.countgeki + s.count300 + 2*s.countkatu/3 + s.count100/3 + s.count50/6  # noqa
         y = s.countgeki + s.count300 + s.countkatu + s.count100 + s.count50 + s.countmiss  # noqa
         return 100 * x / y
+
+
+def str_to_timestamp(secs):
+    """Convert s seconds into a timestamp."""
+    hrs = secs // 3600
+    mins = (secs - hrs * 3600) // 60
+    secs = secs - hrs * 3600 - mins * 60
+    ts = "%02d:%02d:%02d" % (hrs, mins, secs)
+    return ts if hrs else ts[3:]
