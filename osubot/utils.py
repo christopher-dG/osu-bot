@@ -1,4 +1,4 @@
-from . import consts
+from . import cache, consts
 
 
 def map_str(beatmap):
@@ -61,3 +61,31 @@ def round_to_str(n, p, force=False):
 def nonbreaking(s):
     """Return a visually identical version of s that does not break lines."""
     return s.replace(" ", consts.spc).replace("-", consts.hyp)
+
+
+def safe_call(f, *args, alt=[], msg=None, **kwargs):
+    """Execute some function, and return alt upon failure."""
+    try:
+        return f(*args, **kwargs)
+    except Exception as e:
+        print("Function %s failed: %s" % (f.__name__, e))
+        if msg:
+            print(msg)
+        return alt
+
+
+def api_wrap(f, *args, **kwargs):
+    """Wrap an API call, using a cached response if applicable."""
+    if cache["f"] == f and cache["args"] == args and \
+       cache["kwargs"] == kwargs and cache["result"]:
+        return cache["result"]
+
+    result = safe_call(f, *args, **kwargs)
+    if result:
+        cache["f"] = f
+        cache["args"] = args
+        cache["kwargs"] = kwargs
+        cache["result"] = result
+        return result
+
+    return None

@@ -88,3 +88,10 @@ def test_round_to_string():
     assert osubot.utils.round_to_str(1.4, 1) == "1.4"
     assert osubot.utils.round_to_str(1.4, 2) == "1.4"
     assert osubot.utils.round_to_str(1.4, 2, force=True) == "1.40"
+
+
+def test_safe_call():
+    def foo(x, y=0): return x / y
+    assert osubot.utils.safe_call(foo, 0, y=1) == 0
+    assert osubot.utils.safe_call(foo, 1, y=0) == []
+    assert osubot.utils.safe_call(foo, 1, y=0, alt=10) == 10

@@ -1,6 +1,6 @@
 from . import consts
 from .beatmap_search import search, search_events
-from .utils import combine_mods, map_str
+from .utils import api_wrap, combine_mods, map_str
 
 
 class Context:
@@ -8,16 +8,17 @@ class Context:
     def __init__(self, player, beatmap, mode, mods, acc):
         self.player = player  # osuapi.models.User, None if missing
         self.beatmap = beatmap  # osuapi.models.Beatmap, None if missing
-        self.mode = mode  # Int (0-4, 0 if missing)
+        self.mode = mode  # Int (0-4, None if missing)
         self.mods = mods  # Int, 0 if missing
         self.acc = acc  # Float (0-100, None if missing)
 
     def __repr__(self):
-        acc = "%.2f%%" % (self.acc) if self.acc is not None else "None"
+        mode = "Unknown" if self.mode is None else consts.mode2str[self.mode]
+        acc = "None" if self.acc is None else "%.2f%%" % self.acc
         s = "Context:\n"
         s += "> Player:   %s\n" % self.player
         s += "> Beatmap:  %s\n" % map_str(self.beatmap)
-        s += "> Mode:     %s\n" % consts.mode2str[self.mode]
+        s += "> Mode:     %s\n" % mode
         s += "> Mods:     %s\n" % combine_mods(self.mods)
         s += "> Acc:      %s" % acc
         return s
@@ -31,13 +32,16 @@ def build_ctx(title):
     acc = getacc(title)
 
     if mode is not None and mode != consts.std:
-        try:
-            player = consts.osu_api.get_user(
-                player.user_id,
+        match = consts.player_re.search(title)
+        if match:
+            name = strip_annots(match.group(1))
+            updated_player = api_wrap(
+                consts.osu_api.get_user,
+                player.user_id if player else name,
                 mode=consts.int2osuapimode[mode],
-            )[0]
-        except Exception as e:
-            print("Couldn't get player with updated mode: %s" % e)
+            )
+            if updated_player:
+                player = updated_player[0]
 
     return Context(player, beatmap, mode, mods, acc)
 
@@ -47,11 +51,22 @@ def getplayer(title):
     match = consts.player_re.search(title)
     if not match:
         return None
+    name = strip_annots(match.group(1))
 
-    name = match.group(1).strip()  # TODO: Strip away annotations.
-
-    player = consts.osu_api.get_user(name)
+    player = api_wrap(consts.osu_api.get_user, name)
     return player[0] if player else None
+
+
+def strip_annots(s):
+    """Remove annotations in brackets and parentheses from a username."""
+    name = consts.paren_re.sub("", s.upper()).strip()
+
+    ignores = consts.title_ignores + list(consts.mode_annots.keys())
+    for cap in consts.bracket_re.findall(name):
+        if cap in ignores:
+            name = name.replace("[%s]" % cap, "")
+
+    return name
 
 
 def getmap(title, player=None):

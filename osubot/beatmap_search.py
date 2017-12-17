@@ -1,6 +1,7 @@
 import requests
 
 from . import consts
+from .utils import api_wrap, safe_call
 
 
 def search(player, beatmap):
@@ -8,16 +9,13 @@ def search(player, beatmap):
     if player:
         result = search_events(player, beatmap)
         if result:
-            print("Found map %d in recent events" % result.beatmap_id)
             return result
         result = search_recent(player, beatmap)
         if result:
-            print("Found map %d in recent plays" % result.beatmap_id)
             return result
 
     result = search_osusearch(beatmap)
     if result:
-        print("Found map %d with osusearch" % result.beatmap_id)
         return result
 
     print("Couldn't find map")
@@ -43,17 +41,16 @@ def search_events(player, beatmap, mode=False, b_id=None):
             if mode:
                 return consts.eventstr2mode[match.group(2)]
             b_id = event.beatmap_id
-            try:
-                return consts.osu_api.get_beatmaps(beatmap_id=b_id)[0]
-            except Exception as e:
-                print("Getting beatmap %d failed: %s" % (b_id, e))
+            beatmaps = api_wrap(consts.osu_api.get_beatmaps, beatmap_id=b_id)
+            if beatmaps:
+                return beatmaps[0]
 
     return None
 
 
 def search_recent(player, beatmap):
     """Search player's recent plays for beatmap."""
-    recent = consts.osu_api.get_user_recent(player.user_id, limit=50)
+    recent = api_wrap(consts.osu_api.get_user_recent, player.user_id, limit=50)
 
     ids = []
     for score in recent:
@@ -61,10 +58,13 @@ def search_recent(player, beatmap):
             continue
         ids.append(score.beatmap_id)
 
-        try:
-            bmap = consts.osu_api.get_beatmaps(beatmap_id=score.beatmap_id)[0]
-        except Exception as e:
+        beatmaps = api_wrap(
+            consts.osu_api.get_beatmaps,
+            beatmap_id=score.beatmap_id,
+        )
+        if not beatmaps:
             continue
+        bmap = beatmaps[0]
 
         map_str = "%s - %s [%s]" % (bmap.artist, bmap.title, bmap.version)
         if map_str.upper() == beatmap.upper():
@@ -81,29 +81,39 @@ def search_osusearch(beatmap):
         return None
     artist, title, diff = match.groups()
 
-    url = "%s?key=%s" % (consts.osusearch_url, consts.osusearch_key)
-    url += "&artist=%s" % artist.strip()
-    url += "&title=%s" % title.strip()
-    url += "&diff_name=%s" % diff.strip()
+    params = {
+        "key": consts.osusearch_key,
+        "artist": artist.strip(),
+        "title": title.strip(),
+        "diff_name": diff.strip(),
+    }
 
     # TODO: Maybe canonicalize the URL.
 
-    resp = requests.get(url)
+    resp = safe_call(
+        requests.get,
+        consts.osusearch_url,
+        alt=None,
+        params=params,
+    )
+    if resp is None:
+        return None
     if resp.status_code != 200:
-        print("osusearch returned %d" % resp.statusCode)
+        print("osusearch returned %d" % resp.status_code)
         return None
     try:
-        beatmaps = resp.json()["beatmaps"]
+        d = resp.json()
     except Exception as e:
-        print("Couldn't load beatmaps from osusearch: %s" % e)
+        print("Couldn't load JSON from osusearch: %s" % e)
         return None
 
+    beatmaps = d.get("beatmaps", [])
     if not beatmaps:
         return None
 
-    os_map = max(beatmaps, key=lambda m: m["favorites"])
-    try:
-        return consts.osu_api.get_beatmaps(beatmap_id=os_map["beatmap_id"])[0]
-    except Exception as e:
-        print("Converting osusearch map to osuapi map failed: %s" % e)
-        return None
+    fav_map = max(beatmaps, key=lambda m: m.get("favorites", 0))
+    beatmaps = api_wrap(
+        consts.osu_api.get_beatmaps,
+        beatmap_id=fav_map["beatmap_id"],
+    )
+    return beatmaps[0] if beatmaps else None

@@ -3,6 +3,7 @@ import markdown_strings as md
 from . import consts, diff, pp, scrape
 from .utils import (
     accuracy,
+    api_wrap,
     combine_mods,
     map_str,
     round_to_str,
@@ -12,7 +13,7 @@ from .utils import (
 
 def build_comment(ctx):
     """Build a full comment from ctx."""
-    return "\n\n".join(filter(
+    comment = "\n\n".join(filter(
         bool,
         [
             map_header(ctx),
@@ -22,11 +23,13 @@ def build_comment(ctx):
             footer(ctx),
         ],
     ))
+    return None if comment.startswith("***") else comment
 
 
 def map_header(ctx):
     """Return a line or two with basic map information."""
     if not ctx.beatmap:
+        print("No beatmap; skipping map header")
         return None
     b = ctx.beatmap
 
@@ -65,12 +68,18 @@ def map_header(ctx):
 
 def map_table(ctx):
     if not ctx.beatmap:
+        print("No beatmap; skipping map table")
         return None
 
     nomod = diff.diff_vals(ctx, modded=False)
     if nomod is None:
+        print("Couldn't get nomod diff values")
         return None
-    modded = diff.diff_vals(ctx, modded=True)
+    if ctx.mods == consts.nomod:
+        print("Skipping modded diff values")
+        modded = None
+    else:
+        modded = diff.diff_vals(ctx, modded=True)
 
     r = round_to_str
     if modded:
@@ -104,11 +113,19 @@ def map_table(ctx):
         ]
 
     pp_vals = {}
+    if not modded:
+        print("Skipping modded pp values")
     for acc in filter(bool, set([95, 98, 99, 100, ctx.acc])):
         nomod_pp = pp.pp_val(ctx, acc, modded=False)
-        modded_pp = pp.pp_val(ctx, acc, modded=True)
-        if nomod_pp is not None and (not modded or modded_pp is not None):
-            pp_vals[acc] = nomod_pp, modded_pp
+        if nomod_pp is None:
+            continue
+
+        if modded:
+            modded_pp = pp.pp_val(ctx, acc, modded=True)
+            if modded_pp is not None:
+                pp_vals[acc] = nomod_pp, modded_pp
+        else:
+            pp_vals[acc] = nomod_pp, None
 
     accs_joined = (" %s " % consts.bar).join(
         "%s%%" % r(a, 2, force=True)
@@ -130,6 +147,7 @@ def map_table(ctx):
 
 def player_table(ctx):
     if not ctx.player:
+        print("No player; skipping player table")
         return None
 
     return None
@@ -142,21 +160,24 @@ def footer(ctx):
 def map_rank_one(ctx):
     """Fetch and format the top play for a beatmap."""
     if not ctx.beatmap:
+        print("No beatmap; skipping rank one")
         return None
 
     mode = ctx.mode if ctx.mode is not None else consts.std
     apimode = consts.int2osuapimode[mode]
-    scores = consts.osu_api.get_scores(
+    scores = api_wrap(
+        consts.osu_api.get_scores,
         ctx.beatmap.beatmap_id,
         mode=apimode,
         limit=1,
     )
     if not scores:
+        print("No scores found for beatmap")
         return None
     score = scores[0]
 
-    player = consts.osu_api.get_user(score.username, mode=apimode)
-    p_id = player[0].user_id if player else score.username
+    players = api_wrap(consts.osu_api.get_user, score.username, mode=apimode)
+    p_id = players[0].user_id if players else score.username
     player_link = md.link(score.username, "%s/u/%s" % (consts.osu_url, p_id))
 
     buf = "#1: %s (" % player_link

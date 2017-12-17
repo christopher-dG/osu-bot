@@ -5,8 +5,6 @@ import subprocess
 from . import consts, scrape
 from .utils import combine_mods
 
-osufile = {"id": -1, "text": ""}  # Cached text of a .osu file.
-
 
 def pp_val(ctx, acc, modded=True):
     return {
@@ -33,6 +31,7 @@ def ctb_pp(ctx, acc, modded=True):
         return None
     max_combo = ctb_max_combo(ctx)
     if max_combo is None:
+        print("Couldn't get max combo for CTB beatmap")
         return None
 
     sr = ctx.beatmap.difficultyrating
@@ -133,9 +132,13 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
 
 def ctb_max_combo(ctx):
     """Find or approximate a CTB map's max combo."""
+    if not ctx.beatmap:
+        return None
     combo = scrape.max_combo(ctx)
+
     if combo is not None:
         return combo
+
     nobjs = scrape.map_objects(ctx)
     # https://gist.github.com/christopher-dG/216e4a43618a9a68a03e9db48e30e66b
-    return (nobjs[0] + 2.4*nobjs[1]) if nobjs is not None else None
+    return (nobjs[0] + round(2.4*nobjs[1])) if nobjs is not None else None
