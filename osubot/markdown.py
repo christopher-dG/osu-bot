@@ -134,19 +134,20 @@ def map_table(ctx):
             pp_vals[acc] = nomod_pp, None
 
     accs_joined = (" %s " % consts.bar).join(
-        "%s%%" % r(a, 2, force=True)
-        if int(a) != a else str(a) for a in sorted(pp_vals.keys()),
+        "%s%%" % (r(a, 2, force=True) if int(a) != a else str(a))
+        for a in sorted(pp_vals.keys()),
     )
     nomod_joined = (" %s " % consts.bar).join(
-        r(pp_vals[acc][0], 0) for acc in sorted(pp_vals.keys()),
+        sep(round(pp_vals[acc][0])) for acc in sorted(pp_vals.keys()),
     )
 
-    cols.append(["pp (%s)" % accs_joined, nomod_joined])
-    if modded:
-        modded_joined = (" % s " % consts.bar).join(
-            r(pp_vals[acc][1], 0) for acc in sorted(pp_vals.keys()),
-        )
-        cols[-1].append(modded_joined)
+    if pp_vals:
+        cols.append(["pp (%s)" % accs_joined, nomod_joined])
+        if modded:
+            modded_joined = (" % s " % consts.bar).join(
+                sep(round(pp_vals[acc][1])) for acc in sorted(pp_vals.keys()),
+            )
+            cols[-1].append(modded_joined)
 
     return centre_table(md.table([[str(x) for x in col] for col in cols]))
 
@@ -158,8 +159,12 @@ def player_table(ctx):
     p = ctx.player
 
     rank = "#%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country)
+    player_link = md.link(
+        nonbreaking(p.username),
+        "%s/u/%d" % (consts.osu_url, p.user_id),
+    )
     cols = [
-        ["Player", nonbreaking(p.username)],
+        ["Player", player_link],
         ["Rank", nonbreaking(rank)],
         ["pp", sep(round(p.pp_raw))],
         ["Acc", "%s%%" % round_to_str(p.accuracy, 2, force=True)],

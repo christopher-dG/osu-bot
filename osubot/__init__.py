@@ -9,16 +9,12 @@ def main(title):
 
     if not consts.title_re.match(title):
         print("Not a score post")
-        return False
+        return None
 
     ctx = context.build_ctx(title)
-    print(ctx)
 
     if not ctx.player and not ctx.beatmap:
         print("Both player and beatmap are missing")
-        return False
+        return None
 
-    reply = markdown.build_comment(ctx)
-    print(reply)
-
-    return True
+    return ctx, markdown.build_comment(ctx)

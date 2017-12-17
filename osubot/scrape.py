@@ -139,10 +139,11 @@ def web_max_combo(ctx):
 
 def map_objects(ctx):
     """Get the number of regular hitobjects and sliders in a map, or None."""
-    text = download_beatmap(ctx)
-    if text is None:
+    path = download_beatmap(ctx)
+    if path is None:
         return None
-    lines = text.split()
+    with open(path) as f:
+        lines = f.read().split()
 
     for i, line in enumerate(lines):
         if "[HitObjects]" in line:

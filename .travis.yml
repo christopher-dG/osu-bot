@@ -7,6 +7,6 @@ script: tox
 after_success:
   - pip install awscli
   - aws configure set region us-east-1
-  - ./pkg.sh
+  - ./bin/pkg.sh
   - if [ "$TRAVIS_BRANCH" != "master" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
   - aws lambda update-function-code --function-name osu-bot-score-post --zip-file fileb://pkg.zip > /dev/null

@@ -54,10 +54,10 @@ def diff_modded(ctx):
         print("Converting oppai output to JSON failed: %s" % e)
         return None
 
-    if ctx.mods | consts.mods2int["DT"]:  # This catches NC too.
+    if ctx.mods & consts.mods2int["DT"]:  # This catches NC too.
         scalar = 1.5
-    elif ctx.mods | consts.mods2int["HR"]:
-        scalar = 1.3333
+    elif ctx.mods & consts.mods2int["HT"]:
+        scalar = 0.75
     else:
         scalar = 1
 

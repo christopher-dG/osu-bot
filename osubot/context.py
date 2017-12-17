@@ -24,6 +24,16 @@ class Context:
         s += "> Acc:      %s" % acc
         return s
 
+    def to_dict(self):
+        # This isn't meant for passing information, only displaying in JSON."""
+        return {
+            "acc": "None" if self.acc is None else "%.2f%%" % self.acc,
+            "beatmap": map_str(self.beatmap) if self.beatmap else "None",
+            "mode": "Unknown" if self.mode is None else consts.mode2str[self.mode],  # noqa
+            "mods": combine_mods(self.mods),
+            "player": self.player.username if self.player else "None",
+        }
+
 
 def build_ctx(title):
     player = getplayer(title)
