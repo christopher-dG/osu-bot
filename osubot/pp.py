@@ -1,5 +1,6 @@
 import json
 import math
+import os
 import subprocess
 
 from . import consts, scrape
@@ -119,6 +120,7 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
         out = subprocess.check_output(cmd)
     except Exception as e:
         print("oppai command '%s' failed: %s" % (cmd, e))
+        os.remove(path)
         return None
 
     try:

@@ -20,29 +20,39 @@ reddit = praw.Reddit(
 )
 subreddit = reddit.subreddit(sub)
 ids = []
+testrun = os.environ.get("LAMBDA_TEST", "").lower() != "false"
 
 while True:
     print(datetime.datetime.now())
+
     try:
         for post in list(filter(lambda i: i not in ids, set(subreddit.new()))):
+
             if not score_re.match(post.title):
                 print("'%s' is not a score post" % post.title)
                 ids.append(post.id)
                 continue
-            if post.saved:
-                print("'%s' is already saved" % post.title)
-                continue
-            if any(c.author.name == user for c in post.comments):
-                print("'%s' already has a reply" % post.title)
-                continue
+
+            if not testrun:
+                if post.saved:
+                    print("'%s' is already saved" % post.title)
+                    continue
+                if any(
+                        c.author.name == user if c else False
+                        for c in post.comments
+                ):
+                    print("'%s' already has a reply" % post.title)
+                    continue
 
             print("Score post: %s" % post.title)
             url = "%s?id=%s" % (api, post.id)
             print("Posting to %s" % url)
             resp = requests.post(url)
             print(resp)
+            print(resp.json())
             ids.append(post.id)
+
     except Exception as e:
         print("Exception: %s" % e)
+
     time.sleep(10)
-    ids = list(set(ids))

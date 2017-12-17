@@ -8,14 +8,15 @@ import stat
 body = {"error": None, "comment": None, "context": None}
 resp = {
     "isBase64Encoded": False,
-    "statusCode": 500,
+    "statusCode": 200,
     "headers": {},
     "body": json.dumps(body),
 }
-testrun = os.environ.get("LAMBDA_TEST", "").lower() != "false"
 
 
 def handler(event, _):
+    testrun = os.environ.get("LAMBDA_TEST", "").lower() != "false"
+    testrun |= event["queryStringParameters"].get("test") == "true"
     if testrun:
         print("=== TEST RUN ===")
     p_id = event["queryStringParameters"].get("id", None)
