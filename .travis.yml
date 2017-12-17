@@ -2,11 +2,14 @@ language: python
 notifications:
   email: false
 python: 3.6
-install: pip install tox
-script: tox
-after_success:
+install:
+  - pip install tox
   - pip install awscli
   - aws configure set region us-east-1
+  - aws s3 cp s3://osu-bot-serverless/bin/oppai /tmp/oppai
+  - chmod +x /tmp/oppai
+script: tox
+after_success:
   - ./bin/pkg.sh
   - if [ "$TRAVIS_BRANCH" != "master" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
   - aws lambda update-function-code --function-name osu-bot-score-post --zip-file fileb://pkg.zip > /dev/null
