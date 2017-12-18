@@ -9,8 +9,10 @@ import requests
 import sys
 import time
 
+sys.stdout = sys.stderr
 auto = "--auto" in sys.argv
 nofilter = "--no-filter" in sys.argv
+test = "--test" in sys.argv 
 score_re = re.compile(".+\|.+-.+\[.+\]")
 user = "osu-bot"
 sub = os.environ.get("OSU_BOT_SUB", "osugame")
@@ -51,6 +53,8 @@ def monitor():
 
 def post_api(p_id):
     url = "%s?id=%s" % (api, p_id)
+    if test:
+        url += "&test=true"
     logger.info("Posting to %s" % url)
     resp = requests.post(url)
     d = resp.json()
