@@ -6,13 +6,19 @@ from . import cache, consts
 
 
 def map_str(beatmap):
+    """Format a beatmap into a string."""
     if not beatmap:
         return None
-    s = "%s - %s [%s]" % (beatmap.artist, beatmap.title, beatmap.version)
+    return "%s - %s [%s]" % (beatmap.artist, beatmap.title, beatmap.version)
+
+
+def escape(s):
+    """Escape Markdown formatting."""
     return s.replace("^", "\^").replace("*", "\*").replace("_", "\_")
 
 
 def combine_mods(mods):
+    """Convert a mod integer to a mod string."""
     mods_a = []
     for k, v in consts.mods2int.items():
         if v & mods == v:

@@ -6,6 +6,7 @@ from .utils import (
     accuracy,
     api_wrap,
     combine_mods,
+    escape,
     map_str,
     nonbreaking,
     round_to_str,
@@ -44,7 +45,7 @@ def map_header(ctx):
     map_url = "%s/b/%d" % (consts.osu_url, b.beatmap_id)
     if ctx.mode is not None:
         map_url += "?m=%d" % ctx.mode
-    map_link = md.link(map_str(b), map_url)
+    map_link = md.link(escape(map_str(b)), map_url)
     dl_link = md.link(
         "(%s)" % consts.dl,
         "%s/d/%d" % (consts.osu_url, b.beatmap_id),
@@ -52,7 +53,7 @@ def map_header(ctx):
     mapper_id = scrape.mapper_id(ctx)
     mapper = mapper_id if mapper_id is not None else b.creator
     mapper_url = "%s/u/%s" % (consts.osu_url, mapper)
-    mapper_link = md.link(b.creator, mapper_url)
+    mapper_link = md.link(escape(b.creator), mapper_url)
     buf = "%s %s by %s" % (map_link, dl_link, mapper_link)
 
     if consts.status2str[b.approved.value] == "Unranked":
@@ -171,7 +172,7 @@ def player_table(ctx):
 
     rank = "#%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country)
     player_link = md.link(
-        nonbreaking(p.username),
+        nonbreaking(escape(p.username)),
         "%s/u/%d" % (consts.osu_url, p.user_id),
     )
     cols = [
@@ -202,7 +203,7 @@ def player_table(ctx):
             map_url = "%s/b/%d" % (consts.osu_url, bmap.beatmap_id)
             if ctx.mode is not None:
                 map_url += "?m=%d" % ctx.mode
-            buf = md.link(map_str(bmap), map_url)
+            buf = md.link(escape(map_str(bmap)), map_url)
 
             mods = combine_mods(score.enabled_mods.value)
             if mods:
@@ -260,7 +261,10 @@ def map_rank_one(ctx):
 
     players = api_wrap(consts.osu_api.get_user, score.username, mode=apimode)
     p_id = players[0].user_id if players else score.username
-    player_link = md.link(score.username, "%s/u/%s" % (consts.osu_url, p_id))
+    player_link = md.link(
+        escape(score.username),
+        "%s/u/%s" % (consts.osu_url, p_id),
+    )
 
     buf = "#1: %s (" % player_link
     if score.enabled_mods.value != consts.nomod:

@@ -88,7 +88,6 @@ def test_map_str():
             self.title = t
             self.version = v
     assert osubot.utils.map_str(Foo("foo", "bar", "baz")) == "foo - bar [baz]"
-    assert osubot.utils.map_str(Foo("foo^2", "b*ar", "b_az")) == "foo\^2 - b\*ar [b\_az]"  # noqa
 
 
 def test_str_to_timestamp():
@@ -154,6 +153,11 @@ def test_safe_url():
     assert osubot.utils.safe_url(osubot.consts.osu_key) == "###"
     assert osubot.utils.safe_url(osubot.consts.osusearch_key) == "###"
     assert osubot.utils.safe_url("?k=%s&b=1" % osubot.consts.osu_key) == "?k=###&b=1"  # noqa
+
+
+def test_escape():
+    assert osubot.utils.escape("") == ""
+    assert osubot.utils.escape("foo*bar_baz^") == "foo\*bar\_baz\^"
 
 
 def test_end2end():
