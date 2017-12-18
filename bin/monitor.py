@@ -23,6 +23,7 @@ logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO)
 
 
 def monitor():
+    i = 0
     reddit = praw.Reddit(
         client_id=os.environ["REDDIT_CLIENT_ID"],
         client_secret=os.environ["REDDIT_CLIENT_SECRET"],
@@ -47,7 +48,9 @@ def monitor():
                 input("Press enter to proceed to the next post: ")
                 print()
 
-        logger.info("Waiting for posts")
+        if not auto or not i % 50:
+            logger.info("Waiting for posts")
+        i += 1
         time.sleep(10)
 
 
@@ -68,8 +71,13 @@ def post_api(p_id):
 
 
 if __name__ == "__main__":
+    if "REDDIT_PASSWORD" not in os.environ:
+        print("Missing Reddit environment variables")
+        exit(1)
+
     logger.info("auto = %s" % auto)
     logger.info("nofilter = %s" % nofilter)
+    logger.info("test = %s" % test)
 
     while True:
         try:
