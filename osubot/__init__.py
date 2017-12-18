@@ -3,8 +3,8 @@ cache = {"f": None, "args": None, "kwargs": None, "result": None}
 from . import consts, context, markdown  # noqa
 
 
-def main(title):
-    """Main driver function going from submission title to posting a reply."""
+def scorepost(title):
+    """Generate a reply to a score post from a title."""
     print("Post title: %s" % title)
 
     if not consts.title_re.match(title):

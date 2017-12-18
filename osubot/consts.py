@@ -121,7 +121,7 @@ spc = "&nbsp;"  # Non-breaking space
 hyp = "&#x2011;"  # Non-breaking hyphen
 
 # Misc stuff
-oppai_bin = "/tmp/oppai"
+oppai_bin = os.environ.get("OPPAI_BIN", "oppai")
 title_ignores = [
     "UNNOTICED",
     "UNNOTICED?",

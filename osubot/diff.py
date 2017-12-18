@@ -46,7 +46,7 @@ def diff_modded(ctx):
     try:
         out = subprocess.check_output(cmd)
     except Exception as e:
-        print("oppai command '%s' failed: %s" % (cmd, e))
+        print("oppai command '%s' failed: %s" % (" ".join(cmd), e))
         os.remove(path)
         return None
 
