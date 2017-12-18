@@ -3,6 +3,7 @@ import os
 import praw
 import shutil
 import stat
+import time
 
 testrun = True
 post_id = None
@@ -45,6 +46,8 @@ def finish(status=200, error=None, **kwargs):
             **kwargs,
         },
     }
+    if "time" in kwargs:
+        resp["body"]["time"] = time.time() - kwargs["time"]
     print(json.dumps(resp, indent=4))
     resp["body"] = json.dumps(resp["body"])
     if testrun:
@@ -91,9 +94,12 @@ def post_has_reply(post, username):
 
 
 def post_reply(post, text, sticky=False):
-    """Reply to, save, and upvote a post, and optionally sticky the comment."""
+    """
+    Reply to, save, and upvote a post, and optionally sticky the comment.
+    Returns None on success, the error in string form otherwise.
+    """
     if testrun:
-        return True
+        return None
 
     try:
         c = post.reply(text)
@@ -102,10 +108,10 @@ def post_reply(post, text, sticky=False):
         post.save()
         post.upvote()
     except Exception as e:
-        print("Reddit exception : %s" % e)
-        return False
+        print("Reddit exception: %s" % e)
+        return str(e)
 
-    return True
+    return None
 
 
 def post_is_saved(post):
