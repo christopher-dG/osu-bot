@@ -3,11 +3,11 @@ notifications:
   email: false
 python: 3.6
 install:
-  - pip install tox
-  - pip install awscli
+  - pip install awscli tox
   - aws configure set region us-east-1
-  - aws s3 cp s3://osu-bot-serverless/bin/oppai /tmp/oppai
-  - chmod +x /tmp/oppai
+  - aws s3 cp s3://osu-bot-serverless/bin/oppai ./bin/oppai
+  - chmod +x ./bin/oppai
+  - export PATH=$PATH:$(pwd)/bin
 script: tox
 after_success:
   - ./bin/pkg.sh

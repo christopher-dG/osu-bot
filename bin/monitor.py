@@ -12,7 +12,7 @@ import time
 sys.stdout = sys.stderr
 auto = "--auto" in sys.argv
 nofilter = "--no-filter" in sys.argv
-test = "--test" in sys.argv 
+test = "--test" in sys.argv
 score_re = re.compile(".+\|.+-.+\[.+\]")
 user = "osu-bot"
 sub = os.environ.get("OSU_BOT_SUB", "osugame")
