@@ -56,6 +56,9 @@ def map_header(ctx):
     mapper_link = md.link(escape(b.creator), mapper_url)
     buf = "%s %s by %s" % (map_link, dl_link, mapper_link)
 
+    if ctx.mode is not None:
+        buf += " || %s" % consts.mode2str[ctx.mode]
+
     if consts.status2str[b.approved.value] == "Unranked":
         buf += " || Unranked"
         if b.approved_date is not None:

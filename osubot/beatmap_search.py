@@ -45,6 +45,8 @@ def search_events(player, beatmap, mode=False, b_id=None):
 def search_recent(player, beatmap):
     """Search player's recent plays for beatmap."""
     recent = api_wrap(consts.osu_api.get_user_recent, player.user_id, limit=50)
+    if not recent:
+        return None
 
     ids = []
     for score in recent:

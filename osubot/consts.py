@@ -43,7 +43,12 @@ playstyle_td_re = re.compile("<div class=[\"']playstyle touch using[\"']><\/div>
 
 # Game stuff
 std, taiko, ctb, mania = range(0, 4)
-mode2str = {std: "Standard", taiko: "Taiko", ctb: "CTB", mania: "Mania"}
+mode2str = {
+    std: "osu!standard",
+    taiko: "osu!taiko",
+    ctb: "osu!catch",
+    mania: "osu!mania",
+}
 int2osuapimode = {
     std: osuapi.OsuMode.osu,
     taiko: osuapi.OsuMode.taiko,

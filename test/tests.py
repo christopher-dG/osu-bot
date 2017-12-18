@@ -6,7 +6,7 @@ import re
 logging.getLogger("urllib3").propagate = False
 
 map_player_mods_pp_re = re.compile("""\
-#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+\)
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+\)(?: \|\| osu![a-z]+)?
 \*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - \d+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
 
 \|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
@@ -184,7 +184,7 @@ def test_end2end():
         "Context:",
         "> Player:   Cookiezi",
         "> Beatmap:  xi - FREEDOM DiVE [FOUR DIMENSIONS]",
-        "> Mode:     Standard",
+        "> Mode:     osu!standard",
         "> Mods:     +HDHR",
         "> Acc:      99.83%",
     ])
