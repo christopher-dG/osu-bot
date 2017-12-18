@@ -2,6 +2,7 @@ import os
 import osubot
 import praw
 import sys
+import time
 import traceback
 
 from . import (
@@ -16,6 +17,7 @@ from . import (
 
 
 def scorepost(event, _):
+    start = time.time()
     p_id = event["queryStringParameters"].get("id", None)
     if p_id is None:
         return finish(status=400, error="Missing id parameter")
@@ -56,4 +58,5 @@ def scorepost(event, _):
     if post_reply(post, reply, sticky=True):
         print("%s\nCommented:\n%s" % (ctx, reply))
 
-    return finish(context=ctx.to_dict(), comment=reply)
+    seconds = time.time() - start
+    return finish(context=ctx.to_dict(), comment=reply, time=seconds)

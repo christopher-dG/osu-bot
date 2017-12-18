@@ -35,7 +35,7 @@ class Context:
         }
 
 
-def build_ctx(title):
+def from_score_post(title):
     player = getplayer(title)
     beatmap = getmap(title, player=player)
     mode = getmode(title, player=player, beatmap=beatmap)

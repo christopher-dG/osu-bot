@@ -11,7 +11,7 @@ def scorepost(title):
         print("Not a score post")
         return None
 
-    ctx = context.build_ctx(title)
+    ctx = context.from_score_post(title)
 
     if not ctx.player and not ctx.beatmap:
         print("Both player and beatmap are missing")
