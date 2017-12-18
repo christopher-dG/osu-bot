@@ -158,7 +158,7 @@ def test_safe_url():
 
 def test_end2end():
     t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
-    ctx, reply = osubot.main(t)
+    ctx, reply = osubot.scorepost(t)
     assert str(ctx) == "\n".join([
         "Context:",
         "> Player:   Cookiezi",
@@ -167,5 +167,4 @@ def test_end2end():
         "> Mods:     +HDHR",
         "> Acc:      99.83%",
     ])
-    print(reply)
     assert full_score_post.match(reply)

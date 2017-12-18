@@ -57,7 +57,7 @@ def map_header(ctx):
 
     if consts.status2str[b.approved.value] == "Unranked":
         buf += " || Unranked"
-        if b.approed_date is not None:
+        if b.approved_date is not None:
             buf += " (%s)" % (b.approved_date)
         return md.header(buf, 4)
 
@@ -227,7 +227,7 @@ def footer(ctx):
     buf += "^( | )"
     buf += md.link("^([Unnoticed]: Unranked leaderboards)", consts.unnoticed)
 
-    exp_pp = ctx.beatmap and ctx.beatmap.mode.value != ctx.mode
+    exp_pp = bool(ctx.beatmap) and ctx.beatmap.mode.value != ctx.mode
     exp_pp |= ctx.mods in [consts.ctb, consts.mania]
     if exp_pp:
         if ctx.mode == consts.taiko:

@@ -18,7 +18,7 @@ reddit_client_secret = os.environ["REDDIT_CLIENT_SECRET"]
 # Regex stuff
 title_re = re.compile(".+\|.+-.+\[.+\]")
 map_re = re.compile(".+\|(.+-.+\[.+\])")
-map_pieces_re = re.compile("(.+)-(.+)\[(.+)\]")
+map_pieces_re = re.compile("(.+) - (.+)\[(.+)\]")
 player_re = re.compile("(.+)\|.+-.+\[.+\]")
 event_re = re.compile("<a href=[\"']/b/\d+\?m=\d[\"']>(.+ - .+ \[.+\])</a> \((.+)\)")  # noqa
 acc_re = re.compile("(\d{1,3}(?:[\.,]\d+)?)%")
@@ -86,7 +86,6 @@ status2str = {
     3: "Qualified",
     4: "Loved",
 }
-
 mods2int = {
     "": 1 >> 1,
     "NF": 1 << 0,
