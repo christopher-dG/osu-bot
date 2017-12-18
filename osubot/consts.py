@@ -112,6 +112,8 @@ mod_order = [
     "EZ", "HD", "HT", "DT", "NC", "HR", "FL", "NF",
     "SD", "PF", "RX", "AP", "SO", "AT", "V2", "TD",
 ]
+ignore_mods = [mods2int[m] for m in ["SD", "PF", "RX", "AT", "AP", "V2"]]
+samediffmods = [mods2int[m] for m in ["TD", "HD", "FL", "NF"]]
 
 # Markdown/HTML stuff
 dl = "&#x2b07;"  # Downwards arrow

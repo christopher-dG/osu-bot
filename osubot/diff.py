@@ -3,7 +3,7 @@ import os
 import subprocess
 
 from . import consts, scrape
-from .utils import combine_mods
+from .utils import changes_diff, is_ignored, combine_mods
 
 
 def diff_vals(ctx, modded=True):
@@ -11,6 +11,8 @@ def diff_vals(ctx, modded=True):
     if not ctx.beatmap:
         return None
     if modded and ctx.mode not in [consts.std, consts.taiko]:
+        return None
+    if modded and is_ignored(ctx.mods):
         return None
     return (diff_modded if modded else diff_nomod)(ctx)
 
@@ -31,6 +33,8 @@ def diff_nomod(ctx):
 def diff_modded(ctx):
     """Get the modded difficulty values of a map."""
     if ctx.mode not in [consts.std, consts.taiko] or ctx.mods == consts.nomod:
+        return None
+    if is_ignored(ctx.mods):
         return None
 
     path = scrape.download_beatmap(ctx)
@@ -65,13 +69,17 @@ def diff_modded(ctx):
 
     length = round(ctx.beatmap.total_length / scalar)
     bpm = ctx.beatmap.bpm * scalar
+    if changes_diff(ctx.mods):
+        stars = d["stars"]
+    else:
+        stars = ctx.beatmap.difficultyrating
 
     return {
         "cs": d["cs"],
         "ar": d["ar"],
         "od": d["od"],
         "hp": d["hp"],
-        "sr": d["stars"],
+        "sr": stars,
         "bpm": bpm,
         "length": length,
     }

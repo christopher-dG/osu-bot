@@ -137,3 +137,19 @@ def compare(x, y):
     x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
     y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
     return x.upper() == y.upper()
+
+
+def is_ignored(mods):
+    """Check whether all enabled mods are to be ignored."""
+    if mods is None:
+        return True
+    nonignores = set(consts.int2mods.keys()) - set(consts.ignore_mods)
+    return not any(m & mods for m in nonignores)
+
+
+def changes_diff(mods):
+    """Check whether any enabled mods change difficulty values."""
+    if mods is None:
+        return False
+    diff_changers = set(consts.int2mods.keys()) - set(consts.samediffmods)
+    return any(m & mods for m in diff_changers)

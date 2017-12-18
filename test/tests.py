@@ -5,7 +5,7 @@ import re
 
 logging.getLogger("urllib3").propagate = False
 
-full_score_post = re.compile("""\
+map_player_mods_pp_re = re.compile("""\
 #### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+\)
 \*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - \d+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
 
@@ -160,6 +160,23 @@ def test_escape():
     assert osubot.utils.escape("foo*bar_baz^") == "foo\*bar\_baz\^"
 
 
+def test_is_ignored():
+    assert not osubot.utils.is_ignored(1 << 3)
+    assert osubot.utils.is_ignored(1 << 7)
+    assert osubot.utils.is_ignored(1 << 11)
+    assert not osubot.utils.is_ignored(1 << 3 | 1 << 7)
+    assert osubot.utils.is_ignored(1 << 7 | 1 << 11)
+    assert not osubot.utils.is_ignored(1 << 3 | 1 << 7 | 1 << 11)
+
+
+def test_changes_diff():
+    assert osubot.utils.changes_diff(1 << 4)
+    assert not osubot.utils.changes_diff(1 << 3)
+    assert osubot.utils.changes_diff(1 << 3 | 1 << 4)
+    assert not osubot.utils.changes_diff(1 << 2 | 1 << 0 | 1 << 10)
+    assert osubot.utils.changes_diff(1 << 2 | 1 << 0 | 1 << 10 | 1 << 6)
+
+
 def test_end2end():
     t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
     ctx, reply = osubot.scorepost(t)
@@ -171,4 +188,4 @@ def test_end2end():
         "> Mods:     +HDHR",
         "> Acc:      99.83%",
     ])
-    assert full_score_post.match(reply)
+    assert map_player_mods_pp_re.match(reply)
