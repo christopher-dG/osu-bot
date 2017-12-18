@@ -82,6 +82,7 @@ def map_header(ctx):
 
 
 def map_table(ctx):
+    """Build a table with map difficulty and pp values."""
     if not ctx.beatmap:
         print("No beatmap; skipping map table")
         return None
@@ -162,6 +163,7 @@ def map_table(ctx):
 
 
 def player_table(ctx):
+    """Build a table with player information."""
     if not ctx.player:
         print("No player; skipping player table")
         return None
@@ -220,6 +222,7 @@ def player_table(ctx):
 
 
 def footer(ctx):
+    """Return a footer with some general information."""
     buf = "^(%s - )" % random.choice(consts.memes)
     buf += md.link("^Source", consts.repo_url)
     buf += "^( | )"

@@ -130,3 +130,10 @@ def sep(n):
 def safe_url(s):
     """Obfuscate sensitive keys in a string."""
     return s.replace(consts.osu_key, "###").replace(consts.osusearch_key, "###")  # noqa
+
+
+def compare(x, y):
+    """Leniently compare two strings."""
+    x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
+    y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
+    return x.upper() == y.upper()

@@ -139,12 +139,12 @@ def test_centre_table():
 
 
 def test_compare():
-    assert osubot.beatmap_search.compare("", "")
-    assert not osubot.beatmap_search.compare("foo", "bar")
-    assert osubot.beatmap_search.compare("foo bar", "foobar")
-    assert osubot.beatmap_search.compare("foobar", "FOOBAR")
-    assert osubot.beatmap_search.compare("foo&bar", "FOO&amp;BAR")
-    assert osubot.beatmap_search.compare("foo\"bar", "FOO&quot;BAR")
+    assert osubot.utils.compare("", "")
+    assert not osubot.utils.compare("foo", "bar")
+    assert osubot.utils.compare("foo bar", "foobar")
+    assert osubot.utils.compare("foobar", "FOOBAR")
+    assert osubot.utils.compare("foo&bar", "FOO&amp;BAR")
+    assert osubot.utils.compare("foo\"bar", "FOO&quot;BAR")
 
 
 def test_safe_url():

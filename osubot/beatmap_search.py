@@ -1,5 +1,5 @@
 from . import consts
-from .utils import api_wrap, request
+from .utils import api_wrap, compare, request
 
 
 def search(player, beatmap):
@@ -33,7 +33,7 @@ def search_events(player, beatmap, mode=False, b_id=None):
         if (b_id is not None and event.beatmap_id == b_id) or \
            compare(match.group(1), beatmap):
             if mode:
-                return consts.eventstr2mode[match.group(2)]
+                return consts.eventstr2mode.get(match.group(2), None)
             b_id = event.beatmap_id
             beatmaps = api_wrap(consts.osu_api.get_beatmaps, beatmap_id=b_id)
             if beatmaps:
@@ -104,10 +104,3 @@ def search_osusearch(beatmap):
         beatmap_id=fav_map["beatmap_id"],
     )
     return beatmaps[0] if beatmaps else None
-
-
-def compare(x, y):
-    """Leniently compare two strings."""
-    x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
-    y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
-    return x.upper() == y.upper()

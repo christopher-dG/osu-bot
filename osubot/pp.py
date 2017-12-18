@@ -8,6 +8,7 @@ from .utils import combine_mods
 
 
 def pp_val(ctx, acc, modded=True):
+    """Get pp earned for a play with given acc."""
     return {
         consts.std: std_pp,
         consts.taiko: taiko_pp,
@@ -67,9 +68,9 @@ def mania_pp(ctx, acc, modded=True, score=None):
             score = 750000
         elif acc < 96:
             score = 850000
-        elif acc < 985:
+        elif acc < 98.5:
             score = 900000
-        elif acc < 995:
+        elif acc < 99.5:
             score = 950000
         else:
             score = 980000

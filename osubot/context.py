@@ -25,7 +25,10 @@ class Context:
         return s
 
     def to_dict(self):
-        # This isn't meant for passing information, only displaying in JSON."""
+        """
+        Convert the context to a dict.
+        This isn't meant for passing information, only displaying in JSON.
+        """
         return {
             "acc": "None" if self.acc is None else "%.2f%%" % self.acc,
             "beatmap": map_str(self.beatmap) if self.beatmap else "None",
@@ -36,6 +39,7 @@ class Context:
 
 
 def from_score_post(title):
+    """Construct a Context from the title of score post."""
     player = getplayer(title)
     beatmap = getmap(title, player=player)
     mode = getmode(title, player=player, beatmap=beatmap)
