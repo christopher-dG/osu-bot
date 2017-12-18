@@ -1,4 +1,4 @@
 markdown-strings
-osuapi
+git+https://github.com/khazhyk/osuapi
 praw
 requests

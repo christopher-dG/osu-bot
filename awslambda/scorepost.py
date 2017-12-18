@@ -1,6 +1,8 @@
 import os
 import osubot
 import praw
+import sys
+import traceback
 
 from . import (
     chmod,
@@ -42,6 +44,7 @@ def scorepost(event, _):
             return finish(status=500, error="Comment generation failed")
         ctx, reply = result
     except Exception as e:
+        traceback.print_exc(file=sys.stdout)
         return finish(status=500, error=str(e))
 
     if not reply:

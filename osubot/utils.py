@@ -1,4 +1,6 @@
 import requests
+import sys
+import traceback
 
 from . import cache, consts
 
@@ -72,6 +74,9 @@ def safe_call(f, *args, alt=[], msg=None, **kwargs):
         return f(*args, **kwargs)
     except Exception as e:
         print("Function %s failed: %s" % (f.__name__, e))
+        print("args: %s" % list(args))
+        print("kwargs: %s" % kwargs)
+        traceback.print_exc(file=sys.stdout)
         if msg:
             print(msg)
         return alt
