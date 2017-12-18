@@ -171,4 +171,4 @@ def getacc(title):
     if not match:
         return None
     match = consts.acc_re.search(match.group(1))
-    return float(match.group(1)) if match else None
+    return float(match.group(1).replace(",", ".")) if match else None

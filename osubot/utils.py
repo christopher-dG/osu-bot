@@ -14,7 +14,8 @@ def map_str(beatmap):
 
 def escape(s):
     """Escape Markdown formatting."""
-    return s.replace("^", "\^").replace("*", "\*").replace("_", "\_")
+    tb = str.maketrans({"^": "\^", "*": "\*", "_": "\_", "~": "\~"})
+    return s.translate(tb)
 
 
 def combine_mods(mods):

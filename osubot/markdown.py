@@ -212,9 +212,9 @@ def player_table(ctx):
 
             mods = combine_mods(score.enabled_mods.value)
             if mods:
-                buf += " %s %s " % (mods, consts.bar)
+                buf += " %s %s" % (mods, consts.bar)
 
-            buf += "%s%%" % round_to_str(accuracy(score, mode), 2, force=True)
+            buf += " %s%%" % round_to_str(accuracy(score, mode), 2, force=True)
 
             if score.pp:
                 buf += " %s %spp" % (consts.bar, sep(round(score.pp)))
@@ -226,7 +226,7 @@ def player_table(ctx):
 
 def footer(ctx):
     """Return a footer with some general information."""
-    buf = "^(%s - )" % random.choice(consts.memes)
+    buf = "^(%s – )" % random.choice(consts.memes)
     buf += md.link("^Source", consts.repo_url)
     buf += "^( | )"
     buf += md.link("^Developer", consts.me)

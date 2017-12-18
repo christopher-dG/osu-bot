@@ -16,11 +16,11 @@ map_player_mods_pp_re = re.compile("""\
 
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\) (?:\+(?:[A-Z2]{2})+ &#124; )?\d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
 
 \*\*\*
 
-\^\(.+ - \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\^\( \| \)\[\^\(\[Unnoticed\]: Unranked leaderboards\)\]\(https:\/\/github\.com\/christopher-dG\/unnoticed\/wiki\)\
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 
 
@@ -157,7 +157,7 @@ def test_safe_url():
 
 def test_escape():
     assert osubot.utils.escape("") == ""
-    assert osubot.utils.escape("foo*bar_baz^") == "foo\*bar\_baz\^"
+    assert osubot.utils.escape("a*b_c^d~e") == "a\*b\_c\^d\~e"
 
 
 def test_is_ignored():
