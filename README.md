@@ -1,3 +1,5 @@
+**DEPRECATED: The bot now lives [here](https://github.com/christopher-dG/osu-bot-serverless).**
+
 # OsuBot
 
 [![Build Status](https://travis-ci.org/christopher-dG/OsuBot.jl.svg?branch=master)](https://travis-ci.org/christopher-dG/OsuBot.jl)
