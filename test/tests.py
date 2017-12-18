@@ -5,6 +5,8 @@ import re
 
 logging.getLogger("urllib3").propagate = False
 
+std_t = taiko_t = ctb_t = mania_t = ""
+std_ctx = taiko_ctx = ctb_ctx = mania_ctx = None
 map_player_mods_pp_re = re.compile("""\
 #### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+\)(?: \|\| osu![a-z]+)?
 \*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - \d+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
@@ -22,6 +24,29 @@ map_player_mods_pp_re = re.compile("""\
 
 \^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
+
+
+def try_assert(f, expected, *args, attr=None, **kwargs):
+    try:
+        result = f(*args, **kwargs)
+        if attr:
+            result = result.__getattribute__(attr)
+        assert result == expected
+    except Exception as e:
+        assert False, "%s: %s" % (f.__name__, e)
+
+
+def setup_module():
+    global std_t, taiko_t, ctb_t, mania_t
+    std_t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
+    taiko_t = " applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
+    ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
+    mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
+    global std_ctx, taiko_ctx, ctb_ctx, mania_ctx
+    # std_ctx = osubot.context.from_score_post(std_t)
+    # taiko_ctx = osubot.context.from_score_post(taiko_t)
+    # ctb_ctx = osubot.context.from_score_post(ctb_t)
+    # mania_ctx = osubot.context.from_score_post(mania_t)
 
 
 def test_combine_mods():
@@ -175,6 +200,35 @@ def test_changes_diff():
     assert osubot.utils.changes_diff(1 << 3 | 1 << 4)
     assert not osubot.utils.changes_diff(1 << 2 | 1 << 0 | 1 << 10)
     assert osubot.utils.changes_diff(1 << 2 | 1 << 0 | 1 << 10 | 1 << 6)
+
+
+def test_strip_annots():
+    assert osubot.context.strip_annots("") == ""
+    assert osubot.context.strip_annots("foo") == "FOO"
+    assert osubot.context.strip_annots("foo (bar)") == "FOO"
+    assert osubot.context.strip_annots("[foo] bar") == "[FOO] BAR"
+    assert osubot.context.strip_annots("[unnoticed] foo") == "FOO"
+    # Need regex lookbehind for these.
+    # assert osubot.context.strip_annots("(foo) bar (baz)") == "BAR"
+    # assert osubot.context.strip_annots("[mania] [foo] bar") == "[FOO] BAR"
+
+
+def test_getplayer():
+    try_assert(osubot.context.getplayer, 124493, std_t, attr="user_id")
+
+
+def test_getmap():
+    try_assert(osubot.context.getmap, 129891, std_t, attr="beatmap_id")
+
+
+def test_getmode():
+    assert osubot.context.getmode(ctb_t) == osubot.consts.ctb
+    assert osubot.context.getmode(mania_t) == osubot.consts.mania
+
+
+def test_getacc():
+    assert osubot.context.getacc(std_t) == 99.83
+    assert osubot.context.getacc(taiko_t) == 96.67
 
 
 def test_end2end():
