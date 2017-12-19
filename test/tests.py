@@ -36,10 +36,14 @@ def try_assert(f, expected, *args, attr=None, **kwargs):
         assert False, "%s: %s" % (f.__name__, e)
 
 
+def isapprox(x, y, t=0.005):
+    return abs(x - y) < t
+
+
 def setup_module():
     global std_t, taiko_t, ctb_t, mania_t
     std_t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
-    taiko_t = " applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
+    taiko_t = "applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
     ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
     mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
     global std_ctx, taiko_ctx, ctb_ctx, mania_ctx
@@ -88,22 +92,34 @@ def test_accuracy():
             self.countkatu = nk
             self.countmiss = nm
 
-    assert abs(osubot.utils.accuracy(
-        Foo(1344, 236, 2, 206, 82, 8),
-        osubot.consts.std,
-    ) - 89.5) < 0.005
-    assert abs(osubot.utils.accuracy(
-        Foo(2401, 436, 0, 13, 4, 92),
-        osubot.consts.taiko,
-    ) - 89.42) < 0.005
-    assert abs(osubot.utils.accuracy(
-        Foo(2655, 171, 435, 339, 3, 31),
-        osubot.consts.ctb,
-    ) - 98.97) < 0.005
-    assert abs(osubot.utils.accuracy(
-        Foo(902, 13, 4, 1882, 180, 16),
-        osubot.consts.mania,
-    ) - 97.06) < 0.005
+    assert isapprox(
+        osubot.utils.accuracy(
+            Foo(1344, 236, 2, 206, 82, 8),
+            osubot.consts.std,
+        ),
+        89.5,
+    )
+    assert isapprox(
+        osubot.utils.accuracy(
+            Foo(2401, 436, 0, 13, 4, 92),
+            osubot.consts.taiko,
+        ),
+        89.42,
+    )
+    assert isapprox(
+        osubot.utils.accuracy(
+            Foo(2655, 171, 435, 339, 3, 31),
+            osubot.consts.ctb,
+        ),
+        98.97,
+    )
+    assert isapprox(
+        osubot.utils.accuracy(
+            Foo(902, 13, 4, 1882, 180, 16),
+            osubot.consts.mania,
+        ),
+        97.06,
+    )
 
 
 def test_calculate_ar():
@@ -111,12 +127,12 @@ def test_calculate_ar():
     assert osubot.utils.calculate_ar(0, osubot.consts.nomod) == 0
     assert osubot.utils.calculate_ar(9, osubot.consts.nomod) == 9
     assert osubot.utils.calculate_ar(10, osubot.consts.nomod) == 10
-    assert abs(osubot.utils.calculate_ar(9, 1 << 6) - 10.333) < 0.005
-    assert abs(osubot.utils.calculate_ar(8, 1 << 6) - 9.666) < 0.005
-    assert abs(osubot.utils.calculate_ar(9, 1 << 4) - 10) < 0.005
-    assert abs(osubot.utils.calculate_ar(7, 1 << 4) - 9.8) < 0.005
-    assert abs(osubot.utils.calculate_ar(10, 1 << 8) - 9) < 0.005
-    assert abs(osubot.utils.calculate_ar(9, 1 << 8) - 7.666) < 0.005
+    assert isapprox(osubot.utils.calculate_ar(9, 1 << 6), 10.333)
+    assert isapprox(osubot.utils.calculate_ar(8, 1 << 6), 9.666)
+    assert isapprox(osubot.utils.calculate_ar(9, 1 << 4), 10)
+    assert isapprox(osubot.utils.calculate_ar(7, 1 << 4), 9.8)
+    assert isapprox(osubot.utils.calculate_ar(10, 1 << 8), 9)
+    assert isapprox(osubot.utils.calculate_ar(9, 1 << 8), 7.666)
 
 
 def test_map_str():
@@ -245,8 +261,7 @@ def test_getacc():
 
 
 def test_end2end():
-    t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
-    ctx, reply = osubot.scorepost(t)
+    ctx, reply = osubot.scorepost(std_t)
     assert str(ctx) == "\n".join([
         "Context:",
         "> Player:   Cookiezi",
