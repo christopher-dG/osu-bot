@@ -4,7 +4,7 @@ import os
 import subprocess
 
 from . import consts, scrape
-from .utils import combine_mods
+from .utils import calculate_ar, combine_mods
 
 
 def pp_val(ctx, acc, modded=True):
@@ -110,8 +110,14 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
     if path is None:
         return None
 
-    ar = ctx.beatmap.diff_approach
-    cmd = [consts.oppai_bin, path, "%.3f%%" % acc, "ar%d" % ar, "-ojson"]
+    cmd = [consts.oppai_bin, path, "%.3f%%" % acc, "-ojson"]
+
+    # Let oppai do this math for us in general, but some old .osu files
+    # are missing the AR value so oppai would assume 5.
+    ar = scrape.has_approach_rate(ctx)
+    if ar is None:
+        cmd.append("ar%f" % calculate_ar(ctx.beatmap.diff_approach, ctx.mods))
+
     if modded and ctx.mods != consts.nomod:
         cmd.append(combine_mods(ctx.mods))
     if taiko:
