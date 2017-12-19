@@ -21,18 +21,6 @@ def download_beatmap(ctx):
     return osu_path
 
 
-def has_approach_rate(ctx):
-    """Check if a .osu file contains a value for the approach rate."""
-    if not ctx.beatmap:
-        return False
-    path = download_beatmap(ctx)
-    if not path:
-        return False
-
-    with open(path) as f:
-        return bool(consts.approach_re.match(f.read()))
-
-
 def mapper_id(ctx):
     """Get the mapper ID of a beatmap."""
     text = request("%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))

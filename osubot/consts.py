@@ -26,7 +26,6 @@ tail_re = re.compile(".+\|.+-.+\[.+\](.+)")
 scorev2_re = re.compile("SV2|SCOREV2")
 paren_re = re.compile("\((.+)\)")
 bracket_re = re.compile("\[(.+)\]")
-approach_re = re.compile("ApproachRate:(\d+(?:\.\d+)?)")
 mapper_id_anchor = "Creator:"
 mapper_id_re = re.compile("Creator:<\/td><td class=[\"']colour[\"']><a href=[\"']\/u\/(\d+)")  # noqa
 combo_anchor = "<td><strong>Max Combo"
