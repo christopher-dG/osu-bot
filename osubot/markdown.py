@@ -51,15 +51,18 @@ def map_header(ctx):
         "%s/d/%d" % (consts.osu_url, b.beatmap_id),
     )
     mapper_id = scrape.mapper_id(ctx)
-    mapper = mapper_id if mapper_id is not None else b.creator
+    mapper = b.creator if mapper_id is None else mapper_id
     mapper_url = "%s/u/%s" % (consts.osu_url, mapper)
+    counts = mapper_counts(ctx, mapper=mapper)
+    if counts:
+        mapper_url += " \"%s\"" % counts
     mapper_link = md.link(escape(b.creator), mapper_url)
     buf = "%s %s by %s" % (map_link, dl_link, mapper_link)
 
     if ctx.mode is not None:
         buf += " || %s" % consts.mode2str[ctx.mode]
 
-    if consts.status2str[b.approved.value] == "Unranked":
+    if consts.int2status[b.approved.value] == "Unranked":
         buf += " || Unranked"
         if b.approved_date is not None:
             buf += " (%s)" % (b.approved_date)
@@ -73,7 +76,7 @@ def map_header(ctx):
     max_combo = scrape.max_combo(ctx)
     if max_combo is not None:
         buf += "%sx max combo || " % sep(max_combo)
-    buf += "%s" % consts.status2str[b.approved.value]
+    buf += "%s" % consts.int2status[b.approved.value]
     if b.approved_date:
         buf += " (%s)" % b.approved_date.date()
     if b.playcount > 0:
@@ -280,6 +283,36 @@ def map_rank_one(ctx):
         buf += " - %spp" % sep(round(score.pp))
     buf += ")"
     return buf
+
+
+def mapper_counts(ctx, mapper=None):
+    """Get the number of maps per status for a beatmap's mapper."""
+    if not ctx.beatmap:
+        return None
+
+    if not mapper:
+        mapper_id = scrape.mapper_id(ctx)
+        mapper = ctx.beatmap.creator if mapper_id is None else mapper_id
+
+    maps = api_wrap(
+        consts.osu_api.get_beatmaps,
+        username=mapper,
+        mode=consts.int2osuapimode.get(ctx.mode),
+    )
+    if not maps:
+        return None
+
+    groups = {k: 0 for k in consts.status2str}
+    ids = []
+    for b in [(m.beatmapset_id, m.approved.value) for m in maps]:
+        if b[0] in ids:
+            continue
+        ids.append(b[0])
+        if consts.int2status.get(b[1]) in groups:
+            groups[consts.int2status[b[1]]] += 1
+
+    return "%s ranked, %s qualified, %s loved, %s unranked" % \
+        tuple(sep(groups[k]) for k in ["Ranked", "Qualified", "Loved", "Unranked"])  # noqa
 
 
 def centre_table(t):

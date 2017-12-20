@@ -82,7 +82,7 @@ mode_annots = {
     "OSU!M": mania,
     "O!M": mania,
 }
-status2str = {
+int2status = {
     -2: "Unranked",
     -1: "Unranked",
     0: "Unranked",
@@ -91,6 +91,7 @@ status2str = {
     3: "Qualified",
     4: "Loved",
 }
+status2str = {v: k for k, v in int2status.items()}
 mods2int = {
     "": 1 >> 1,
     "NF": 1 << 0,

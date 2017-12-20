@@ -8,7 +8,7 @@ logging.getLogger("urllib3").propagate = False
 std_t = taiko_t = ctb_t = mania_t = ""
 std_ctx = taiko_ctx = ctb_ctx = mania_ctx = None
 map_player_mods_pp_re = re.compile("""\
-#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+\)(?: \|\| osu![a-z]+)?
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \|\| osu![a-z]+)?
 \*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - \d+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
 
 \|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
