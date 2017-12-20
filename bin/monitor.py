@@ -7,7 +7,6 @@ import praw
 import re
 import requests
 import sys
-import time
 
 sys.stdout = sys.stderr
 auto = "--auto" in sys.argv
@@ -17,13 +16,11 @@ score_re = re.compile(".+\|.+-.+\[.+\]")
 user = "osu-bot"
 sub = os.environ.get("OSU_BOT_SUB", "osugame")
 api = "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy"
-ids = []
 logger = logging.getLogger()
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO)
 
 
 def monitor():
-    i = 0
     reddit = praw.Reddit(
         client_id=os.environ["REDDIT_CLIENT_ID"],
         client_secret=os.environ["REDDIT_CLIENT_SECRET"],
@@ -33,25 +30,17 @@ def monitor():
     )
     subreddit = reddit.subreddit(sub)
 
-    while True:
-        for post in subreddit.new():
-            if post.id in ids:
-                continue
-            if not nofilter and not score_re.match(post.title):
-                continue
+    for post in subreddit.stream.submissions():
+        if not nofilter and (post.saved or not score_re.match(post.title)):
+            logger.info("Skipping '%s' - '%s'" % (post.id, post.title))
+            continue
 
-            if post_api(post.id):
-                ids.append(post.id)
+        post_api(post.id)
 
-            print("\n====================================\n")
-            if not auto:
-                input("Press enter to proceed to the next post: ")
-                print()
-
-        if not auto or not i % 50:
-            logger.info("Waiting for posts")
-        i += 1
-        time.sleep(10)
+        print("\n====================================\n")
+        if not auto:
+            input("Press enter to proceed to the next post: ")
+            print()
 
 
 def post_api(p_id):
