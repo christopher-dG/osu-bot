@@ -122,19 +122,6 @@ def test_accuracy():
     )
 
 
-def test_calculate_ar():
-    assert osubot.utils.calculate_ar(9, None) == 9
-    assert osubot.utils.calculate_ar(0, osubot.consts.nomod) == 0
-    assert osubot.utils.calculate_ar(9, osubot.consts.nomod) == 9
-    assert osubot.utils.calculate_ar(10, osubot.consts.nomod) == 10
-    assert isapprox(osubot.utils.calculate_ar(9, 1 << 6), 10.333)
-    assert isapprox(osubot.utils.calculate_ar(8, 1 << 6), 9.666)
-    assert isapprox(osubot.utils.calculate_ar(9, 1 << 4), 10)
-    assert isapprox(osubot.utils.calculate_ar(7, 1 << 4), 9.8)
-    assert isapprox(osubot.utils.calculate_ar(10, 1 << 8), 9)
-    assert isapprox(osubot.utils.calculate_ar(9, 1 << 8), 7.666)
-
-
 def test_map_str():
     class Foo:
         def __init__(self, a, t, v):

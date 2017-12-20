@@ -154,36 +154,3 @@ def changes_diff(mods):
         return False
     diff_changers = set(consts.int2mods.keys()) - set(consts.samediffmods)
     return any(m & mods for m in diff_changers)
-
-
-def calculate_ar(ar, mods):
-    """Calculate AR for given mods. Adapted/hardcoded from oppai."""
-    if mods is None or mods == consts.nomod:
-        return ar
-
-    if mods & consts.mods2int["HR"]:
-        ar *= 1.4
-    elif mods & consts.mods2int["EZ"]:
-        ar *= 0.5
-
-    ms = {0: 1800, 5: 1200, 10: 450}
-    ar_step = [120, 150]
-
-    if ar > 5:
-        ar_ms = ms[5] - ((ar - 5) * ar_step[1])
-    else:
-        ar_ms = ms[0] - (ar * ar_step[0])
-
-    ar_ms = min(ms[0], max(ms[10], ar_ms))
-
-    if mods & consts.mods2int["NC"]:
-        ar_ms /= 1.5
-    if mods & consts.mods2int["HT"]:
-        ar_ms /= 0.75
-
-    if ar_ms > ms[5]:
-        ar = (ms[0] - ar_ms) / ar_step[0]
-    else:
-        ar = 5 + (ms[5] - ar_ms) / ar_step[1]
-
-    return ar

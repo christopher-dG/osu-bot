@@ -4,7 +4,7 @@ import os
 import subprocess
 
 from . import consts, scrape
-from .utils import calculate_ar, combine_mods
+from .utils import combine_mods
 
 
 def pp_val(ctx, acc, modded=True):
