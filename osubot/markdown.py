@@ -238,7 +238,7 @@ def footer(ctx):
     buf += md.link("^([Unnoticed]: Unranked leaderboards)", consts.unnoticed)
 
     exp_pp = bool(ctx.beatmap) and ctx.beatmap.mode.value != ctx.mode
-    exp_pp |= ctx.mods in [consts.ctb, consts.mania]
+    exp_pp |= ctx.mode in [consts.ctb, consts.mania]
     if exp_pp:
         if ctx.mode == consts.taiko:
             mode = "Autoconverted Taiko"

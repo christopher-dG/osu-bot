@@ -5,8 +5,10 @@ import re
 
 logging.getLogger("urllib3").propagate = False
 
-std_t = taiko_t = ctb_t = mania_t = ""
-std_ctx = taiko_ctx = ctb_ctx = mania_ctx = None
+std_t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
+taiko_t = "applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
+ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
+mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
 map_player_mods_pp_re = re.compile("""\
 #### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \|\| osu![a-z]+)?
 \*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
@@ -76,19 +78,6 @@ def try_assert(f, expected, *args, attr=None, **kwargs):
 
 def isapprox(x, y, t=0.005):
     return abs(x - y) < t
-
-
-def setup_module():
-    global std_t, taiko_t, ctb_t, mania_t
-    std_t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
-    taiko_t = "applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
-    ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
-    mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
-    global std_ctx, taiko_ctx, ctb_ctx, mania_ctx
-    # std_ctx = osubot.context.from_score_post(std_t)
-    # taiko_ctx = osubot.context.from_score_post(taiko_t)
-    # ctb_ctx = osubot.context.from_score_post(ctb_t)
-    # mania_ctx = osubot.context.from_score_post(mania_t)
 
 
 def test_combine_mods():
@@ -325,6 +314,7 @@ def test_ctb_end2end():
         "> Acc:      99.92%",
     ])
     assert map_player_nomods_pp_re.match(reply)
+    assert "osu!catch pp is experimental" in reply
 
 
 def test_mania_end2end():
@@ -338,3 +328,4 @@ def test_mania_end2end():
         "> Acc:      98.53%",
     ])
     assert map_player_nomods_pp_re.match(reply)
+    assert "osu!mania pp is experimental" in reply
