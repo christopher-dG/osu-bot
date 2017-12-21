@@ -127,10 +127,12 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
         return None
 
     try:
-        return json.loads(out).get("pp", None)
+        pp_j = json.loads(out)
     except Exception as e:
         print("Converting oppai output to JSON failed: %s" % e)
         return None
+    pp = pp_j.get("pp")
+    return None if pp == -1 else pp
 
 
 def ctb_max_combo(ctx):
