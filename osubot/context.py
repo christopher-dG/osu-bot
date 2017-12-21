@@ -113,7 +113,7 @@ def getmode(title, player=None, beatmap=None):
     Otherwise, use beatmap's mode.
     If beatmap is None, then return None for unknown.
     """
-    match = consts.player_re.match(title.upper())
+    match = consts.player_re.search(title.upper())
     if not match:
         return None
     playername = match.group(1)

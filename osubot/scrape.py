@@ -26,16 +26,12 @@ def mapper_id(ctx):
     text = request("%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
     if not text:
         return None
-    if consts.mapper_id_anchor not in text:
-        print("No 'Creator' field in response text")
-        return None
 
-    idx = text.index(consts.mapper_id_anchor)
-    match = consts.mapper_id_re.match(text[idx:idx+100])
+    match = consts.mapper_id_re.search(text)
     if not match:
         print("No mapper ID match found")
         return None
-    return match.group(1)
+    return int(match.group(1))
 
 
 def playstyle(ctx):
@@ -44,20 +40,14 @@ def playstyle(ctx):
         print("Player is missing: Skipping playstyle")
         return None
 
-    text = request("%s/u/%d" % (consts.osu_url, ctx.player.user_id))
-    if not text:
+    website = request("%s/u/%d" % (consts.osu_url, ctx.player.user_id))
+    if not website:
         return None
 
-    if consts.playstyle_anchor not in text:
-        print("Playstyle anchor not found")
-        return None
-    idx = text.index(consts.playstyle_anchor)
-    website = text[idx:idx+200]
-
-    mouse = "M" if consts.playstyle_m_re.match(website) else None
-    keyboard = "KB" if consts.playstyle_kb_re.match(website) else None
-    tablet = "TB" if consts.playstyle_tb_re.match(website) else None
-    touch = "TD" if consts.playstyle_td_re.match(website) else None
+    mouse = "M" if consts.playstyle_m_re.search(website) else None
+    keyboard = "KB" if consts.playstyle_kb_re.search(website) else None
+    tablet = "TB" if consts.playstyle_tb_re.search(website) else None
+    touch = "TD" if consts.playstyle_td_re.search(website) else None
 
     joined = "+".join(filter(bool, [mouse, keyboard, tablet, touch]))
 
@@ -113,26 +103,16 @@ def web_max_combo(ctx):
         return None
 
     if ctx.mode == consts.mania:
-        misses_anchor = consts.mania_misses_anchor
         misses_re = consts.mania_misses_re
     else:
-        misses_anchor = consts.misses_anchor
         misses_re = consts.misses_re
 
-    if consts.combo_anchor not in text:
-        print("Combo anchor not found")
-        return None
-    idx = text.index(consts.combo_anchor)
-    match = consts.combo_re.match(text[idx:idx+100])
+    match = consts.combo_re.search(text)
     if not match:
         print("No combo match")
         return None
-    if misses_anchor not in text:
-        print("Misses anchor not found")
-        return None
     combo = match.group(1)
-    idx = text.index(misses_anchor)
-    match = misses_re.match(text[idx:idx+100])
+    match = misses_re.search(text)
     if not match:
         print("No misses match")
         return None
