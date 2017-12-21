@@ -49,7 +49,7 @@ def accuracy(s, mode):
         return 100 * x / y
 
 
-def str_to_timestamp(secs):
+def s_to_ts(secs):
     """Convert s seconds into a timestamp."""
     hrs = secs // 3600
     mins = (secs - hrs * 3600) // 60

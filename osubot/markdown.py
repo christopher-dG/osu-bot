@@ -1,3 +1,4 @@
+import copy
 import markdown_strings as md
 import random
 
@@ -11,7 +12,7 @@ from .utils import (
     nonbreaking,
     round_to_str,
     sep,
-    str_to_timestamp,
+    s_to_ts,
 )
 
 
@@ -127,8 +128,8 @@ def map_table(ctx):
             ["BPM", round(nomod["bpm"]), round(modded["bpm"])],
             [
                 "Length",
-                str_to_timestamp(nomod["length"]),
-                str_to_timestamp(modded["length"]),
+                s_to_ts(nomod["length"]),
+                s_to_ts(modded["length"]),
             ],
         ]
     else:
@@ -139,7 +140,7 @@ def map_table(ctx):
             ["HP", r(nomod["hp"], 1)],
             ["SR", r(nomod["sr"], 2, force=True)],
             ["BPM", round(nomod["bpm"])],
-            ["Length", str_to_timestamp(nomod["length"])],
+            ["Length", s_to_ts(nomod["length"])],
         ]
 
     pp_vals = {}
@@ -219,7 +220,15 @@ def player_table(ctx):
             map_url = "%s/b/%d" % (consts.osu_url, bmap.beatmap_id)
             if ctx.mode is not None:
                 map_url += "?m=%d" % ctx.mode
-            buf = md.link(escape(map_str(bmap)), map_url)
+
+            ctx_clone = copy.deepcopy(ctx)
+            ctx_clone.beatmap = bmap
+            ctx_clone.mods = score.enabled_mods.value
+            hover = map_hover(ctx_clone)
+
+            map_link = "%s \"%s\"" % (map_url, hover) if hover else map_url
+
+            buf = md.link(escape(map_str(bmap)), map_link)
 
             mods = combine_mods(score.enabled_mods.value)
             if mods:
@@ -335,6 +344,22 @@ def mapper_renamed(ctx, mapper_id=None):
         return mapper_updated[0].username
 
     return None
+
+
+def map_hover(ctx):
+    """Generate link hover text for a beatmap."""
+    if not ctx.beatmap:
+        return None
+
+    d = diff.diff_vals(ctx, modded=ctx.mods != consts.nomod)
+    if not d:
+        return None
+
+    r = round_to_str
+    return "SR%s - CS%s - AR%s - OD%s - HP%s - %dBPM - %s" % (
+        r(d["sr"], 2, force=True), r(d["cs"], 1), r(d["ar"], 1), r(d["od"], 1),
+        r(d["hp"], 1), d["bpm"], s_to_ts(d["length"]),
+    )
 
 
 def centre_table(t):

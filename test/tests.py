@@ -20,7 +20,7 @@ map_player_mods_pp_re = re.compile("""\
 
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
 
 \*\*\*
 
@@ -36,7 +36,7 @@ map_player_nomods_pp_re = re.compile("""\
 
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
 
 \*\*\*
 
@@ -58,7 +58,7 @@ map_noplayer_mods_pp_re = re.compile("""\
 nomap_player_re = re.compile("""\
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
 
 \*\*\*
 
@@ -158,11 +158,11 @@ def test_map_str():
     assert osubot.utils.map_str(Foo("foo", "bar", "baz")) == "foo - bar [baz]"
 
 
-def test_str_to_timestamp():
-    assert osubot.utils.str_to_timestamp(0) == "00:00"
-    assert osubot.utils.str_to_timestamp(10) == "00:10"
-    assert osubot.utils.str_to_timestamp(340) == "05:40"
-    assert osubot.utils.str_to_timestamp(3940) == "01:05:40"
+def test_s_to_ts():
+    assert osubot.utils.s_to_ts(0) == "00:00"
+    assert osubot.utils.s_to_ts(10) == "00:10"
+    assert osubot.utils.s_to_ts(340) == "05:40"
+    assert osubot.utils.s_to_ts(3940) == "01:05:40"
 
 
 def test_nonbreaking():
@@ -305,6 +305,7 @@ def test_taiko_end2end():
 
 def test_ctb_end2end():
     ctx, reply = osubot.scorepost(ctb_t)
+    print(ctx)
     assert str(ctx) == "\n".join([
         "Context:",
         "> Player:   Dusk",
@@ -319,6 +320,7 @@ def test_ctb_end2end():
 
 def test_mania_end2end():
     ctx, reply = osubot.scorepost(mania_t)
+    print(ctx)
     assert str(ctx) == "\n".join([
         "Context:",
         "> Player:   WindyS",
