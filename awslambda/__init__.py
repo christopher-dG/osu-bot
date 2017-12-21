@@ -1,5 +1,6 @@
 import json
 import os
+import osubot
 import praw
 import shutil
 import stat
@@ -43,6 +44,7 @@ def finish(status=200, error=None, **kwargs):
             "postID": post_id,
             "postTitle": post_title,
             "error": error,
+            "apiCalls": osubot.utils.api.count,
             **kwargs,
         },
     }

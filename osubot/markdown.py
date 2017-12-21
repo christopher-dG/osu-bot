@@ -4,7 +4,7 @@ import random
 from . import consts, diff, pp, scrape
 from .utils import (
     accuracy,
-    api_wrap,
+    api,
     combine_mods,
     escape,
     map_str,
@@ -192,7 +192,7 @@ def player_table(ctx):
     ]
 
     mode = ctx.mode if ctx.mode is not None else consts.std
-    scores = api_wrap(
+    scores = api(
         consts.osu_api.get_user_best,
         ctx.player.user_id,
         mode=consts.int2osuapimode[mode],
@@ -200,7 +200,7 @@ def player_table(ctx):
     )
     if scores:
         score = scores[0]
-        beatmaps = api_wrap(
+        beatmaps = api(
             consts.osu_api.get_beatmaps,
             beatmap_id=score.beatmap_id,
             mode=consts.int2osuapimode[mode],
@@ -257,7 +257,7 @@ def map_rank_one(ctx):
 
     mode = ctx.mode if ctx.mode is not None else consts.std
     apimode = consts.int2osuapimode[mode]
-    scores = api_wrap(
+    scores = api(
         consts.osu_api.get_scores,
         ctx.beatmap.beatmap_id,
         mode=apimode,
@@ -268,7 +268,7 @@ def map_rank_one(ctx):
         return None
     score = scores[0]
 
-    players = api_wrap(consts.osu_api.get_user, score.username, mode=apimode)
+    players = api(consts.osu_api.get_user, score.username, mode=apimode)
     p_id = players[0].user_id if players else score.username
     player_link = md.link(
         escape(score.username),
@@ -294,7 +294,7 @@ def mapper_counts(ctx, mapper=None):
         mapper_id = scrape.mapper_id(ctx)
         mapper = ctx.beatmap.creator if mapper_id is None else mapper_id
 
-    maps = api_wrap(
+    maps = api(
         consts.osu_api.get_beatmaps,
         username=mapper,
         mode=consts.int2osuapimode.get(ctx.mode),

@@ -1,5 +1,5 @@
 from . import consts
-from .utils import api_wrap, compare, request
+from .utils import api, compare, request
 
 
 def search(player, beatmap):
@@ -35,7 +35,7 @@ def search_events(player, beatmap, mode=False, b_id=None):
             if mode:
                 return consts.eventstr2mode.get(match.group(2), None)
             b_id = event.beatmap_id
-            beatmaps = api_wrap(consts.osu_api.get_beatmaps, beatmap_id=b_id)
+            beatmaps = api(consts.osu_api.get_beatmaps, beatmap_id=b_id)
             if beatmaps:
                 return beatmaps[0]
 
@@ -44,7 +44,7 @@ def search_events(player, beatmap, mode=False, b_id=None):
 
 def search_recent(player, beatmap):
     """Search player's recent plays for beatmap."""
-    recent = api_wrap(consts.osu_api.get_user_recent, player.user_id, limit=50)
+    recent = api(consts.osu_api.get_user_recent, player.user_id, limit=50)
     if not recent:
         return None
 
@@ -54,7 +54,7 @@ def search_recent(player, beatmap):
             continue
         ids.append(score.beatmap_id)
 
-        beatmaps = api_wrap(
+        beatmaps = api(
             consts.osu_api.get_beatmaps,
             beatmap_id=score.beatmap_id,
         )
@@ -101,7 +101,7 @@ def search_osusearch(beatmap):
         return None
 
     fav_map = max(beatmaps, key=lambda m: m.get("favorites", 0))
-    beatmaps = api_wrap(
+    beatmaps = api(
         consts.osu_api.get_beatmaps,
         beatmap_id=fav_map["beatmap_id"],
     )

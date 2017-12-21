@@ -1,6 +1,4 @@
-cache = {"f": None, "args": None, "kwargs": None, "result": None}
-
-from . import consts, context, markdown  # noqa
+from . import consts, context, markdown
 
 
 def scorepost(title):

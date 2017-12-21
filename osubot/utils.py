@@ -2,7 +2,7 @@ import requests
 import sys
 import traceback
 
-from . import cache, consts
+from . import consts
 
 
 def map_str(beatmap):
@@ -89,21 +89,39 @@ def safe_call(f, *args, alt=[], msg=None, **kwargs):
         return alt
 
 
-def api_wrap(f, *args, **kwargs):
+def cached(func):
+    """Cache results of a method and count misses."""
+    def wrapper(f, *args, **kwargs):
+        if wrapper.f == f and wrapper.args == args and \
+           wrapper.kwargs == kwargs and wrapper.result:
+            print("Using cached API result for %s" % f.__name__)
+            return wrapper.result
+
+        wrapper.count += 1
+        print("Getting new API result for %s" % f.__name__)
+        result = f(*args, **kwargs)
+
+        if result:
+            wrapper.f = f
+            wrapper.args = args
+            wrapper.kwargs = kwargs
+            wrapper.result = result
+            return result
+
+    wrapper.count = 0
+    wrapper.f = None
+    wrapper.args = ()
+    wrapper.kwargs = {}
+    wrapper.result = None
+    wrapper.__name__ = func.__name__
+
+    return wrapper
+
+
+@cached
+def api(f, *args, **kwargs):
     """Wrap an API call, using a cached response if applicable."""
-    if cache["f"] == f and cache["args"] == args and \
-       cache["kwargs"] == kwargs and cache["result"]:
-        return cache["result"]
-
-    result = safe_call(f, *args, **kwargs)
-    if result:
-        cache["f"] = f
-        cache["args"] = args
-        cache["kwargs"] = kwargs
-        cache["result"] = result
-        return result
-
-    return None
+    return safe_call(f, *args, alt=None, **kwargs)
 
 
 def request(url, *args, text=True, **kwargs):
