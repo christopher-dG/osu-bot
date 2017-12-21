@@ -14,7 +14,7 @@ def map_str(beatmap):
 
 def escape(s):
     """Escape Markdown formatting."""
-    tb = str.maketrans({"^": "\^", "*": "\*", "_": "\_", "~": "\~"})
+    tb = str.maketrans({"^": "\^", "*": "\*", "_": "\_", "~": "\~", "<": "\<"})
     return s.translate(tb)
 
 

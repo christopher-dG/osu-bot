@@ -312,11 +312,7 @@ def mapper_counts(ctx, mapper=None):
         mapper_id = scrape.mapper_id(ctx)
         mapper = ctx.beatmap.creator if mapper_id is None else mapper_id
 
-    maps = api(
-        consts.osu_api.get_beatmaps,
-        username=mapper,
-        mode=consts.int2osuapimode.get(ctx.mode),
-    )
+    maps = api(consts.osu_api.get_beatmaps, username=mapper)
     if not maps:
         return None
 

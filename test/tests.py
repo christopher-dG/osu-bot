@@ -20,7 +20,7 @@ map_player_mods_pp_re = re.compile("""\
 
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+#x2011;.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
 
 \*\*\*
 
@@ -36,7 +36,7 @@ map_player_nomods_pp_re = re.compile("""\
 
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+#x2011;.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
 
 \*\*\*
 
@@ -58,7 +58,7 @@ map_noplayer_mods_pp_re = re.compile("""\
 nomap_player_re = re.compile("""\
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+#x2011;.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
 
 \*\*\*
 
@@ -305,7 +305,6 @@ def test_taiko_end2end():
 
 def test_ctb_end2end():
     ctx, reply = osubot.scorepost(ctb_t)
-    print(ctx)
     assert str(ctx) == "\n".join([
         "Context:",
         "> Player:   Dusk",
@@ -320,7 +319,6 @@ def test_ctb_end2end():
 
 def test_mania_end2end():
     ctx, reply = osubot.scorepost(mania_t)
-    print(ctx)
     assert str(ctx) == "\n".join([
         "Context:",
         "> Player:   WindyS",

@@ -31,7 +31,10 @@ def monitor():
     subreddit = reddit.subreddit(sub)
 
     for post in subreddit.stream.submissions():
-        if not nofilter and (post.saved or not score_re.match(post.title)):
+        if not nofilter and not score_re.match(post.title):
+            logger.info("Skipping '%s' - '%s'" % (post.id, post.title))
+            continue
+        if not test and post.saved:
             logger.info("Skipping '%s' - '%s'" % (post.id, post.title))
             continue
 
