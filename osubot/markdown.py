@@ -224,11 +224,12 @@ def player_table(ctx):
             ctx_clone = copy.deepcopy(ctx)
             ctx_clone.beatmap = bmap
             ctx_clone.mods = score.enabled_mods.value
+            ctx_clone.mode = mode
             hover = map_hover(ctx_clone)
 
             map_link = "%s \"%s\"" % (map_url, hover) if hover else map_url
 
-            buf = md.link(escape(map_str(bmap)), map_link)
+            buf = md.link(nonbreaking(escape(map_str(bmap))), map_link)
 
             mods = combine_mods(score.enabled_mods.value)
             if mods:
