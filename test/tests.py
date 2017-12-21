@@ -9,13 +9,51 @@ std_t = taiko_t = ctb_t = mania_t = ""
 std_ctx = taiko_ctx = ctb_ctx = mania_ctx = None
 map_player_mods_pp_re = re.compile("""\
 #### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \|\| osu![a-z]+)?
-\*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - \d+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
+\*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
 
 \|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:
-\|\s+NoMod\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+\d+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
-\|\s+\+(?:[A-Z2]{2})+\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+\d+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+\|\s+NoMod\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+\|\s+\+(?:[A-Z2]{2})+\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
 
+\|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+
+\*\*\*
+
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+""")  # noqa
+map_player_nomods_pp_re = re.compile("""\
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \|\| osu![a-z]+)?
+\*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
+
+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:
+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+
+\|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
+
+\*\*\*
+
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+""")  # noqa
+map_noplayer_mods_pp_re = re.compile("""\
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \|\| osu![a-z]+)?
+\*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
+
+\|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:
+\|\s+NoMod\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+\|\s+\+(?:[A-Z2]{2})+\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+
+\*\*\*
+
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+""")  # noqa
+nomap_player_re = re.compile("""\
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Acc\s+\|\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:
 \|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|\s+[\d,]+\s+\|\s+\[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?\)(?: \+(?:[A-Z2]{2})+ &#124;)? \d{1,3}\.\d{2}% &#124; [\d,]+pp\s+\|
@@ -228,6 +266,9 @@ def test_strip_annots():
     # assert osubot.context.strip_annots("(foo) bar (baz)") == "BAR"
     # assert osubot.context.strip_annots("[mania] [foo] bar") == "[FOO] BAR"
 
+    # NOTE: Most of the tests below are network dependent,
+    # so spurious failures are possible.
+
 
 def test_getplayer():
     try_assert(osubot.context.getplayer, 124493, std_t, attr="user_id")
@@ -247,7 +288,7 @@ def test_getacc():
     assert osubot.context.getacc(taiko_t) == 96.67
 
 
-def test_end2end():
+def test_std_end2end():
     ctx, reply = osubot.scorepost(std_t)
     assert str(ctx) == "\n".join([
         "Context:",
@@ -258,3 +299,42 @@ def test_end2end():
         "> Acc:      99.83%",
     ])
     assert map_player_mods_pp_re.match(reply)
+
+
+def test_taiko_end2end():
+    ctx, reply = osubot.scorepost(taiko_t)
+    assert str(ctx) == "\n".join([
+        "Context:",
+        "> Player:   applerss",
+        "> Beatmap:  KASAI HARCORES - Cycle Hit [Strike]",
+        "> Mode:     osu!taiko",
+        "> Mods:     +HDDT",
+        "> Acc:      96.67%",
+    ])
+    assert map_player_mods_pp_re.match(reply)
+
+
+def test_ctb_end2end():
+    ctx, reply = osubot.scorepost(ctb_t)
+    assert str(ctx) == "\n".join([
+        "Context:",
+        "> Player:   Dusk",
+        "> Beatmap:  onoken - P8107 [Nervous Breakdown]",
+        "> Mode:     osu!catch",
+        "> Mods:     +HR",
+        "> Acc:      99.92%",
+    ])
+    assert map_player_nomods_pp_re.match(reply)
+
+
+def test_mania_end2end():
+    ctx, reply = osubot.scorepost(mania_t)
+    assert str(ctx) == "\n".join([
+        "Context:",
+        "> Player:   WindyS",
+        "> Beatmap:  LeaF - Doppelganger [Alter Ego]",
+        "> Mode:     osu!mania",
+        "> Mods:     NoMod",
+        "> Acc:      98.53%",
+    ])
+    assert map_player_nomods_pp_re.match(reply)
