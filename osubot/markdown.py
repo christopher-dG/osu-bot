@@ -225,7 +225,7 @@ def player_table(ctx):
             ctx_clone.beatmap = bmap
             ctx_clone.mods = score.enabled_mods.value
             ctx_clone.mode = mode
-            hover = map_hover(ctx_clone)
+            hover = map_hover(ctx_clone, oldmap=ctx.beatmap, oldmods=ctx.mods)
 
             map_link = "%s \"%s\"" % (map_url, hover) if hover else map_url
 
@@ -288,10 +288,15 @@ def map_rank_one(ctx):
 
     players = api(consts.osu_api.get_user, score.username, mode=apimode)
     p_id = players[0].user_id if players else score.username
-    player_link = md.link(
-        escape(score.username),
-        "%s/u/%s" % (consts.osu_url, p_id),
-    )
+    if players:
+        ctx_clone = copy.deepcopy(ctx)
+        ctx_clone.player = players[0]
+        hover = player_hover(ctx_clone, oldplayer=ctx.player)
+    else:
+        hover = None
+    player_url = "%s/u/%s%s" % \
+                 (consts.osu_url, p_id, " \"%s\"" % hover if hover else "")
+    player_link = md.link(escape(score.username), player_url)
 
     buf = "#1: %s (" % player_link
     if score.enabled_mods.value != consts.nomod:
@@ -343,9 +348,12 @@ def mapper_renamed(ctx, mapper_id=None):
     return None
 
 
-def map_hover(ctx):
+def map_hover(ctx, oldmap=None, oldmods=None):
     """Generate link hover text for a beatmap."""
     if not ctx.beatmap:
+        return None
+    if oldmap and ctx.beatmap.beatmap_id == oldmap.beatmap_id and \
+       ctx.mods == oldmods:
         return None
 
     d = diff.diff_vals(ctx, modded=ctx.mods != consts.nomod)
@@ -357,6 +365,26 @@ def map_hover(ctx):
         r(d["sr"], 2, force=True), r(d["cs"], 1), r(d["ar"], 1), r(d["od"], 1),
         r(d["hp"], 1), d["bpm"], s_to_ts(d["length"]),
     )
+
+
+def player_hover(ctx, oldplayer=None):
+    """Generate link hover text for a player."""
+    if not ctx.player or \
+       (oldplayer and ctx.player.user_id == oldplayer.user_id):
+        return None
+    p = ctx.player
+    if p.pp_rank is None:
+        return None
+
+    return "%spp - rank #%s (#%s %s) - %s%% acc - %s playcount" % \
+        (
+            sep(round(p.pp_raw)),
+            sep(p.pp_rank),
+            sep(p.pp_country_rank),
+            p.country,
+            round_to_str(p.accuracy, 2, force=True),
+            sep(p.playcount),
+        )
 
 
 def centre_table(t):
