@@ -53,9 +53,17 @@ def map_header(ctx):
     mapper_id = scrape.mapper_id(ctx)
     mapper = b.creator if mapper_id is None else mapper_id
     mapper_url = "%s/u/%s" % (consts.osu_url, mapper)
+
+    rename = mapper_renamed(ctx, mapper_id=mapper_id)
+    hover = "Renamed to '%s'" % rename if rename is not None else ""
+
     counts = mapper_counts(ctx, mapper=mapper)
     if counts:
-        mapper_url += " \"%s\"" % counts
+        hover += ": %s" % counts if hover else counts
+
+    if hover:
+        mapper_url += " \"%s\"" % hover
+
     mapper_link = md.link(escape(b.creator), mapper_url)
     buf = "%s %s by %s" % (map_link, dl_link, mapper_link)
 
@@ -313,6 +321,20 @@ def mapper_counts(ctx, mapper=None):
 
     return "%s ranked, %s qualified, %s loved, %s unranked" % \
         tuple(sep(groups[k]) for k in ["Ranked", "Qualified", "Loved", "Unranked"])  # noqa
+
+
+def mapper_renamed(ctx, mapper_id=None):
+    """Check if the mapper of ctx's beatmap has renamed."""
+    if not mapper_id:
+        mapper_id = scrape.mapper_id(ctx)
+        if mapper_id is None:
+            return None
+
+    mapper_updated = api(consts.osu_api.get_user, mapper_id)
+    if mapper_updated and mapper_updated[0].username != ctx.beatmap.creator:
+        return mapper_updated[0].username
+
+    return None
 
 
 def centre_table(t):
