@@ -5,6 +5,60 @@ import traceback
 from . import consts
 
 
+def cached(func):
+    """Cache results of API methods and count misses."""
+    def wrapper(f, *args, **kwargs):
+        idx = wrapper.search(f, *args, **kwargs)
+        if idx != -1:
+            return wrapper.cache[f][idx]["result"]
+
+        wrapper.count += 1
+        result = f(*args, **kwargs)
+
+        if result:
+            if f not in wrapper.cache:
+                wrapper.cache[f] = []
+            wrapper.cache[f].append({
+                "args": args,
+                "kwargs": kwargs,
+                "result": result,
+            })
+        return result
+
+    def search_cache(f, *args, **kwargs):
+        """Search the cache for a call to f with matching arguments."""
+        if f not in wrapper.cache:
+            return -1
+
+        def tuplecmp(a, b):
+            """Compare tuples case-insensitively."""
+            foo = [x.upper() if isinstance(x, str) else x for x in a]
+            bar = [x.upper() if isinstance(x, str) else x for x in b]
+            return foo == bar
+
+        def dictcmp(a, b):
+            """Compare dicts with case-insensitive keys."""
+            foo = {
+                k: v.upper() if isinstance(v, str) else v for k, v in a.items()
+            }
+            bar = {
+                k: v.upper() if isinstance(v, str) else v for k, v in b.items()
+            }
+            return foo == bar
+
+        for i, d in enumerate(wrapper.cache[f]):
+            if tuplecmp(d["args"], args) and dictcmp(d["kwargs"], kwargs):
+                return i
+        return -1
+
+    wrapper.search = search_cache
+    wrapper.count = 0
+    wrapper.cache = {}
+    wrapper.__name__ = func.__name__
+
+    return wrapper
+
+
 def map_str(beatmap):
     """Format a beatmap into a string."""
     if not beatmap:
@@ -87,35 +141,6 @@ def safe_call(f, *args, alt=[], msg=None, **kwargs):
         if msg:
             print(msg)
         return alt
-
-
-def cached(func):
-    """Cache results of a method and count misses."""
-    def wrapper(f, *args, **kwargs):
-        if wrapper.f == f and wrapper.args == args and \
-           wrapper.kwargs == kwargs and wrapper.result:
-            print("Using cached API result for %s" % f.__name__)
-            return wrapper.result
-
-        wrapper.count += 1
-        print("Getting new API result for %s" % f.__name__)
-        result = f(*args, **kwargs)
-
-        if result:
-            wrapper.f = f
-            wrapper.args = args
-            wrapper.kwargs = kwargs
-            wrapper.result = result
-            return result
-
-    wrapper.count = 0
-    wrapper.f = None
-    wrapper.args = ()
-    wrapper.kwargs = {}
-    wrapper.result = None
-    wrapper.__name__ = func.__name__
-
-    return wrapper
 
 
 @cached

@@ -329,3 +329,30 @@ def test_mania_end2end():
     ])
     assert map_player_nomods_pp_re.match(reply)
     assert "osu!mania pp is experimental" in reply
+
+
+def test_cached():
+    @osubot.utils.cached
+    def foo(f, *args, **kwargs): pass
+    def bar(*args, **kwargs): return True  # noqa
+    assert foo.count == 0
+
+    foo(bar, 1)
+    assert foo.count == 1
+    foo(bar, 1, "baz")
+    assert foo.count == 2
+    foo(bar, 1, "BAZ")
+    assert foo.count == 2
+
+    foo(bar, x=1)
+    assert foo.count == 3
+    foo(bar, x=2)
+    foo(bar, x=2)
+    assert foo.count == 4
+    foo(bar, x=1, y="baz")
+    foo(bar, x=1, y="BAZ")
+    assert foo.count == 5
+
+    foo(bar, 1, 2, "baz", x=1, y=2, z="qux")
+    foo(bar, 1, 2, "BAZ", x=1, z="qux", y=2)
+    assert foo.count == 6
