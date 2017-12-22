@@ -1,6 +1,6 @@
 from . import consts
 from .beatmap_search import search, search_events
-from .utils import api, combine_mods, map_str
+from .utils import api, combine_mods, map_str, matched_bracket_contents
 
 
 class Context:
@@ -102,8 +102,16 @@ def getmap(title, player=None):
     if not match:
         print("Couldn't get beatmap name match")
         return None
+    map_s = match.group(1).strip()
 
-    return search(player, match.group(1).strip())
+    match = consts.map_pieces_re.search(map_s)
+    if match:
+        diff = match.group(3)
+        contents = matched_bracket_contents("[%s]" % diff)
+        if contents:
+            map_s = "%s - %s [%s]" % (match.group(1), match.group(2), contents)
+
+    return search(player, map_s)
 
 
 def getmode(title, player=None, beatmap=None):

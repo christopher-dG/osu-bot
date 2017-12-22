@@ -245,6 +245,15 @@ def test_changes_diff():
     assert osubot.utils.changes_diff(1 << 2 | 1 << 0 | 1 << 10 | 1 << 6)
 
 
+def test_matched_bracket_contents():
+    func = osubot.utils.matched_bracket_contents
+    assert func("") is None
+    assert func("[foo]") == "foo"
+    assert func("[foo [bar]]") == "foo [bar]"
+    assert func("[foo [bar] baz [qux]]") == "foo [bar] baz [qux]"
+    assert func("[foo bar [ baz]") is None
+
+
 def test_strip_annots():
     assert osubot.context.strip_annots("") == ""
     assert osubot.context.strip_annots("foo") == "FOO"

@@ -197,3 +197,21 @@ def changes_diff(mods):
         return False
     diff_changers = set(consts.int2mods.keys()) - set(consts.samediffmods)
     return any(m & mods for m in diff_changers)
+
+
+def matched_bracket_contents(s):
+    """Find the contents of a pair of square brackets."""
+    if "[" not in s:
+        return None
+
+    s = s[(s.index("[") + 1):]
+    n = 0
+    for i, c in enumerate(s):
+        if c == "]" and n == 0:
+            return s[:i]
+        elif c == "]":
+            n -= 1
+        elif c == "[":
+            n += 1
+
+    return None
