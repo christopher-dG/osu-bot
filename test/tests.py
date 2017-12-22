@@ -213,6 +213,7 @@ def test_compare():
     assert osubot.utils.compare("foobar", "FOOBAR")
     assert osubot.utils.compare("foo&bar", "FOO&amp;BAR")
     assert osubot.utils.compare("foo\"bar", "FOO&quot;BAR")
+    assert osubot.utils.compare("foo", "fob")
 
 
 def test_safe_url():

@@ -1,3 +1,4 @@
+editdistance
 markdown-strings
 git+https://github.com/khazhyk/osuapi
 praw

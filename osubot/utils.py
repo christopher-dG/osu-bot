@@ -1,3 +1,4 @@
+import editdistance
 import requests
 import sys
 import traceback
@@ -180,7 +181,7 @@ def compare(x, y):
     """Leniently compare two strings."""
     x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
     y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
-    return x.upper() == y.upper()
+    return editdistance.eval(x.upper(), y.upper()) <= 2
 
 
 def is_ignored(mods):
