@@ -84,7 +84,7 @@ def api_max_combo(ctx):
     scores = api(
         consts.osu_api.get_scores,
         ctx.beatmap.beatmap_id,
-        mode=consts.int2osuapimode[ctx.mode],
+        mode=consts.int2osuapimode.get(ctx.mode),
         limit=100,
     )
 
