@@ -1,6 +1,7 @@
 /.tox/
 /build/
 /bin/oppai-ng/
+/venv/
 *.egg-info
 *.pyc
 __pycache__/

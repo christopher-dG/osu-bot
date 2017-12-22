@@ -7,6 +7,7 @@ import traceback
 
 from . import (
     chmod,
+    clear_cache_counts,
     finish,
     initialize,
     post_has_reply,
@@ -18,6 +19,8 @@ from . import (
 
 def scorepost(event, _):
     start = time.time()
+    clear_cache_counts()
+
     p_id = event["queryStringParameters"].get("id", None)
     if p_id is None:
         return finish(status=400, error="Missing id parameter", time=start)

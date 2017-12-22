@@ -7,26 +7,28 @@ from . import consts
 
 
 def cached(func):
-    """Cache results of API methods and count misses."""
+    """Cache results of API methods and count hits/misses."""
     def wrapper(f, *args, **kwargs):
+        if f not in wrapper.cache:
+            wrapper.cache[f] = {"data": [], "hits": 0, "misses": 0}
+
         idx = wrapper.search(f, *args, **kwargs)
         if idx != -1:
-            return wrapper.cache[f][idx]["result"]
+            wrapper.cache[f]["hits"] += 1
+            return wrapper.cache[f]["data"][idx]["result"]
 
-        wrapper.count += 1
+        wrapper.cache[f]["misses"] += 1
         result = f(*args, **kwargs)
 
         if result:
-            if f not in wrapper.cache:
-                wrapper.cache[f] = []
-            wrapper.cache[f].append({
+            wrapper.cache[f]["data"].append({
                 "args": args,
                 "kwargs": kwargs,
                 "result": result,
             })
         return result
 
-    def search_cache(f, *args, **kwargs):
+    def search(f, *args, **kwargs):
         """Search the cache for a call to f with matching arguments."""
         if f not in wrapper.cache:
             return -1
@@ -47,13 +49,24 @@ def cached(func):
             }
             return foo == bar
 
-        for i, d in enumerate(wrapper.cache[f]):
+        for i, d in enumerate(wrapper.cache[f]["data"]):
             if tuplecmp(d["args"], args) and dictcmp(d["kwargs"], kwargs):
                 return i
         return -1
 
-    wrapper.search = search_cache
-    wrapper.count = 0
+    def summary():
+        """Return a summary mapping of the cache."""
+        return {
+            f.__name__: {
+                "hits": v["hits"],
+                "misses": v["misses"],
+                "length": len(v["data"]),
+            }
+            for f, v in wrapper.cache.items()
+        }
+
+    wrapper.search = search
+    wrapper.cache_summary = summary
     wrapper.cache = {}
     wrapper.__name__ = func.__name__
 

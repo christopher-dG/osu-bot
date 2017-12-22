@@ -345,24 +345,40 @@ def test_cached():
     @osubot.utils.cached
     def foo(f, *args, **kwargs): pass
     def bar(*args, **kwargs): return True  # noqa
-    assert foo.count == 0
+    def baz(*args, **kwargs): return True  # noqa
 
     foo(bar, 1)
-    assert foo.count == 1
+    assert foo.cache[bar]["hits"] == 0
+    assert foo.cache[bar]["misses"] == 1
     foo(bar, 1, "baz")
-    assert foo.count == 2
+    assert foo.cache[bar]["hits"] == 0
+    assert foo.cache[bar]["misses"] == 2
     foo(bar, 1, "BAZ")
-    assert foo.count == 2
+    assert foo.cache[bar]["hits"] == 1
+    assert foo.cache[bar]["misses"] == 2
 
     foo(bar, x=1)
-    assert foo.count == 3
+    assert foo.cache[bar]["hits"] == 1
+    assert foo.cache[bar]["misses"] == 3
     foo(bar, x=2)
     foo(bar, x=2)
-    assert foo.count == 4
+    assert foo.cache[bar]["hits"] == 2
+    assert foo.cache[bar]["misses"] == 4
     foo(bar, x=1, y="baz")
     foo(bar, x=1, y="BAZ")
-    assert foo.count == 5
+    assert foo.cache[bar]["hits"] == 3
+    assert foo.cache[bar]["misses"] == 5
 
     foo(bar, 1, 2, "baz", x=1, y=2, z="qux")
     foo(bar, 1, 2, "BAZ", x=1, z="qux", y=2)
-    assert foo.count == 6
+    assert foo.cache[bar]["hits"] == 4
+    assert foo.cache[bar]["misses"] == 6
+
+    foo(baz, 1)
+    assert foo.cache[baz]["hits"] == 0
+    assert foo.cache[baz]["misses"] == 1
+
+    assert foo.cache_summary() == {
+        "bar": {"hits": 4, "misses": 6, "length": 6},
+        "baz": {"hits": 0, "misses": 1, "length": 1},
+    }

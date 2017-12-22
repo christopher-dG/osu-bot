@@ -44,7 +44,17 @@ def finish(status=200, error=None, **kwargs):
             "postID": post_id,
             "postTitle": post_title,
             "error": error,
-            "apiCalls": osubot.utils.api.count,
+            "cache": {
+                "summary": osubot.utils.api.cache_summary(),
+                "totalHits": sum(
+                    osubot.utils.api.cache[f]["hits"]
+                    for f in osubot.utils.api.cache
+                ),
+                "totalMisses": sum(
+                    osubot.utils.api.cache[f]["misses"]
+                    for f in osubot.utils.api.cache
+                ),
+            },
             **kwargs,
         },
     }
@@ -55,6 +65,19 @@ def finish(status=200, error=None, **kwargs):
     if testrun:
         print("=== END TEST RUN ===")
     return resp
+
+
+def clear_cache_counts():
+    """
+    Reset the number of cache hits and misses for each function to 0.
+    Container reuse means that osubot stays imported on the host machine,
+    and so cache counts include previous calls.
+    This leaves the edge case of concurrent runs having counts,
+    but that should virtually never happen and it doesn't really matter.
+    """
+    for f in osubot.utils.api.cache:
+        osubot.utils.api.cache[f]["hits"] = 0
+        osubot.utils.api.cache[f]["misses"] = 0
 
 
 def chmod(src, dest):
