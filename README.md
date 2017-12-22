@@ -41,3 +41,7 @@ Even if this doesn't work, the JSON response you get back should provide some in
 ### Contact
 
 Messages to the bot are forwarded to me, so feel free to [PM](https://www.reddit.com/message/compose/?to=osu-bot) any problems, questions, or suggestions, or just reply to one of its comments.
+
+### Acknowledgements
+
+Thanks to [Franc[e]sco](https://github.com/Francesco149) and [khazhyk](https://github.com/khazhyk) for [oppai](https://github.com/Francesco149/oppai-ng) and [osuapi](https://github.com/khazhyk/osuapi) respectively, both of which have saved me much time and effort.
