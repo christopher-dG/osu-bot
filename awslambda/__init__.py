@@ -9,10 +9,14 @@ import time
 testrun = True
 post_id = None
 post_title = None
+start = None
 
 
 def initialize(event, post):
     """Set some internal variables."""
+    global start
+    start = time.time()
+
     global testrun
     testrun = os.environ.get("LAMBDA_TEST", "").lower() != "false" or (
         event["queryStringParameters"].get("test") == "true")
@@ -58,8 +62,8 @@ def finish(status=200, error=None, **kwargs):
             **kwargs,
         },
     }
-    if "time" in kwargs:
-        resp["body"]["time"] = time.time() - kwargs["time"]
+    if start is not None:
+        resp["body"]["time"] = time.time() - start
     print(json.dumps(resp, indent=4))
     resp["body"] = json.dumps(resp["body"])
     if testrun:
