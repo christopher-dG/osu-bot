@@ -100,7 +100,17 @@ def search_osusearch(beatmap):
     if not beatmaps:
         return None
 
-    fav_map = max(beatmaps, key=lambda m: m.get("favorites", 0))
+    matching_maps = list(filter(
+        lambda m: compare(
+            beatmap,
+            "%s - %s [%s]" % (m["artist"], m["title"], m["difficulty_name"]),
+        ),
+        beatmaps,
+    ))
+    if not matching_maps:
+        return None
+
+    fav_map = max(matching_maps, key=lambda m: m.get("favorites", 0))
     beatmaps = api(
         consts.osu_api.get_beatmaps,
         beatmap_id=fav_map["beatmap_id"],
