@@ -227,20 +227,20 @@ def player_table(ctx):
             ctx_clone.mode = mode
             hover = map_hover(ctx_clone, oldmap=ctx.beatmap, oldmods=ctx.mods)
 
-            map_link = "%s \"%s\"" % (map_url, hover) if hover else map_url
+            if hover:
+                map_url += " \"%s\"" % hover
 
-            buf = md.link(nonbreaking(escape(map_str(bmap))), map_link)
+            map_link = md.link(nonbreaking(escape(map_str(bmap))), map_url)
 
             mods = combine_mods(score.enabled_mods.value)
-            if mods:
-                buf += " %s %s" % (mods, consts.bar)
+            buf = "%s %s " % (mods, consts.bar) if mods else ""
 
-            buf += " %s%%" % round_to_str(accuracy(score, mode), 2, force=True)
+            buf += "%s%%" % round_to_str(accuracy(score, mode), 2, force=True)
 
             if score.pp:
                 buf += " %s %spp" % (consts.bar, sep(round(score.pp)))
 
-            cols.append(["Top Play", buf])
+            cols.append(["Top Play", "%s %s" % (map_link, nonbreaking(buf))])
 
     return centre_table(md.table([[str(x) for x in col] for col in cols]))
 
