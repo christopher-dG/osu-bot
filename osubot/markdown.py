@@ -49,7 +49,7 @@ def map_header(ctx):
     map_link = md.link(escape(map_str(b)), map_url)
     dl_link = md.link(
         "(%s)" % consts.dl,
-        "%s/d/%d" % (consts.osu_url, b.beatmap_id),
+        "%s/d/%d" % (consts.osu_url, b.beatmapset_id),
     )
     mapper_id = scrape.mapper_id(ctx)
     mapper = b.creator if mapper_id is None else mapper_id
