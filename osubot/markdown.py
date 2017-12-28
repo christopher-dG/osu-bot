@@ -279,26 +279,30 @@ def map_rank_one(ctx):
         consts.osu_api.get_scores,
         ctx.beatmap.beatmap_id,
         mode=apimode,
-        limit=1,
+        limit=2,
     )
     if not scores:
         print("No scores found for beatmap")
         return None
     score = scores[0]
 
-    players = api(consts.osu_api.get_user, score.username, mode=apimode)
-    p_id = players[0].user_id if players else score.username
+    use_two = ctx.player and score.user_id == ctx.player.user_id
+    if use_two and len(scores) > 1:
+        score = scores[1]
+
+    players = api(consts.osu_api.get_user, score.user_id, mode=apimode)
     if players:
         ctx_clone = copy.deepcopy(ctx)
         ctx_clone.player = players[0]
         hover = player_hover(ctx_clone, oldplayer=ctx.player)
     else:
         hover = None
-    player_url = "%s/u/%s%s" % \
-                 (consts.osu_url, p_id, " \"%s\"" % hover if hover else "")
+    player_url = "%s/u/%s" % (consts.osu_url, score.user_id)
+    if hover:
+        player_url += " \"%s\"" % hover
     player_link = md.link(escape(score.username), player_url)
 
-    buf = "#1: %s (" % player_link
+    buf = "#%d: %s (" % (2 if use_two else 1, player_link)
     if score.enabled_mods.value != consts.nomod:
         buf += "%s - " % combine_mods(score.enabled_mods.value)
     buf += "%.2f%%" % accuracy(score, mode)
