@@ -1,6 +1,7 @@
 import editdistance
 import requests
 import sys
+import time
 import traceback
 
 from . import consts
@@ -9,6 +10,7 @@ from . import consts
 def cached(func):
     """Cache results of API methods and count hits/misses."""
     def wrapper(f, *args, **kwargs):
+        wrapper.clear_old()
         if f not in wrapper.cache:
             wrapper.cache[f] = {"data": [], "hits": 0, "misses": 0}
 
@@ -25,8 +27,18 @@ def cached(func):
                 "args": args,
                 "kwargs": kwargs,
                 "result": result,
+                "time": time.time(),
             })
         return result
+
+    def clear_old():
+        """Clear out old cache entries."""
+        now = time.time()
+        for fn in wrapper.cache:
+            wrapper.cache[fn]["data"] = list(filter(
+                lambda d: now - d["time"] < consts.cache_timeout,
+                wrapper.cache[fn]["data"],
+            ))
 
     def search(f, *args, **kwargs):
         """Search the cache for a call to f with matching arguments."""
@@ -65,6 +77,7 @@ def cached(func):
             for f, v in wrapper.cache.items()
         }
 
+    wrapper.clear_old = clear_old
     wrapper.search = search
     wrapper.cache_summary = summary
     wrapper.cache = {}

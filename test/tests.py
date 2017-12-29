@@ -2,6 +2,7 @@ import logging
 import markdown_strings as md
 import osubot
 import re
+import time
 
 logging.getLogger("urllib3").propagate = False
 
@@ -382,3 +383,20 @@ def test_cached():
         "bar": {"hits": 4, "misses": 6, "length": 6},
         "baz": {"hits": 0, "misses": 1, "length": 1},
     }
+
+
+def test_cache_clear():
+    @osubot.utils.cached
+    def foo(f, *args, **kwargs): pass
+    def bar(*args, **kwargs): return True  # noqa
+
+    foo(bar, 1)
+    assert len(foo.cache[bar]["data"]) == 1
+
+    time.sleep(osubot.consts.cache_timeout / 2)
+    foo(bar, 2)
+    assert len(foo.cache[bar]["data"]) == 2
+
+    time.sleep(osubot.consts.cache_timeout / 2 + 1)
+    foo(bar, 3)
+    assert len(foo.cache[bar]["data"]) == 2
