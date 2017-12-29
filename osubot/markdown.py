@@ -68,6 +68,14 @@ def map_header(ctx):
     mapper_link = md.link(escape(b.creator), mapper_url)
     buf = "%s %s by %s" % (map_link, dl_link, mapper_link)
 
+    if ctx.guest_mapper:
+        guest_url = "%s/u/%d" % (consts.osu_url, ctx.guest_mapper.user_id)
+        counts = mapper_counts(ctx, mapper=ctx.guest_mapper.user_id)
+        if counts:
+            guest_url += " \"%s\"" % counts
+        guest_link = md.link(ctx.guest_mapper.username, guest_url)
+        buf += " (GD by %s)" % guest_link
+
     if ctx.mode is not None:
         buf += " || %s" % consts.mode2str[ctx.mode]
 

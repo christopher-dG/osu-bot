@@ -5,23 +5,26 @@ from .utils import api, combine_mods, map_str, matched_bracket_contents
 
 class Context:
     """A container for all relevant data."""
-    def __init__(self, player, beatmap, mode, mods, acc):
+    def __init__(self, player, beatmap, mode, mods, acc, guest_mapper):
         self.player = player  # osuapi.models.User, None if missing
         self.beatmap = beatmap  # osuapi.models.Beatmap, None if missing
-        self.mode = mode  # Int (0-4, None if missing)
+        self.mode = mode  # Int (0-4), None if missing
         self.mods = mods  # Int, 0 if missing
-        self.acc = acc  # Float (0-100, None if missing)
+        self.acc = acc  # Float (0-100), None if missing
+        self.guest_mapper = guest_mapper  # osuapi.models.User, None if missing
 
     def __repr__(self):
         mode = "Unknown" if self.mode is None else consts.mode2str[self.mode]
         mods = "NoMod" if self.mods == consts.nomod else combine_mods(self.mods)  # noqa
         acc = "None" if self.acc is None else "%.2f%%" % self.acc
+        gm = "None" if self.guest_mapper is None else self.guest_mapper.username  # noqa
         s = "Context:\n"
-        s += "> Player:   %s\n" % self.player
-        s += "> Beatmap:  %s\n" % map_str(self.beatmap)
-        s += "> Mode:     %s\n" % mode
-        s += "> Mods:     %s\n" % mods
-        s += "> Acc:      %s" % acc
+        s += "> Player:        %s\n" % self.player
+        s += "> Beatmap:       %s\n" % map_str(self.beatmap)
+        s += "> Mode:          %s\n" % mode
+        s += "> Mods:          %s\n" % mods
+        s += "> Acc:           %s\n" % acc
+        s += "> Guest mapper:  %s" % gm
         return s
 
     def to_dict(self):
@@ -35,6 +38,7 @@ class Context:
             "mode": "Unknown" if self.mode is None else consts.mode2str[self.mode],  # noqa
             "mods": combine_mods(self.mods),
             "player": self.player.username if self.player else "None",
+            "guest mapper": self.guest_mapper.username if self.guest_mapper else "None"  # noqa
         }
 
 
@@ -45,6 +49,7 @@ def from_score_post(title):
     mode = getmode(title, player=player, beatmap=beatmap)
     mods = getmods(title)
     acc = getacc(title)
+    guest_mapper = getguestmapper(title)
 
     # Once we know the game mode, we can ensure that the player and map
     # are of the right mode (this really helps with autoconverts).
@@ -70,7 +75,7 @@ def from_score_post(title):
             if updated_beatmaps:
                 beatmap = updated_beatmaps[0]
 
-    return Context(player, beatmap, mode, mods, acc)
+    return Context(player, beatmap, mode, mods, acc, guest_mapper)
 
 
 def getplayer(title):
@@ -180,3 +185,19 @@ def getacc(title):
         return None
     match = consts.acc_re.search(match.group(1))
     return float(match.group(1).replace(",", ".")) if match else None
+
+
+def getguestmapper(title):
+    """Search for a guest mapper in title."""
+    match = consts.map_pieces_re.search(title)
+    if not match:
+        return None
+    diff = match.group(3)
+
+    guest = diff.split()[0]
+    if not guest.endswith("'s"):
+        return None
+    guest = guest[:-2]
+
+    players = api(consts.osu_api.get_user, guest)
+    return players[0] if players else None
