@@ -400,3 +400,13 @@ def test_cache_clear():
     time.sleep(osubot.consts.cache_timeout / 2 + 1)
     foo(bar, 3)
     assert len(foo.cache[bar]["data"]) == 2
+
+
+test_getmap.net = 1
+test_getplayer.net = 1
+test_std_end2end.net = 1
+test_taiko_end2end.net = 1
+test_ctb_end2end.net = 1
+test_mania_end2end.net = 1
+
+test_cache_clear.slow = 1
