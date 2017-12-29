@@ -34,7 +34,7 @@ playstyle_m_re = re.compile("<div class=[\"']playstyle mouse using[\"']><\/div>"
 playstyle_kb_re = re.compile("<div class=[\"']playstyle keyboard using[\"']><\/div>")  # noqa
 playstyle_tb_re = re.compile("<div class=[\"']playstyle tablet using[\"']><\/div>")  # noqa
 playstyle_td_re = re.compile("<div class=[\"']playstyle touch using[\"']><\/div>")  # noqa
-
+osu_file_begin_re = re.compile("\A.*osu file format")
 
 # Game stuff
 std, taiko, ctb, mania = range(0, 4)

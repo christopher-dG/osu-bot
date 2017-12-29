@@ -15,6 +15,8 @@ def download_beatmap(ctx):
     text = request("%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
     if not text:
         return None
+    text = consts.osu_file_begin_re.sub("osu file format", text)
+
     with open(osu_path, "w") as f:
         f.write(text)
 
