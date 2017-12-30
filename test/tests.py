@@ -11,7 +11,7 @@ taiko_t = "applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
 ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
 mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
 map_player_mods_pp_re = re.compile("""\
-#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+ "Download this beatmap"\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
 \*\*#[12]: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+(?: "[\d,]+pp - rank #[\d,]+ \(#[\d,]+ [A-Z]{2}\) - \d{1,3}\.\d{2}% acc - [\d,]+ playcount")?\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
 
 \|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
@@ -28,7 +28,7 @@ map_player_mods_pp_re = re.compile("""\
 \^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 map_player_nomods_pp_re = re.compile("""\
-#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+ "Download this beatmap"\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
 \*\*#[12]: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+(?: "[\d,]+pp - rank #[\d,]+ \(#[\d,]+ [A-Z]{2}\) - \d{1,3}\.\d{2}% acc - [\d,]+ playcount")?\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
 
 \|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
@@ -44,7 +44,7 @@ map_player_nomods_pp_re = re.compile("""\
 \^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 map_noplayer_mods_pp_re = re.compile("""\
-#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+ "Download this beatmap"\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
 \*\*#1: \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+(?: "[\d,]+pp - rank #[\d,]+ \(#[\d,]+ [A-Z]{2}\) - \d{1,3}\.\d{2}% acc - [\d,]+ playcount")?\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+ \((.+)\) \|\| [\d,]+ plays\*\*
 
 \|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
