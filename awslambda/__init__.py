@@ -76,7 +76,7 @@ def clear_cache_counts():
     Reset the number of cache hits and misses for each function to 0.
     Container reuse means that osubot stays imported on the host machine,
     and so cache counts include previous calls.
-    This leaves the edge case of concurrent runs having counts,
+    This leaves the edge case of concurrent runs having inaccurate counts,
     but that should virtually never happen and it doesn't really matter.
     """
     for f in osubot.utils.api.cache:

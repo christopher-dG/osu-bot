@@ -4,7 +4,6 @@ notifications:
 python: 3.6
 install:
   - pip install awscli codecov tox
-  - aws configure set region us-east-1
   - aws s3 cp s3://osu-bot-serverless/bin/oppai ./bin/oppai
   - chmod +x ./bin/oppai
   - export PATH=$PATH:$(pwd)/bin

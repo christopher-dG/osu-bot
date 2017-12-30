@@ -17,6 +17,7 @@ from . import (
 
 
 def scorepost(event, _):
+    """Process a score post."""
     clear_cache_counts()
 
     p_id = event["queryStringParameters"].get("id", None)
