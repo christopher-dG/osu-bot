@@ -16,13 +16,13 @@ reddit_client_id = os.environ["REDDIT_CLIENT_ID"]
 reddit_client_secret = os.environ["REDDIT_CLIENT_SECRET"]
 
 # Regex stuff
-title_re = re.compile(".+\|.+-.+\[.+\]")
-map_re = re.compile(".+\|(.+-.+\[.+\])")
+title_re = re.compile(".+[\|丨].+-.+\[.+\]")
+map_re = re.compile(".+[\|丨](.+-.+\[.+\])")
 map_pieces_re = re.compile("(.+) - (.+?)\[(.+)\]")
-player_re = re.compile("(.+)\|.+-.+\[.+\]")
+player_re = re.compile("(.+)[\|丨].+-.+\[.+\]")
 event_re = re.compile("<a href=[\"']/b/\d+\?m=\d[\"']>(.+ - .+ \[.+\])</a> \((.+)\)")  # noqa
 acc_re = re.compile("(\d{1,3}(?:[\.,]\d+)?)%")
-tail_re = re.compile(".+\|.+-.+\[.+\](.+)")
+tail_re = re.compile(".+[\|丨].+-.+\[.+\](.+)")
 scorev2_re = re.compile("SV2|SCOREV2")
 paren_re = re.compile("\((.+)\)")
 bracket_re = re.compile("\[(.+)\]")
