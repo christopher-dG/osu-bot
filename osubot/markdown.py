@@ -76,32 +76,47 @@ def map_header(ctx):
         guest_link = md.link(ctx.guest_mapper.username, guest_url)
         buf += " (GD by %s)" % guest_link
 
-    if ctx.mode is not None:
+    unranked = consts.int2status[b.approved.value] == "Unranked"
+
+    if not unranked and ctx.mode is not None:
         buf += " || %s" % consts.mode2str[ctx.mode]
 
-    if consts.int2status[b.approved.value] == "Unranked":
-        buf += " || Unranked"
-        if b.approved_date is not None:
-            buf += " (%s)" % (b.approved_date)
-        return md.header(buf, 4)
-
     header = md.header(buf, 4)
+    subheader = (unranked_subheader if unranked else approved_subheader)(ctx)
 
+    return "%s\n%s" % (header, subheader)
+
+
+def approved_subheader(ctx):
+    """Build a subheader for a ranked/qualified/loved beatmap."""
     rank_one = map_rank_one(ctx)
-    buf = ("%s || " % rank_one) if rank_one else ""
+    buf = "%s || " % rank_one if rank_one else ""
 
     max_combo = scrape.max_combo(ctx)
     if max_combo is not None:
         buf += "%sx max combo || " % sep(max_combo)
-    buf += "%s" % consts.int2status[b.approved.value]
-    if b.approved_date:
-        buf += " (%s)" % b.approved_date.date()
-    if b.playcount > 0:
-        buf += " || %s plays" % sep(b.playcount)
 
-    subheader = md.bold(buf)
+    buf += consts.int2status[ctx.beatmap.approved.value]
+    if ctx.beatmap.approved_date is not None:
+        buf += " (%s)" % ctx.beatmap.approved_date.date()
 
-    return "%s\n%s" % (header, subheader)
+    if ctx.beatmap.playcount:
+        buf += " || %s plays" % sep(ctx.beatmap.playcount)
+
+    return md.bold(buf)
+
+
+def unranked_subheader(ctx):
+    """Build a subheader for an unranked beatmap."""
+    buf = "%s || " % consts.mode2str[ctx.mode] if ctx.mode is not None else ""
+
+    max_combo = scrape.max_combo(ctx)
+    if max_combo is not None:
+        buf += "%sx max combo || " % sep(max_combo)
+
+    buf += "Unranked (Updated %s)" % ctx.beatmap.last_update.date()
+
+    return md.bold(buf)
 
 
 def map_table(ctx):
