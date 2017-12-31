@@ -20,7 +20,7 @@ def cached(func):
             return wrapper.cache[f]["data"][idx]["result"]
 
         wrapper.cache[f]["misses"] += 1
-        result = f(*args, **kwargs)
+        result = safe_call(f, *args, alt=None, **kwargs)
 
         if result:
             wrapper.cache[f]["data"].append({
@@ -172,8 +172,11 @@ def safe_call(f, *args, alt=[], msg=None, **kwargs):
 
 @cached
 def api(f, *args, **kwargs):
-    """Wrap an API call, using a cached response if applicable."""
-    return safe_call(f, *args, alt=None, **kwargs)
+    """
+    Wrap an API call, using a cached response if applicable.
+    I don't really know how decorators work.
+    """
+    pass
 
 
 def request(url, *args, text=True, **kwargs):
