@@ -25,7 +25,7 @@ acc_re = re.compile("(\d{1,3}(?:[\.,]\d+)?)%")
 tail_re = re.compile(".+[\|丨].+-.+\[.+\](.+)")
 scorev2_re = re.compile("SV2|SCOREV2")
 paren_re = re.compile("\((.+)\)")
-bracket_re = re.compile("\[(.+)\]")
+bracket_re = re.compile("\[(.+?)\]")
 mapper_id_re = re.compile("Creator:<\/td><td class=[\"']colour[\"']><a href=[\"']\/u\/(\d+)")  # noqa
 combo_re = re.compile("<td><strong>Max Combo<\/strong><\/td><td>([0-9]+)<\/td>") # noqa
 misses_re = re.compile("<td><strong>Misses<\/strong><\/td><td>([0-9]+)<\/td>")
