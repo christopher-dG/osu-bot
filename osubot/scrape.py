@@ -36,6 +36,19 @@ def mapper_id(ctx):
     return int(match.group(1))
 
 
+def player_old_username(ctx):
+    """Get a player's old username from their profile, if applicable."""
+    if not ctx.player:
+        return None
+
+    text = request("%s/u/%d" % (consts.osu_url, ctx.player.user_id))
+    if not text:
+        return None
+
+    match = consts.old_username_re.search(text)
+    return match.group(1) if match else None
+
+
 def playstyle(ctx):
     """Try to find the player's playstyle on their userpage."""
     if not ctx.player:

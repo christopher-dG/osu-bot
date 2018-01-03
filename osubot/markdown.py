@@ -211,10 +211,13 @@ def player_table(ctx):
         return None
 
     rank = "#%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country)
-    player_link = md.link(
-        nonbreaking(escape(p.username)),
-        "%s/u/%d" % (consts.osu_url, p.user_id),
-    )
+
+    player_url = "%s/u/%d" % (consts.osu_url, p.user_id)
+    old_username = scrape.player_old_username(ctx)
+    if old_username:
+        player_url += " \"Previously known as '%s'\"" % old_username
+    player_link = md.link(nonbreaking(escape(p.username)), player_url)
+
     cols = [
         ["Player", player_link],
         ["Rank", nonbreaking(rank)],
