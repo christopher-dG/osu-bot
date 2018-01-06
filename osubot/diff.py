@@ -41,8 +41,7 @@ def diff_modded(ctx):
     if path is None:
         return None
 
-    ar = ctx.beatmap.diff_approach
-    cmd = [consts.oppai_bin, path, "ar%f" % ar, "-ojson"]
+    cmd = [consts.oppai_bin, path, "-ojson"]
     if ctx.mods != consts.nomod:
         cmd.append(combine_mods(ctx.mods))
     if ctx.mode == consts.taiko:

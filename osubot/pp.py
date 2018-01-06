@@ -111,8 +111,6 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
         return None
 
     cmd = [consts.oppai_bin, path, "%.3f%%" % acc, "-ojson"]
-    # Some old .osu files are missing the AR value so oppai would assume 5.
-    cmd.append("ar%f" % ctx.beatmap.diff_approach)
 
     if modded and ctx.mods != consts.nomod:
         cmd.append(combine_mods(ctx.mods))
