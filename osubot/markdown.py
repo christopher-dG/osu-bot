@@ -312,7 +312,7 @@ def map_rank_one(ctx):
         return None
     score = scores[0]
 
-    use_two = ctx.player and score.user_id == ctx.player.user_id
+    use_two = bool(ctx.player) and score.user_id == ctx.player.user_id
     use_two &= score.enabled_mods.value == ctx.mods
 
     if use_two and len(scores) > 1:
