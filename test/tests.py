@@ -101,7 +101,7 @@ def test_getmods():
 
 def test_getmods_token():
     assert osubot.context.getmods_token("") == 0
-    assert osubot.context.getmods_token("HDX") == 0
+    assert osubot.context.getmods_token("HDX") is None
     assert osubot.context.getmods_token("hd") == 8
     assert osubot.context.getmods_token("HDHR") == 24
     assert osubot.context.getmods_token("HD,HR") == 24

@@ -158,24 +158,35 @@ def getmods(title):
     if "+" in tail and tail.index("+") < (len(tail) - 1):
         tokens = tail[(tail.index("+") + 1):].split()
         if tokens:
-            return getmods_token(tokens[0])
+            mods = getmods_token(tokens[0])
+            if mods is not None:
+                return mods
 
     for token in tail.split():
         mods = getmods_token(token)
-        if mods != consts.nomod:
+        if mods is not None and mods != consts.nomod:
             return mods
 
     return consts.nomod
 
 
 def getmods_token(token):
-    """Get mods from a single token."""
+    """
+    Get mods from a single token.
+    Returns None if the token doesn't look like mods.
+    """
     token = consts.scorev2_re.sub("V2", token.upper().replace(",", ""))
     if len(token) % 2:
-        return consts.nomod
-    return sum(set(
-        consts.mods2int.get(token[i:i+2], 0) for i in range(0, len(token), 2)
-    ))
+        return None
+
+    mods = set()
+    for i in range(0, len(token), 2):
+        mod = consts.mods2int.get(token[i:i+2])
+        if mod is None:
+            return None
+        mods.add(mod)
+
+    return sum(mods)
 
 
 def getacc(title):
