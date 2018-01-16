@@ -60,11 +60,11 @@ def playstyle(ctx):
         return None
 
     mouse = "M" if consts.playstyle_m_re.search(website) else None
-    keyboard = "KB" if consts.playstyle_kb_re.search(website) else None
     tablet = "TB" if consts.playstyle_tb_re.search(website) else None
     touch = "TD" if consts.playstyle_td_re.search(website) else None
+    keyboard = "KB" if consts.playstyle_kb_re.search(website) else None
 
-    joined = "+".join(filter(bool, [mouse, keyboard, tablet, touch]))
+    joined = "+".join(filter(bool, [mouse, tablet, touch, keyboard]))
 
     return None if not joined else joined
 

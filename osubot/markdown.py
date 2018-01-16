@@ -226,6 +226,11 @@ def player_table(ctx):
         ["Playcount", sep(p.playcount)],
     ]
 
+    # There's no point getting playstyle for non-standard players.
+    playstyle = scrape.playstyle(ctx) if ctx.mode == consts.std else None
+    if playstyle is not None:
+        cols.insert(4, ["Playstyle", playstyle])  # Place after acc.
+
     mode = ctx.mode if ctx.mode is not None else consts.std
     scores = api(
         consts.osu_api.get_user_best,
