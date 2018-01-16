@@ -1,6 +1,6 @@
 from . import consts
 from .beatmap_search import search, search_events
-from .utils import api, combine_mods, map_str, matched_bracket_contents
+from .utils import combine_mods, map_str, matched_bracket_contents, safe_call
 
 
 class Context:
@@ -57,7 +57,7 @@ def from_score_post(title):
         match = consts.player_re.search(title)
         if match:
             name = strip_annots(match.group(1))
-            updated_players = api(
+            updated_players = safe_call(
                 consts.osu_api.get_user,
                 player.user_id if player else name,
                 mode=consts.int2osuapimode[mode],
@@ -66,7 +66,7 @@ def from_score_post(title):
                 player = updated_players[0]
 
         if beatmap is not None and beatmap.mode.value == consts.std:
-            updated_beatmaps = api(
+            updated_beatmaps = safe_call(
                 consts.osu_api.get_beatmaps,
                 beatmap_id=beatmap.beatmap_id,
                 mode=consts.int2osuapimode[mode],
@@ -85,7 +85,7 @@ def getplayer(title):
         return None
     name = strip_annots(match.group(1))
 
-    player = api(consts.osu_api.get_user, name)
+    player = safe_call(consts.osu_api.get_user, name)
     return player[0] if player else None
 
 
@@ -210,5 +210,5 @@ def getguestmapper(title):
         return None
     guest = guest[:-2]
 
-    players = api(consts.osu_api.get_user, guest)
+    players = safe_call(consts.osu_api.get_user, guest)
     return players[0] if players else None

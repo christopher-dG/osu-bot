@@ -1,89 +1,9 @@
 import editdistance
 import requests
 import sys
-import time
 import traceback
 
 from . import consts
-
-
-def cached(func):
-    """Cache results of API methods and count hits/misses."""
-    def wrapper(f, *args, **kwargs):
-        wrapper.clear_old()
-        if f not in wrapper.cache:
-            wrapper.cache[f] = {"data": [], "hits": 0, "misses": 0}
-
-        idx = wrapper.search(f, *args, **kwargs)
-        if idx != -1:
-            wrapper.cache[f]["hits"] += 1
-            return wrapper.cache[f]["data"][idx]["result"]
-
-        wrapper.cache[f]["misses"] += 1
-        result = safe_call(f, *args, alt=None, **kwargs)
-
-        if result:
-            wrapper.cache[f]["data"].append({
-                "args": args,
-                "kwargs": kwargs,
-                "result": result,
-                "time": time.time(),
-            })
-        return result
-
-    def clear_old():
-        """Clear out old cache entries."""
-        now = time.time()
-        for fn in wrapper.cache:
-            wrapper.cache[fn]["data"] = list(filter(
-                lambda d: now - d["time"] < consts.cache_timeout,
-                wrapper.cache[fn]["data"],
-            ))
-
-    def search(f, *args, **kwargs):
-        """Search the cache for a call to f with matching arguments."""
-        if f not in wrapper.cache:
-            return -1
-
-        def tuplecmp(a, b):
-            """Compare tuples case-insensitively."""
-            foo = [x.upper() if isinstance(x, str) else x for x in a]
-            bar = [x.upper() if isinstance(x, str) else x for x in b]
-            return foo == bar
-
-        def dictcmp(a, b):
-            """Compare dicts with case-insensitive keys."""
-            foo = {
-                k: v.upper() if isinstance(v, str) else v for k, v in a.items()
-            }
-            bar = {
-                k: v.upper() if isinstance(v, str) else v for k, v in b.items()
-            }
-            return foo == bar
-
-        for i, d in enumerate(wrapper.cache[f]["data"]):
-            if tuplecmp(d["args"], args) and dictcmp(d["kwargs"], kwargs):
-                return i
-        return -1
-
-    def summary():
-        """Return a summary mapping of the cache."""
-        return {
-            f.__name__: {
-                "hits": v["hits"],
-                "misses": v["misses"],
-                "length": len(v["data"]),
-            }
-            for f, v in wrapper.cache.items()
-        }
-
-    wrapper.clear_old = clear_old
-    wrapper.search = search
-    wrapper.cache_summary = summary
-    wrapper.cache = {}
-    wrapper.__name__ = func.__name__
-
-    return wrapper
 
 
 def map_str(beatmap):
@@ -156,7 +76,7 @@ def nonbreaking(s):
     return s.replace(" ", consts.spc).replace("-", consts.hyp)
 
 
-def safe_call(f, *args, alt=[], msg=None, **kwargs):
+def safe_call(f, *args, alt=None, msg=None, **kwargs):
     """Execute some function, and return alt upon failure."""
     try:
         return f(*args, **kwargs)
@@ -168,15 +88,6 @@ def safe_call(f, *args, alt=[], msg=None, **kwargs):
         if msg:
             print(msg)
         return alt
-
-
-@cached
-def api(f, *args, **kwargs):
-    """
-    Wrap an API call, using a cached response if applicable.
-    I don't really know how decorators work.
-    """
-    pass
 
 
 def request(url, *args, text=True, **kwargs):

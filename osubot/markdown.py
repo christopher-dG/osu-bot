@@ -5,12 +5,12 @@ import random
 from . import consts, diff, pp, scrape
 from .utils import (
     accuracy,
-    api,
     combine_mods,
     escape,
     map_str,
     nonbreaking,
     round_to_str,
+    safe_call,
     sep,
     s_to_ts,
 )
@@ -232,7 +232,7 @@ def player_table(ctx):
         cols.insert(4, ["Playstyle", playstyle])  # Place after acc.
 
     mode = ctx.mode if ctx.mode is not None else consts.std
-    scores = api(
+    scores = safe_call(
         consts.osu_api.get_user_best,
         ctx.player.user_id,
         mode=consts.int2osuapimode[mode],
@@ -240,7 +240,7 @@ def player_table(ctx):
     )
     if scores:
         score = scores[0]
-        beatmaps = api(
+        beatmaps = safe_call(
             consts.osu_api.get_beatmaps,
             beatmap_id=score.beatmap_id,
             mode=consts.int2osuapimode[mode],
@@ -306,7 +306,7 @@ def map_rank_one(ctx):
 
     mode = ctx.mode if ctx.mode is not None else consts.std
     apimode = consts.int2osuapimode[mode]
-    scores = api(
+    scores = safe_call(
         consts.osu_api.get_scores,
         ctx.beatmap.beatmap_id,
         mode=apimode,
@@ -323,7 +323,7 @@ def map_rank_one(ctx):
     if use_two and len(scores) > 1:
         score = scores[1]
 
-    players = api(consts.osu_api.get_user, score.user_id, mode=apimode)
+    players = safe_call(consts.osu_api.get_user, score.user_id, mode=apimode)
     if players:
         ctx_clone = copy.deepcopy(ctx)
         ctx_clone.player = players[0]
@@ -354,7 +354,7 @@ def mapper_counts(ctx, mapper=None):
         mapper_id = scrape.mapper_id(ctx)
         mapper = ctx.beatmap.creator if mapper_id is None else mapper_id
 
-    maps = api(consts.osu_api.get_beatmaps, username=mapper)
+    maps = safe_call(consts.osu_api.get_beatmaps, username=mapper)
     if not maps:
         return None
 
@@ -378,7 +378,7 @@ def mapper_renamed(ctx, mapper_id=None):
         if mapper_id is None:
             return None
 
-    mapper_updated = api(consts.osu_api.get_user, mapper_id)
+    mapper_updated = safe_call(consts.osu_api.get_user, mapper_id)
     if mapper_updated and mapper_updated[0].username != ctx.beatmap.creator:
         return mapper_updated[0].username
 

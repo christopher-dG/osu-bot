@@ -1,6 +1,16 @@
 import os
-import osuapi
 import re
+
+# This stuff doesn't really belong here,
+# but the cache must be installed before osuapi is imported.
+import requests_cache
+cache_timeout = 300
+requests_cache.install_cache(
+    backend="memory",
+    expire_after=cache_timeout,
+)
+import osuapi  # noqa
+
 
 # Web stuff
 osu_key = os.environ["OSU_API_KEY"]
@@ -124,7 +134,6 @@ spc = "&nbsp;"  # Non-breaking space
 hyp = "&#x2011;"  # Non-breaking hyphen
 
 # Misc stuff
-cache_timeout = 300
 oppai_bin = os.environ.get("OPPAI_BIN", "oppai")
 title_ignores = [
     "UNNOTICED",

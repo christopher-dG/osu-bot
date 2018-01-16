@@ -1,7 +1,7 @@
 import os.path
 
 from . import consts
-from .utils import api, request
+from .utils import request, safe_call
 
 
 def download_beatmap(ctx):
@@ -96,7 +96,7 @@ def max_combo(ctx):
 
 def api_max_combo(ctx):
     """Try to find the max combo from a score with the "perfect" bit set."""
-    scores = api(
+    scores = safe_call(
         consts.osu_api.get_scores,
         ctx.beatmap.beatmap_id,
         mode=consts.int2osuapimode.get(ctx.mode),

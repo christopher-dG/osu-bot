@@ -2,7 +2,6 @@ import logging
 import markdown_strings as md
 import osubot
 import re
-import time
 
 logging.getLogger("urllib3").propagate = False
 
@@ -185,7 +184,7 @@ def test_round_to_string():
 def test_safe_call():
     def foo(x, y=0): return x / y
     assert osubot.utils.safe_call(foo, 0, y=1) == 0
-    assert osubot.utils.safe_call(foo, 1, y=0) == []
+    assert osubot.utils.safe_call(foo, 1, y=0) is None
     assert osubot.utils.safe_call(foo, 1, y=0, alt=10) == 10
 
 
@@ -356,66 +355,6 @@ def test_mania_end2end():
     assert "osu!mania pp is experimental" in reply
 
 
-def test_cached():
-    @osubot.utils.cached
-    def foo(f, *args, **kwargs): pass
-    def bar(*args, **kwargs): return True  # noqa
-    def baz(*args, **kwargs): return True  # noqa
-
-    foo(bar, 1)
-    assert foo.cache[bar]["hits"] == 0
-    assert foo.cache[bar]["misses"] == 1
-    foo(bar, 1, "baz")
-    assert foo.cache[bar]["hits"] == 0
-    assert foo.cache[bar]["misses"] == 2
-    foo(bar, 1, "BAZ")
-    assert foo.cache[bar]["hits"] == 1
-    assert foo.cache[bar]["misses"] == 2
-
-    foo(bar, x=1)
-    assert foo.cache[bar]["hits"] == 1
-    assert foo.cache[bar]["misses"] == 3
-    foo(bar, x=2)
-    foo(bar, x=2)
-    assert foo.cache[bar]["hits"] == 2
-    assert foo.cache[bar]["misses"] == 4
-    foo(bar, x=1, y="baz")
-    foo(bar, x=1, y="BAZ")
-    assert foo.cache[bar]["hits"] == 3
-    assert foo.cache[bar]["misses"] == 5
-
-    foo(bar, 1, 2, "baz", x=1, y=2, z="qux")
-    foo(bar, 1, 2, "BAZ", x=1, z="qux", y=2)
-    assert foo.cache[bar]["hits"] == 4
-    assert foo.cache[bar]["misses"] == 6
-
-    foo(baz, 1)
-    assert foo.cache[baz]["hits"] == 0
-    assert foo.cache[baz]["misses"] == 1
-
-    assert foo.cache_summary() == {
-        "bar": {"hits": 4, "misses": 6, "length": 6},
-        "baz": {"hits": 0, "misses": 1, "length": 1},
-    }
-
-
-def test_cache_clear():
-    @osubot.utils.cached
-    def foo(f, *args, **kwargs): pass
-    def bar(*args, **kwargs): return True  # noqa
-
-    foo(bar, 1)
-    assert len(foo.cache[bar]["data"]) == 1
-
-    time.sleep(osubot.consts.cache_timeout / 2)
-    foo(bar, 2)
-    assert len(foo.cache[bar]["data"]) == 2
-
-    time.sleep(osubot.consts.cache_timeout / 2 + 1)
-    foo(bar, 3)
-    assert len(foo.cache[bar]["data"]) == 2
-
-
 test_getmap.net = 1
 test_getplayer.net = 1
 test_getguestmapper.net = 1
@@ -423,5 +362,3 @@ test_std_end2end.net = 1
 test_taiko_end2end.net = 1
 test_ctb_end2end.net = 1
 test_mania_end2end.net = 1
-
-test_cache_clear.slow = 1

@@ -3,3 +3,4 @@ markdown-strings
 git+https://github.com/khazhyk/osuapi
 praw
 requests
+requests_cache
