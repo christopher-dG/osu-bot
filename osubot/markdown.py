@@ -19,7 +19,6 @@ from .utils import (
 def build_comment(ctx):
     """Build a full comment from ctx."""
     if not ctx.player and not ctx.beatmap:
-        print("No player or beatmap; aborting")
         return None
 
     comment = "\n\n".join(filter(
@@ -39,7 +38,6 @@ def build_comment(ctx):
 def map_header(ctx):
     """Return a line or two with basic map information."""
     if not ctx.beatmap:
-        print("No beatmap; skipping map header")
         return None
     b = ctx.beatmap
 
@@ -122,15 +120,12 @@ def unranked_subheader(ctx):
 def map_table(ctx):
     """Build a table with map difficulty and pp values."""
     if not ctx.beatmap:
-        print("No beatmap; skipping map table")
         return None
 
     nomod = diff.diff_vals(ctx, modded=False)
     if nomod is None:
-        print("Couldn't get nomod diff values")
         return None
     if ctx.mods == consts.nomod:
-        print("Skipping modded diff values")
         modded = None
     else:
         modded = diff.diff_vals(ctx, modded=True)
@@ -167,8 +162,6 @@ def map_table(ctx):
         ]
 
     pp_vals = {}
-    if not modded:
-        print("Skipping modded pp values")
     for acc in filter(bool, set([95, 98, 99, 100, ctx.acc])):
         nomod_pp = pp.pp_val(ctx, acc, modded=False)
         if nomod_pp is None:
@@ -203,11 +196,9 @@ def map_table(ctx):
 def player_table(ctx):
     """Build a table with player information."""
     if not ctx.player:
-        print("No player; skipping player table")
         return None
     p = ctx.player
-    if p.pp_rank is None:
-        print("Player is inactive in mode: %s" % consts.mode2str[ctx.mode])
+    if p.pp_rank is None:  # Player is inactive so most stats are null.
         return None
 
     rank = "#%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country)
@@ -307,7 +298,6 @@ def footer(ctx):
 def map_rank_one(ctx):
     """Fetch and format the top play for a beatmap."""
     if not ctx.beatmap:
-        print("No beatmap; skipping rank one")
         return None
 
     mode = ctx.mode if ctx.mode is not None else consts.std
@@ -319,7 +309,6 @@ def map_rank_one(ctx):
         limit=2,
     )
     if not scores:
-        print("No scores found for beatmap")
         return None
     score = scores[0]
 

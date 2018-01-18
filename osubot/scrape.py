@@ -31,7 +31,6 @@ def mapper_id(ctx):
 
     match = consts.mapper_id_re.search(text)
     if not match:
-        print("No mapper ID match found")
         return None
     return int(match.group(1))
 
@@ -52,7 +51,6 @@ def player_old_username(ctx):
 def playstyle(ctx):
     """Try to find the player's playstyle on their userpage."""
     if not ctx.player:
-        print("Player is missing: Skipping playstyle")
         return None
 
     website = request("%s/u/%d" % (consts.osu_url, ctx.player.user_id))
@@ -90,7 +88,6 @@ def max_combo(ctx):
         if combo is not None:
             return combo
 
-    print("Max combo could not be found")
     return None
 
 
@@ -124,12 +121,10 @@ def web_max_combo(ctx):
 
     match = consts.combo_re.search(text)
     if not match:
-        print("No combo match")
         return None
     combo = match.group(1)
     match = misses_re.search(text)
     if not match:
-        print("No misses match")
         return None
 
     return int(combo) if match.group(1) == "0" else None
@@ -147,7 +142,6 @@ def map_objects(ctx):
         if "[HitObjects]" in line:
             break
     else:
-        print("No hit objects section")
         return None
 
     regulars, sliders = 0, 0

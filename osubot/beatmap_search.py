@@ -16,7 +16,6 @@ def search(player, beatmap):
     if result:
         return result
 
-    print("Couldn't find map")
     return None
 
 
@@ -73,7 +72,6 @@ def search_osusearch(beatmap):
     """Search osusearch.com for beatmap."""
     match = consts.map_pieces_re.search(beatmap)
     if not match:
-        print("Beatmap string '%s' was not well formed" % beatmap)
         return None
     artist, title, diff = match.groups()
 
@@ -93,7 +91,6 @@ def search_osusearch(beatmap):
     try:
         d = resp.json()
     except Exception as e:
-        print("Couldn't load JSON from osusearch: %s" % e)
         return None
 
     beatmaps = d.get("beatmaps", [])

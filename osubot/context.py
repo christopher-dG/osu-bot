@@ -105,7 +105,6 @@ def getmap(title, player=None):
     """Search for the beatmap."""
     match = consts.map_re.search(title)
     if not match:
-        print("Couldn't get beatmap name match")
         return None
     map_s = match.group(1).strip()
 

@@ -33,7 +33,6 @@ def ctb_pp(ctx, acc, modded=True):
         return None
     max_combo = ctb_max_combo(ctx)
     if max_combo is None:
-        print("Couldn't get max combo for CTB beatmap")
         return None
 
     sr = ctx.beatmap.difficultyrating
@@ -127,7 +126,10 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
     try:
         pp_j = json.loads(out)
     except Exception as e:
-        print("Converting oppai output to JSON failed: %s" % e)
+        print(
+            "Converting oppai output to JSON failed: %s\nOutput: %s" %
+            (e, out)
+        )
         return None
     pp = pp_j.get("pp")
     return None if pp == -1 else pp
