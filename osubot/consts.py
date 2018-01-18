@@ -134,6 +134,7 @@ spc = "&nbsp;"  # Non-breaking space
 hyp = "&#x2011;"  # Non-breaking hyphen
 
 # Misc stuff
+promo_rate = 1/3
 oppai_bin = os.environ.get("OPPAI_BIN", "oppai")
 title_ignores = [
     "UNNOTICED",

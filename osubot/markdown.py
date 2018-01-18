@@ -278,24 +278,30 @@ def player_table(ctx):
 
 def footer(ctx):
     """Return a footer with some general information."""
-    buf = "^(%s – )" % random.choice(consts.memes)
-    buf += md.link("^Source", consts.repo_url)
-    buf += "^( | )"
-    buf += md.link("^Developer", consts.me)
+    tokens = [
+        md.link("^Source", consts.repo_url),
+        md.link("^Developer", consts.me),
+    ]
+
     # TODO: Add usage instructions link when commands are ready.
-    buf += "^( | )"
-    buf += md.link("^([Unnoticed]: Unranked leaderboards)", consts.unnoticed)
+
+    if random.random() < consts.promo_rate:
+        tokens.append(md.link(
+            "^([Unnoticed]: Unranked leaderboards)",
+            consts.unnoticed,
+        ))
 
     exp_pp = bool(ctx.beatmap) and ctx.beatmap.mode.value != ctx.mode
     exp_pp |= ctx.mode in [consts.ctb, consts.mania]
     if exp_pp:
         if ctx.mode == consts.taiko:
-            mode = "Autoconverted Taiko"
+            mode = "Autoconverted "
         else:
-            mode = consts.mode2str[ctx.mode]
-        buf += "^( | %s pp is experimental)" % mode
+            mode = ""
+        mode += consts.mode2str[ctx.mode]
+        tokens.append("^(%s pp is experimental)" % mode)
 
-    return buf
+    return "^(%s – )%s" % (random.choice(consts.memes), "^( | )".join(tokens))
 
 
 def map_rank_one(ctx):
