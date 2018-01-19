@@ -1,9 +1,7 @@
 /.tox/
 /build/
 /bin/oppai-ng/
-/venv/
 *.egg-info
-*.pyc
 __pycache__/
 .coverage
 .env

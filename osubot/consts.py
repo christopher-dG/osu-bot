@@ -34,7 +34,7 @@ event_re = re.compile("<a href=[\"']/b/\d+\?m=\d[\"']>(.+ - .+ \[.+\])</a> \((.+
 acc_re = re.compile("(\d{1,3}(?:[\.,]\d+)?)%")
 tail_re = re.compile(".+[\|丨].+-.+\[.+\](.+)")
 scorev2_re = re.compile("SV2|SCOREV2")
-paren_re = re.compile("\((.+)\)")
+paren_re = re.compile("\((.+?)\)")
 bracket_re = re.compile("\[(.+?)\]")
 mapper_id_re = re.compile("Creator:<\/td><td class=[\"']colour[\"']><a href=[\"']\/u\/(\d+)")  # noqa
 old_username_re = re.compile("<div class=[\"']profile-username[\"'] title=[\"']Previously known as (.+?)[\"']>")  # noqa

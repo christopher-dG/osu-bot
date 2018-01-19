@@ -213,7 +213,7 @@ def player_table(ctx):
         ["Player", player_link],
         ["Rank", nonbreaking(rank)],
         ["pp", sep(round(p.pp_raw))],
-        ["Acc", "%s%%" % round_to_str(p.accuracy, 2, force=True)],
+        ["Accuracy", "%s%%" % round_to_str(p.accuracy, 2, force=True)],
         ["Playcount", sep(p.playcount)],
     ]
 
@@ -408,7 +408,7 @@ def player_hover(ctx, oldplayer=None):
     if p.pp_rank is None:
         return None
 
-    return "%spp - rank #%s (#%s %s) - %s%% acc - %s playcount" % \
+    return "%spp - rank #%s (#%s %s) - %s%% accuracy - %s playcount" % \
         (
             sep(round(p.pp_raw)),
             sep(p.pp_rank),

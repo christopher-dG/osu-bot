@@ -23,7 +23,7 @@ class Context:
         s += "> Beatmap:       %s\n" % map_str(self.beatmap)
         s += "> Mode:          %s\n" % mode
         s += "> Mods:          %s\n" % mods
-        s += "> Acc:           %s\n" % acc
+        s += "> Accuracy:      %s\n" % acc
         s += "> Guest mapper:  %s" % gm
         return s
 
