@@ -205,9 +205,12 @@ def getguestmapper(title):
     diff = match.group(3)
 
     guest = diff.split()[0]
-    if not guest.endswith("'s"):
+    if guest.endswith("'s"):
+        guest = guest[:-2]
+    elif guest.endswith("s'"):  # jakads', etc.
+        guest = guest[:-1]
+    else:
         return None
-    guest = guest[:-2]
 
     players = safe_call(consts.osu_api.get_user, guest)
     return players[0] if players else None
