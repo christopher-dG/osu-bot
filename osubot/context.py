@@ -213,4 +213,11 @@ def getguestmapper(title):
         return None
 
     players = safe_call(consts.osu_api.get_user, guest)
-    return players[0] if players else None
+    if players:
+        player = players[0]
+    else:
+        return None
+
+    # Only return the guest mapper if they have at least one map of their own.
+    maps = safe_call(consts.osu_api.get_beatmaps, username=player.username)
+    return player if maps else None
