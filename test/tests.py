@@ -6,6 +6,7 @@ import re
 logging.getLogger("urllib3").propagate = False
 
 std_t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
+std_unranked_t = "Mlaw22 | t+pazolite with Kabocha - Elder Dragon Legend [???] 99.95%"  # noqa
 taiko_t = "applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
 ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
 mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
@@ -56,6 +57,22 @@ map_noplayer_mods_pp_re = re.compile("""\
 \^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 nomap_player_re = re.compile("""\
+\|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Accuracy\s+\|(?:\s+Playstyle\s+\|)?\s+Playcount\s+\|\s+Top Play\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:(?:\|:-:)?
+\|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+(?: "Previously known as '.+'")?\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|(?:\s+[A-Z\+]+\s+\|)?\s+[\d,]+\s+\|\s+\[.+#x2011;.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+&nbsp;&#124;&nbsp;)?\d{1,3}\.\d{2}%&nbsp;&#124;&nbsp;[\d,]+pp\s+\|
+
+\*\*\*
+
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+""")  # noqa
+map_unranked_player_nomods_pp_re = re.compile("""\
+#### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+ "Download this beatmap"\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?
+\*\*osu!.+ \|\| [\d,]+x max combo \|\| Unranked \(Updated \d{4}-\d{2}-\d{2}\)\*\*
+
+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
+:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:
+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|
+
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Accuracy\s+\|(?:\s+Playstyle\s+\|)?\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:(?:\|:-:)?
 \|\s+\[.+\]\(https:\/\/osu\.ppy\.sh\/u\/\d+(?: "Previously known as '.+'")?\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|(?:\s+[A-Z\+]+\s+\|)?\s+[\d,]+\s+\|\s+\[.+#x2011;.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\)(?: \+(?:[A-Z2]{2})+&nbsp;&#124;&nbsp;)?\d{1,3}\.\d{2}%&nbsp;&#124;&nbsp;[\d,]+pp\s+\|
@@ -308,6 +325,18 @@ def test_std_end2end():
         "> Guest mapper:  None",
     ])
     assert map_player_mods_pp_re.match(reply)
+
+    ctx, reply = osubot.scorepost(std_unranked_t)
+    assert str(ctx) == "\n".join([
+        "Context:",
+        "> Player:        Mlaw22",
+        "> Beatmap:       t+pazolite with Kabocha - Elder Dragon Legend [???]",
+        "> Mode:          osu!standard",
+        "> Mods:          NoMod",
+        "> Accuracy:      99.95%",
+        "> Guest mapper:  None",
+    ])
+    assert map_unranked_player_nomods_pp_re.match(reply)
 
 
 def test_taiko_end2end():
