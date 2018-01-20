@@ -128,10 +128,10 @@ ignore_mods = [mods2int[m] for m in ["SD", "PF", "RX", "AT", "AP", "V2"]]
 samediffmods = [mods2int[m] for m in ["TD", "HD", "FL", "NF"]]
 
 # Markdown/HTML stuff
-dl = "&#x2b07;"  # Downwards arrow
-bar = "&#124;"  # Vertical bar
-spc = "&nbsp;"  # Non-breaking space
-hyp = "&#x2011;"  # Non-breaking hyphen
+dl = "&#x2b07;"  # Downwards arrow.
+bar = "&#124;"  # Vertical bar.
+spc = "&nbsp;"  # Non-breaking space.
+hyp = "&#x2011;"  # Non-breaking hyphen.
 
 # Misc stuff
 promo_rate = 1/3

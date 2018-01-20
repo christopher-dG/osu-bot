@@ -64,7 +64,7 @@ def map_header(ctx):
         mapper_url += " \"%s\"" % hover
 
     mapper_link = md.link(escape(b.creator), mapper_url)
-    buf = "%s %s by %s" % (map_link, dl_link, mapper_link)
+    map_s = "%s %s by %s" % (map_link, dl_link, mapper_link)
 
     if ctx.guest_mapper:
         guest_url = "%s/u/%d" % (consts.osu_url, ctx.guest_mapper.user_id)
@@ -72,14 +72,16 @@ def map_header(ctx):
         if counts:
             guest_url += " \"%s\"" % counts
         guest_link = md.link(ctx.guest_mapper.username, guest_url)
-        buf += " (GD by %s)" % guest_link
+        map_s += " (GD by %s)" % guest_link
+
+    tokens = [map_s]
 
     unranked = consts.int2status[b.approved.value] == "Unranked"
 
     if not unranked and ctx.mode is not None:
-        buf += " || %s" % consts.mode2str[ctx.mode]
+        tokens.append(consts.mode2str[ctx.mode])
 
-    header = md.header(buf, 4)
+    header = md.header(" || ".join(tokens), 4)
     subheader = (unranked_subheader if unranked else approved_subheader)(ctx)
 
     return "%s\n%s" % (header, subheader)
@@ -87,34 +89,40 @@ def map_header(ctx):
 
 def approved_subheader(ctx):
     """Build a subheader for a ranked/qualified/loved beatmap."""
+    tokens = []
+
     rank_one = map_rank_one(ctx)
-    buf = "%s || " % rank_one if rank_one else ""
+    if rank_one is not None:
+        tokens.append(rank_one)
 
     max_combo = scrape.max_combo(ctx)
     if max_combo is not None:
-        buf += "%sx max combo || " % sep(max_combo)
+        tokens.append("%sx max combo" % sep(max_combo))
 
-    buf += consts.int2status[ctx.beatmap.approved.value]
+    status = consts.int2status[ctx.beatmap.approved.value]
     if ctx.beatmap.approved_date is not None:
-        buf += " (%s)" % ctx.beatmap.approved_date.date()
+        status += " (%s)" % ctx.beatmap.approved_date.date()
+    tokens.append(status)
 
     if ctx.beatmap.playcount:
-        buf += " || %s plays" % sep(ctx.beatmap.playcount)
+        tokens.append("%s plays" % sep(ctx.beatmap.playcount))
 
-    return md.bold(buf)
+    return md.bold(" || ".join(tokens))
 
 
 def unranked_subheader(ctx):
     """Build a subheader for an unranked beatmap."""
-    buf = "%s || " % consts.mode2str[ctx.mode] if ctx.mode is not None else ""
+    tokens = []
+    if ctx.mode is not None:
+        tokens.append(consts.mode2str[ctx.mode])
 
     max_combo = scrape.max_combo(ctx)
     if max_combo is not None:
-        buf += "%sx max combo || " % sep(max_combo)
+        tokens.append("%sx max combo" % sep(max_combo))
 
-    buf += "Unranked (Updated %s)" % ctx.beatmap.last_update.date()
+    tokens.append("Unranked (Updated %s)" % ctx.beatmap.last_update.date())
 
-    return md.bold(buf)
+    return md.bold(" || ".join(tokens))
 
 
 def map_table(ctx):
@@ -330,14 +338,16 @@ def map_rank_one(ctx):
         player_url += " \"%s\"" % hover
     player_link = md.link(escape(score.username), player_url)
 
-    buf = "#%d: %s (" % (2 if use_two else 1, player_link)
+    player = "#%d: %s" % (2 if use_two else 1, player_link)
+    tokens = []
+
     if score.enabled_mods.value != consts.nomod:
-        buf += "%s - " % combine_mods(score.enabled_mods.value)
-    buf += "%.2f%%" % accuracy(score, mode)
+        tokens.append(combine_mods(score.enabled_mods.value))
+    tokens.append("%.2f%%" % accuracy(score, mode))
     if score.pp is not None:
-        buf += " - %spp" % sep(round(score.pp))
-    buf += ")"
-    return buf
+        tokens.append("%spp" % sep(round(score.pp)))
+
+    return "%s (%s)" % (player, " - ".join(tokens))
 
 
 def mapper_counts(ctx, mapper=None):
@@ -392,11 +402,15 @@ def map_hover(ctx, oldmap=None, oldmods=None):
     if not d:
         return None
 
-    r = round_to_str
-    return "SR%s - CS%s - AR%s - OD%s - HP%s - %dBPM - %s" % (
-        r(d["sr"], 2, force=True), r(d["cs"], 1), r(d["ar"], 1), r(d["od"], 1),
-        r(d["hp"], 1), d["bpm"], s_to_ts(d["length"]),
-    )
+    return " - ".join([
+        "SR%s" % round_to_str(d["sr"], 2, force=True),
+        "CS%s" % round_to_str(d["cs"], 1),
+        "AR%s" % round_to_str(d["ar"], 1),
+        "OD%s" % round_to_str(d["od"], 1),
+        "HP%s" % round_to_str(d["hp"], 1),
+        "%dBPM" % d["bpm"],
+        s_to_ts(d["length"]),
+    ])
 
 
 def player_hover(ctx, oldplayer=None):
@@ -408,15 +422,12 @@ def player_hover(ctx, oldplayer=None):
     if p.pp_rank is None:
         return None
 
-    return "%spp - rank #%s (#%s %s) - %s%% accuracy - %s playcount" % \
-        (
-            sep(round(p.pp_raw)),
-            sep(p.pp_rank),
-            sep(p.pp_country_rank),
-            p.country,
-            round_to_str(p.accuracy, 2, force=True),
-            sep(p.playcount),
-        )
+    return " - ".join([
+        "%spp" % sep(round(p.pp_raw)),
+        "rank #%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country),  # noqa
+        "%s%% accuracy" % round_to_str(p.accuracy, 2, force=True),
+        "%s playcount" % sep(p.playcount),
+    ])
 
 
 def centre_table(t):
