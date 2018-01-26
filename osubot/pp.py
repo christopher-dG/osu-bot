@@ -1,5 +1,5 @@
+import catch_the_pp
 import json
-import math
 import os
 import subprocess
 
@@ -29,27 +29,37 @@ def taiko_pp(ctx, acc, modded=True):
 
 def ctb_pp(ctx, acc, modded=True):
     """Get pp for a CTB play."""
-    if modded:
-        return None
-    max_combo = ctb_max_combo(ctx)
-    if max_combo is None:
+    if not ctx.beatmap:
         return None
 
-    sr = ctx.beatmap.difficultyrating
-    ar = ctx.beatmap.diff_approach
+    path = scrape.download_beatmap(ctx)
+    if path is None:
+        return None
 
-    # Disclaimer: I did not write this.
-    pp = pow(((5 * sr / 0.0049) - 4), 2) / 100000
-    length_bonus = 0.95 + 0.4 * min(1, max_combo / 3000)
-    if max_combo > 3000:
-        length_bonus += math.log10(max_combo / 3000) * 0.5
-    pp *= length_bonus
-    # pp *= pow(0.97, nmiss)  # Irrelevant here, we assume FC.
-    # pp *= pow(combo / max_combo, 0.8)  # Irrelevant here, we assume FC.
-    if ar > 9:
-        pp *= 1 + 0.1 * (ar - 9)
+    # I don't know how stable catch_the_pp is so check for errors everywhere.
+    try:
+        beatmap = catch_the_pp.osu_parser.beatmap.Beatmap(path)
+    except Exception as e:
+        print("CTB beatmap parsing error: %s" % e)
+        return None
 
-    return pp * pow(acc / 100, 5.5)
+    mods = ctx.mods if modded else consts.nomod
+    try:
+        diff = catch_the_pp.osu.ctb.difficulty.Difficulty(beatmap, mods)
+    except Exception as e:
+        print("CTB difficulty calculation error: %s" % e)
+        return None
+
+    try:
+        return catch_the_pp.ppCalc.calculate_pp(
+            diff,
+            acc / 100,  # acc is passed as a percentage, we want 0-1.
+            beatmap.max_combo,
+            0,
+        )
+    except Exception as e:
+        print("CTB pp calculation error: %s" % e)
+        return None
 
 
 def mania_pp(ctx, acc, modded=True, score=None):
@@ -133,17 +143,3 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
         return None
     pp = pp_j.get("pp")
     return None if pp == -1 else pp
-
-
-def ctb_max_combo(ctx):
-    """Find or approximate a CTB map's max combo."""
-    if not ctx.beatmap:
-        return None
-    combo = scrape.max_combo(ctx)
-
-    if combo is not None:
-        return combo
-
-    nobjs = scrape.map_objects(ctx)
-    # https://gist.github.com/christopher-dG/216e4a43618a9a68a03e9db48e30e66b
-    return (nobjs[0] + round(2.4*nobjs[1])) if nobjs is not None else None

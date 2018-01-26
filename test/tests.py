@@ -364,7 +364,7 @@ def test_ctb_end2end():
         "> Accuracy:      99.92%",
         "> Guest mapper:  None",
     ])
-    assert map_player_nomods_pp_re.match(reply)
+    assert map_player_mods_pp_re.match(reply)
     assert "osu!catch pp is experimental" in reply
 
 
