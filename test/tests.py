@@ -196,6 +196,8 @@ def test_round_to_string():
     assert osubot.utils.round_to_str(1.4, 1) == "1.4"
     assert osubot.utils.round_to_str(1.4, 2) == "1.4"
     assert osubot.utils.round_to_str(1.4, 2, force=True) == "1.40"
+    assert osubot.utils.round_to_str(1.01, 1) == "1"
+    assert osubot.utils.round_to_str(0.9997, 3) == "1"
 
 
 def test_safe_call():
