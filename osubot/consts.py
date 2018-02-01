@@ -1,3 +1,4 @@
+import boto3
 import os
 import re
 
@@ -18,6 +19,7 @@ osu_api = osuapi.OsuApi(osu_key, connector=osuapi.ReqConnector())
 osusearch_url = "https://osusearch.com/api/search"
 osusearch_key = os.environ["OSUSEARCH_API_KEY"]
 osu_url = "https://osu.ppy.sh"
+s3_bucket = boto3.resource("s3").Bucket("osu-bot-serverless")
 
 # Reddit stuff
 reddit_user = "osu-bot"

@@ -1,4 +1,5 @@
 import editdistance
+import os
 import requests
 import sys
 import traceback
@@ -154,3 +155,31 @@ def matched_bracket_contents(s):
             n += 1
 
     return None
+
+
+def s3_download(key, dest):
+    """Download a file from S3."""
+    if not os.environ.get("USE_S3_CACHE"):
+        return False
+
+    try:
+        consts.s3_bucket.download_file(key, dest)
+    except Exception as e:
+        print("Downloading %s failed: %s" % (key, e))
+        return False
+
+    return True
+
+
+def s3_upload(key, body):
+    """Upload a file to S3."""
+    if not os.environ.get("USE_S3_CACHE"):
+        return False
+
+    try:
+        consts.s3_bucket.put_object(Key=key, Body=body)
+    except Exception as e:
+        print("Uploading %s failed: %s" % (key, e))
+        return False
+
+    return True
