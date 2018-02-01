@@ -169,4 +169,5 @@ memes = [
     "hello there",
     "rrtyui :(",
     "0 pp if unranked",
+    "these movements are from an algorithm designed in java",
 ]
