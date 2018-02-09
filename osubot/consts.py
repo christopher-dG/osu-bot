@@ -72,6 +72,7 @@ eventstr2mode = {
 mode_annots = {
     "STANDARD": std,
     "STD": std,
+    "OSU!": std,
     "O!STD": std,
     "OSU!STD": std,
     "OSU!STANDARD": std,
