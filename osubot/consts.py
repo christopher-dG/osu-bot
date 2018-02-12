@@ -1,21 +1,16 @@
 import boto3
 import os
+import osuapi
 import re
-
-# This stuff doesn't really belong here,
-# but the cache must be installed before osuapi is imported.
 import requests_cache
-cache_timeout = 300
-requests_cache.install_cache(
-    backend="memory",
-    expire_after=cache_timeout,
-)
-import osuapi  # noqa
-
 
 # Web stuff
+sess = requests_cache.CachedSession(
+    backend="memory",
+    expire_after=300,  # 5 minutes.
+)
 osu_key = os.environ["OSU_API_KEY"]
-osu_api = osuapi.OsuApi(osu_key, connector=osuapi.ReqConnector())
+osu_api = osuapi.OsuApi(osu_key, connector=osuapi.ReqConnector(sess=sess))
 osusearch_url = "https://osusearch.com/api/search"
 osusearch_key = os.environ["OSUSEARCH_API_KEY"]
 osu_url = "https://osu.ppy.sh"

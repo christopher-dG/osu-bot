@@ -1,6 +1,5 @@
 import editdistance
 import os
-import requests
 import sys
 import traceback
 
@@ -90,8 +89,8 @@ def safe_call(f, *args, alt=None, msg=None, **kwargs):
 
 
 def request(url, *args, text=True, **kwargs):
-    """Wrapper around requests.get."""
-    resp = safe_call(requests.get, url, *args, **kwargs)
+    """Wrapper around HTTP requests."""
+    resp = safe_call(consts.sess.get, url, *args, **kwargs)
 
     if not resp:
         print("Request to %s returned empty" % safe_url(url))

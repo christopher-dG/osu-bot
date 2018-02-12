@@ -4,5 +4,4 @@ editdistance
 markdown-strings
 osuapi
 praw
-requests
 requests_cache
