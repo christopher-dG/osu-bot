@@ -213,7 +213,7 @@ def player_table(ctx):
 
     player_url = "%s/u/%d" % (consts.osu_url, p.user_id)
     old_username = scrape.player_old_username(ctx)
-    if old_username:
+    if old_username and old_username.lower() != p.username.lower():
         player_url += " \"Previously known as '%s'\"" % old_username
     player_link = md.link(nonbreaking(escape(p.username)), player_url)
 
