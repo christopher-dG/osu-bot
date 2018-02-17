@@ -61,7 +61,8 @@ def s_to_ts(secs):
 
 def round_to_str(n, p, force=False):
     """Round n to p digits, or less if force is not set. Returns a string."""
-    if p == 0 or (abs(n - round(n)) < 1 / 10**p and not force):
+    epsilon = 1 / 10000**p  # For floating point errors.
+    if p == 0 or (abs(n - round(n)) + epsilon < 1 / 10**p and not force):
         return str(round(n))
     if force:
         assert type(p) == int
