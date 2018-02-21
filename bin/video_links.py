@@ -4,6 +4,7 @@ import logging
 import os
 import praw
 import re
+import requests
 import sys
 import time
 
@@ -12,8 +13,10 @@ test = "--test" in sys.argv
 user = os.environ.get("OSU_BOT_USER", "osu-bot")
 sub = os.environ.get("OSU_BOT_SUB", "osugame")
 yt_re = re.compile("https?://(?:www\.)?(?:youtu\.be/|youtube\.com/watch\?v=)([\w-]+)")  # noqa
+yt_key = os.environ.get("YOUTUBE_KEY")
 video_header = "YouTube links:"
 time_threshold = 60  # One minute.
+yt_api = "https://www.googleapis.com/youtube/v3/videos"
 logger = logging.getLogger()
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO)
 
@@ -63,6 +66,28 @@ def find_bot_comment(other):
     return None
 
 
+def get_youtube_data(yt_id):
+    """Get the title and creator of a YouTube video."""
+    params = {"id": yt_id, "part": "snippet", "key": yt_key}
+    try:
+        resp = requests.get(yt_api, params=params)
+    except Exception as e:
+        logger.info("Request exception: %s" % e)
+        return None, None
+
+    if resp.status_code != 200:
+        logger.info("YouTube API returned %d" % resp.status_code)
+        return None, None
+
+    try:
+        data = resp.json()["items"][0]["snippet"]
+    except Exception as e:
+        logger.info("JSON error: %s" % e)
+        return None, None
+
+    return data.get("title"), data.get("channelTitle")
+
+
 def edit_bot_comment(comment, yt_id):
     """Add a new video link to a bot comment."""
     if yt_id in comment.body:
@@ -82,7 +107,13 @@ def edit_bot_comment(comment, yt_id):
         return False
 
     n = len(lines[idx].split()) - len(video_header.split()) + 1
-    lines[idx] += " [[%d]](https://youtu.be/%s)" % (n, yt_id)
+    url = "https://youtu.be/%s" % yt_id
+
+    title, channel = get_youtube_data(yt_id)
+    if bool(title) and bool(channel):
+        url += " \"'%s' by '%s'\"" % (title, channel)
+
+    lines[idx] += " [[%d]](%s)" % (n, url)
     body = "\n".join(lines)
 
     if not test:
@@ -95,6 +126,9 @@ def edit_bot_comment(comment, yt_id):
 if __name__ == "__main__":
     if "REDDIT_PASSWORD" not in os.environ:
         print("Missing Reddit environment variables")
+        exit(1)
+    if "YOUTUBE_KEY" not in os.environ:
+        print("Missing YouTube environment variables")
         exit(1)
 
     logger.info("test = %s" % test)
