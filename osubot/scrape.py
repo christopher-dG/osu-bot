@@ -8,6 +8,7 @@ def download_beatmap(ctx):
     """Download a .osu file."""
     if not ctx.beatmap:
         return None
+
     osu_path = "/tmp/%d.osu" % ctx.beatmap.beatmap_id
     if os.path.isfile(osu_path):
         return osu_path
@@ -16,6 +17,7 @@ def download_beatmap(ctx):
     if s3_download(s3_key, osu_path):
         return osu_path
 
+    # TODO: This request sometimes fails for no apparent reason.
     text = request("%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
     if not text:
         return None

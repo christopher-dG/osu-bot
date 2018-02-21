@@ -9,12 +9,15 @@ from .utils import combine_mods
 
 def pp_val(ctx, acc, modded=True):
     """Get pp earned for a play with given acc."""
+    if ctx.mode is None:
+        return None
+
     return {
         consts.std: std_pp,
         consts.taiko: taiko_pp,
         consts.ctb: ctb_pp,
         consts.mania: mania_pp,
-    }[ctx.mode](ctx, acc, modded=modded) if ctx.mode is not None else None
+    }[ctx.mode](ctx, acc, modded=modded)
 
 
 def std_pp(ctx, acc, modded=True):
@@ -65,13 +68,13 @@ def ctb_pp(ctx, acc, modded=True):
 def mania_pp(ctx, acc, modded=True, score=None):
     """Get pp for a mania map. This is not guaranteed to be accurate."""
     if modded:
-        return None  # TODO: Look into https://github.com/semyon422/omppc.
+        return None  # TODO: semyon422/omppc or wifipiano2@osufx/lets.
     nobjs = scrape.map_objects(ctx)
     if nobjs is None:
         return None
     nobjs = nobjs[0] + nobjs[1]
 
-    # Score approximation is very rough.
+    # TODO: Improve score approximation.
     if score is None:
         if acc < 94:
             score = 750000
@@ -106,8 +109,9 @@ def mania_pp(ctx, acc, modded=True, score=None):
         m = (score - 800000) / 100000 * 0.1 + 0.85
     else:
         m = (score - 900000) / 100000 * 0.05 + 0.95
+    pp = pow(pow(k, 1.1) + pow(x * m, 1.1), 1 / 1.1) * 1.1
 
-    return pow(pow(k, 1.1) + pow(x * m, 1.1), 1 / 1.1) * 1.1
+    return pp
 
 
 def oppai_pp(ctx, acc, modded=True, taiko=False):
@@ -142,4 +146,7 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
         )
         return None
     pp = pp_j.get("pp")
+
+    # Certain broken maps can't be calculated and so they return -1.
+    # See https://github.com/Francesco149/oppai-ng/issues/17.
     return None if pp == -1 else pp

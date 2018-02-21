@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 set -e
-cd $(dirname $(dirname "$0"))
+cd $(dirname $0)/..
 sed -i 's/boto3/#boto3/' requirements.txt  # boto3 comes preinstalled in Lambda.
 python3 -m pip install -r requirements.txt -Ut build
 sed -i 's/#boto3/boto3/' requirements.txt

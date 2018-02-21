@@ -1,9 +1,11 @@
-/.tox/
-/build/
-/bin/oppai-ng/
-*.egg-info
 __pycache__/
+*.pyc
+*.egg-info
+*.log
 .coverage
 .env
 pkg.zip
-osubot.log
+/build/
+/.tox/
+/venv/
+/bin/oppai-ng/

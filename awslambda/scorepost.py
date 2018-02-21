@@ -54,14 +54,15 @@ def scorepost(event, _):
     if post_has_reply(post, osubot.consts.reddit_user):
         return finish(error="Post already has a reply")
 
+    ctx_d = ctx.to_dict()
     err = post_reply(post, reply, sticky=True)
     if err:
         return finish(
             status=500,
-            context=ctx.to_dict(),
+            context=ctx_d,
             comment=reply,
             error=err,
         )
 
     print("%s\nCommented:\n%s" % (ctx, reply))
-    return finish(context=ctx.to_dict(), comment=reply)
+    return finish(context=ctx_d, comment=reply)

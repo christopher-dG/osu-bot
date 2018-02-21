@@ -17,8 +17,8 @@ def initialize(event, post):
     start = time.time()
 
     global testrun
-    testrun = os.environ.get("LAMBDA_TEST", "").lower() != "false" or (
-        event["queryStringParameters"].get("test") == "true")
+    testrun = os.environ.get("LAMBDA_TEST", "").lower() != "false"
+    testrun |= event["queryStringParameters"].get("test") == "true"
     if testrun:
         print("=== BEGIN TEST RUN ===")
 
@@ -28,6 +28,7 @@ def initialize(event, post):
     except Exception as e:
         print("No post title: %s" % e)
         return False
+
     global post_id
     post_id = post.id
 
@@ -38,6 +39,7 @@ def finish(status=200, error=None, **kwargs):
     """Return the API response."""
     if error:
         print(error)
+
     resp = {
         "isBase64Encoded": False,
         "headers": {},
@@ -50,12 +52,16 @@ def finish(status=200, error=None, **kwargs):
             **kwargs,
         },
     }
+
     if start is not None:
         resp["body"]["time"] = time.time() - start
+
     print(json.dumps(resp, indent=4))
     resp["body"] = json.dumps(resp["body"])
+
     if testrun:
         print("=== END TEST RUN ===")
+
     return resp
 
 
@@ -63,7 +69,7 @@ def chmod(src, dest):
     """Move an executable to where it can be ran and give it permissions."""
     if not os.path.isfile(src):
         print("%s does not exist" % src)
-        return None
+        return False
 
     if not dest.startswith("/tmp/"):
         dest = os.path.normpath("/tmp/%s" % dest)

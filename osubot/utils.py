@@ -38,12 +38,15 @@ def accuracy(s, mode):
     if mode == consts.std:
         return 100 * (s.count300 + s.count100/3 + s.count50/6) / \
             (s.count300 + s.count100 + s.count50 + s.countmiss)
+
     if mode == consts.taiko:
         return 100 * (s.count300 + s.count100/2) / \
             (s.count300 + s.count100 + s.countmiss)
+
     if mode == consts.ctb:
         return 100 * (s.count300 + s.count100 + s.count50) / \
             (s.count300 + s.count100 + s.count50 + s.countkatu + s.countmiss)
+
     if mode == consts.mania:
         x = s.countgeki + s.count300 + 2*s.countkatu/3 + s.count100/3 + s.count50/6  # noqa
         y = s.countgeki + s.count300 + s.countkatu + s.count100 + s.count50 + s.countmiss  # noqa
@@ -55,6 +58,7 @@ def s_to_ts(secs):
     hrs = secs // 3600
     mins = (secs - hrs * 3600) // 60
     secs = secs - hrs * 3600 - mins * 60
+
     ts = "%02d:%02d:%02d" % (hrs, mins, secs)
     return ts if hrs else ts[3:]
 
@@ -64,9 +68,11 @@ def round_to_str(n, p, force=False):
     epsilon = 1 / 10000**p  # For floating point errors.
     if p == 0 or (abs(n - round(n)) + epsilon < 1 / 10**p and not force):
         return str(round(n))
+
     if force:
         assert type(p) == int
         return eval("'%%.0%df' %% n" % p)
+
     return str(round(n, p))
 
 
@@ -93,7 +99,7 @@ def request(url, *args, text=True, **kwargs):
     """Wrapper around HTTP requests."""
     resp = safe_call(consts.sess.get, url, *args, **kwargs)
 
-    if not resp:
+    if resp is None:
         print("Request to %s returned empty" % safe_url(url))
         return None
     if resp.status_code != 200:
@@ -120,6 +126,7 @@ def compare(x, y):
     """Leniently compare two strings."""
     x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
     y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
+
     return editdistance.eval(x.upper(), y.upper()) <= 2
 
 
@@ -135,6 +142,7 @@ def changes_diff(mods):
     """Check whether any enabled mods change difficulty values."""
     if mods is None:
         return False
+
     diff_changers = set(consts.int2mods.keys()) - set(consts.samediffmods)
     return any(m & mods for m in diff_changers)
 
@@ -146,6 +154,7 @@ def matched_bracket_contents(s):
 
     s = s[(s.index("[") + 1):]
     n = 0
+
     for i, c in enumerate(s):
         if c == "]" and n == 0:
             return s[:i]

@@ -82,8 +82,6 @@ def search_osusearch(beatmap):
         "diff_name": diff.strip(),
     }
 
-    # TODO: Maybe canonicalize the URL.
-
     resp = request(consts.osusearch_url, text=False, params=params)
     if not resp:
         return None
