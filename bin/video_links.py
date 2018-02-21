@@ -5,6 +5,7 @@ import os
 import praw
 import re
 import sys
+import time
 
 sys.stdout = sys.stderr
 test = "--test" in sys.argv
@@ -12,6 +13,7 @@ user = os.environ.get("OSU_BOT_USER", "osu-bot")
 sub = os.environ.get("OSU_BOT_SUB", "osugame")
 yt_re = re.compile("https?://(?:www\.)?(?:youtu\.be/|youtube\.com/watch\?v=)([\w-]+)")  # noqa
 video_header = "YouTube links:"
+time_threshold = 60  # One minute.
 logger = logging.getLogger()
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO)
 
@@ -42,6 +44,14 @@ def monitor():
 def find_bot_comment(other):
     """Look for a comment by the bot on the post that other replied to."""
     submission = other.submission
+
+    # Sometimes video comments get made before the bot comment is posted.
+    # This could be made a bit less conservative by comparing the current time
+    # rather than the post creation time, but the Reddit timestamps seem off
+    # relative to normal UTC (but at least they're consistent with each other).
+    if other.created_utc - submission.created_utc < time_threshold:
+        time.sleep(time_threshold)
+
     logger.info("Searching post %s" % submission.id)
 
     for comment in submission.comments:
