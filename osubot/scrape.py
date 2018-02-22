@@ -9,11 +9,11 @@ def download_beatmap(ctx):
     if not ctx.beatmap:
         return None
 
-    osu_path = "/tmp/%d.osu" % ctx.beatmap.beatmap_id
+    osu_path = "/tmp/%s.osu" % ctx.beatmap.file_md5
     if os.path.isfile(osu_path):
         return osu_path
 
-    s3_key = "osu/%d.osu" % ctx.beatmap.beatmap_id
+    s3_key = "osu/%s.osu" % ctx.beatmap.file_md5
     if s3_download(s3_key, osu_path):
         return osu_path
 
@@ -26,9 +26,7 @@ def download_beatmap(ctx):
     with open(osu_path, "w") as f:
         f.write(text)
 
-    # Only store the file in S3 if it's ranked (it won't ever be changed).
-    if consts.int2status[ctx.beatmap.approved.value] == "Ranked":
-        s3_upload(s3_key, text)
+    s3_upload(s3_key, text)
 
     return osu_path
 
