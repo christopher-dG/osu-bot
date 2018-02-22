@@ -2,6 +2,7 @@ import editdistance
 import os
 import sys
 import traceback
+import zipfile
 
 from . import consts
 
@@ -166,29 +167,42 @@ def matched_bracket_contents(s):
     return None
 
 
-def s3_download(key, dest):
-    """Download a file from S3."""
+def s3_zipped_download(key):
+    """Download and unzip a file from S3 to /tmp/."""
     if not os.environ.get("USE_S3_CACHE"):
         return False
 
+    zip_path = "/tmp/%s" % os.path.basename(key)
     try:
-        consts.s3_bucket.download_file(key, dest)
+        consts.s3_bucket.download_file(key, zip_path)
     except Exception as e:
         print("Downloading %s failed: %s" % (key, e))
         return False
 
+    with zipfile.ZipFile(zip_path) as zf:
+        zf.extractall("/tmp/")
+
     return True
 
 
-def s3_upload(key, body):
-    """Upload a file to S3."""
+def s3_zipped_upload(key, filename, body):
+    """
+    Zip and upload a file to S3.
+    filename is the destination inside the archive, not the file to zip.
+    body is the string data to be zipped into filename.
+    """
     if not os.environ.get("USE_S3_CACHE"):
         return False
 
-    try:
-        consts.s3_bucket.put_object(Key=key, Body=body)
-    except Exception as e:
-        print("Uploading %s failed: %s" % (key, e))
-        return False
+    zip_path = "/tmp/%s" % os.path.basename(key)
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.writestr(filename, body, compress_type=zipfile.ZIP_DEFLATED)
+
+    with open(zip_path, "rb") as f:
+        try:
+            consts.s3_bucket.put_object(Key=key, Body=f)
+        except Exception as e:
+            print("Uploading %s failed: %s" % (key, e))
+            return False
 
     return True

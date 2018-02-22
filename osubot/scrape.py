@@ -1,7 +1,7 @@
 import os.path
 
 from . import consts
-from .utils import request, s3_download, s3_upload, safe_call
+from .utils import request, s3_zipped_download, s3_zipped_upload, safe_call
 
 
 def download_beatmap(ctx):
@@ -13,8 +13,9 @@ def download_beatmap(ctx):
     if os.path.isfile(osu_path):
         return osu_path
 
-    s3_key = "osu/%s.osu" % ctx.beatmap.file_md5
-    if s3_download(s3_key, osu_path):
+    s3_key = "osu/%s.zip" % ctx.beatmap.file_md5
+    if s3_zipped_download(s3_key) and os.path.isfile(osu_path):
+        print("Downloaded beatmap from S3")
         return osu_path
 
     # TODO: This request sometimes fails for no apparent reason.
@@ -26,7 +27,9 @@ def download_beatmap(ctx):
     with open(osu_path, "w") as f:
         f.write(text)
 
-    s3_upload(s3_key, text)
+    # Store the beatmap for next time.
+    if s3_zipped_upload(s3_key, os.path.basename(osu_path), text):
+        print("Uploaded beatmap to S3")
 
     return osu_path
 
