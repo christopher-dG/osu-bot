@@ -15,13 +15,17 @@ sub = os.environ.get("OSU_BOT_SUB", "osugame")
 yt_re = re.compile("https?://(?:www\.)?(?:youtu\.be/|youtube\.com/watch\?v=)([\w-]+)")  # noqa
 yt_key = os.environ.get("YOUTUBE_KEY")
 video_header = "YouTube links:"
-time_threshold = 60  # One minute.
+time_threshold = 30  # Seconds.
 yt_api = "https://www.googleapis.com/youtube/v3/videos"
 logger = logging.getLogger()
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO)
 
+reddit = None
 
-def monitor():
+
+def reddit_login():
+    """Log in to Reddit."""
+    global reddit
     reddit = praw.Reddit(
         client_id=os.environ["REDDIT_CLIENT_ID"],
         client_secret=os.environ["REDDIT_CLIENT_SECRET"],
@@ -29,19 +33,34 @@ def monitor():
         user_agent=user,
         username=user,
     )
-    subreddit = reddit.subreddit(sub)
 
-    for comment in subreddit.stream.comments():
-        if not comment.is_root:
-            continue
-        match = yt_re.search(comment.body)
-        if not match:
-            continue
 
-        bot_comment = find_bot_comment(comment)
-        if bot_comment is None:
-            continue
-        edit_bot_comment(bot_comment, match.group(1))
+def process_comment(comment):
+    if not comment.is_root or comment.saved:
+        return
+
+    match = yt_re.search(comment.body)
+    if not match:
+        return
+
+    bot_comment = find_bot_comment(comment)
+    if bot_comment is None:
+        return
+
+    if edit_bot_comment(bot_comment, match.group(1)):
+        comment.save()
+
+
+def process_backlog():
+    """Process the 100 most recent comments."""
+    for comment in reddit.subreddit(sub).comments():
+        process_comment(comment)
+
+
+def process_stream():
+    """Process comments as they arrive."""
+    for comment in reddit.subreddit(sub).stream.comments():
+        process_comment(comment)
 
 
 def find_bot_comment(other):
@@ -53,13 +72,14 @@ def find_bot_comment(other):
     # rather than the post creation time, but the Reddit timestamps seem off
     # relative to normal UTC (but at least they're consistent with each other).
     if other.created_utc - submission.created_utc < time_threshold:
+        logger.info("Sleeping")
         time.sleep(time_threshold)
 
     logger.info("Searching post %s" % submission.id)
 
     for comment in submission.comments:
         if comment.author.name == user and comment.is_root:
-            logger.info("Found comment:\n%s" % comment.body)
+            logger.info("Found comment:\n%s\n" % comment.body)
             return comment
 
     logger.info("No bot comment found on post %s" % submission.id)
@@ -119,7 +139,7 @@ def edit_bot_comment(comment, yt_id):
     if not test:
         comment.edit(body)
 
-    logger.info("New comment contents:\n%s" % body)
+    logger.info("New comment contents:\n%s\n" % body)
     return True
 
 
@@ -131,13 +151,19 @@ if __name__ == "__main__":
         print("Missing YouTube environment variables")
         exit(1)
 
+    reddit_login()
     logger.info("test = %s" % test)
+
+    try:
+        process_backlog()
+    except Exception as e:
+        print("Backlog exception: %s" % e)
 
     while True:
         try:
-            monitor()
+            process_stream()
         except KeyboardInterrupt:
             print("\nExiting")
             break
         except Exception as e:
-            logger.info("Exception: %s" % e)
+            logger.info("Stream exception: %s" % e)
