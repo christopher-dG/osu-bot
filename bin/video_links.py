@@ -74,6 +74,9 @@ def find_bot_comment(other):
     if other.created_utc - submission.created_utc < time_threshold:
         logger.info("Sleeping")
         time.sleep(time_threshold)
+        # To refresh the comments, we're stuck using this private method
+        # or creating a new instance.
+        submission._fetch()
 
     logger.info("Searching post %s" % submission.id)
 
