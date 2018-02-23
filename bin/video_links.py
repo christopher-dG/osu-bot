@@ -129,7 +129,7 @@ def edit_bot_comment(comment, yt_id):
         logger.info("Couldn't find a place to insert video link.")
         return False
 
-    n = len(lines[idx].split()) - len(video_header.split()) + 1
+    n = lines[idx].count("https://youtu.be") + 1
     url = "https://youtu.be/%s" % yt_id
 
     title, channel = get_youtube_data(yt_id)
