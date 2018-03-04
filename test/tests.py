@@ -6,7 +6,7 @@ import re
 logging.getLogger("urllib3").propagate = False
 
 std_t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
-std_unranked_t = "Mlaw22 | t+pazolite with Kabocha - Elder Dragon Legend [???] 99.95%"  # noqa
+std_unranked_t = "Mlaw | t+pazolite with Kabocha - Elder Dragon Legend [???] 99.95%"  # noqa
 taiko_t = "applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
 ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
 mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
@@ -332,7 +332,7 @@ def test_std_end2end():
     ctx, reply = osubot.scorepost(std_unranked_t)
     assert str(ctx) == "\n".join([
         "Context:",
-        "> Player:        Mlaw22",
+        "> Player:        Mlaw",
         "> Beatmap:       t+pazolite with Kabocha - Elder Dragon Legend [???]",
         "> Mode:          osu!standard",
         "> Mods:          NoMod",
