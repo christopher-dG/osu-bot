@@ -206,7 +206,7 @@ def player_table(ctx):
     if not ctx.player:
         return None
     p = ctx.player
-    if p.pp_rank is None:  # Player is inactive so most stats are null.
+    if not p.pp_raw:  # Player is inactive so most stats are null.
         return None
 
     rank = "#%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country)
@@ -419,7 +419,7 @@ def player_hover(ctx, oldplayer=None):
        (oldplayer and ctx.player.user_id == oldplayer.user_id):
         return None
     p = ctx.player
-    if p.pp_rank is None:
+    if not p.pp_raw:  # Player is inactive so most stats are null.
         return None
 
     return " - ".join([
