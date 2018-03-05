@@ -25,7 +25,7 @@ map_player_mods_pp_re = re.compile("""\
 
 \*\*\*
 
-\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 map_player_nomods_pp_re = re.compile("""\
 #### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+ "Download this beatmap"\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
@@ -41,7 +41,7 @@ map_player_nomods_pp_re = re.compile("""\
 
 \*\*\*
 
-\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 map_noplayer_mods_pp_re = re.compile("""\
 #### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+ "Download this beatmap"\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?(?: \|\| osu![a-z]+)?
@@ -54,7 +54,7 @@ map_noplayer_mods_pp_re = re.compile("""\
 
 \*\*\*
 
-\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 nomap_player_re = re.compile("""\
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Accuracy\s+\|(?:\s+Playstyle\s+\|)?\s+Playcount\s+\|\s+Top Play\s+\|
@@ -63,7 +63,7 @@ nomap_player_re = re.compile("""\
 
 \*\*\*
 
-\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 map_unranked_player_nomods_pp_re = re.compile("""\
 #### \[.+-.+\[.+\]\]\(https:\/\/osu\.ppy\.sh\/b\/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https:\/\/osu\.ppy\.sh\/d\/\d+ "Download this beatmap"\) by \[.+\]\(https:\/\/osu\.ppy\.sh\/u\/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https:/\/osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?
@@ -79,7 +79,7 @@ map_unranked_player_nomods_pp_re = re.compile("""\
 
 \*\*\*
 
-\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot-serverless\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
+\^\(.+ – \)\[\^Source\]\(https:\/\/github\.com\/christopher-dG\/osu-bot\)\^\( \| \)\[\^Developer\]\(https:\/\/reddit\.com\/u\/PM_ME_DOG_PICS_PLS\)\
 """)  # noqa
 
 

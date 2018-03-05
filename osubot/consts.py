@@ -14,10 +14,10 @@ osu_api = osuapi.OsuApi(osu_key, connector=osuapi.ReqConnector(sess=sess))
 osusearch_url = "https://osusearch.com/api/search"
 osusearch_key = os.environ["OSUSEARCH_API_KEY"]
 osu_url = "https://osu.ppy.sh"
-s3_bucket = boto3.resource("s3").Bucket("osu-bot-serverless")
+s3_bucket = boto3.resource("s3").Bucket("osu-bot")
 
 # Reddit stuff
-reddit_user = "osu-bot"
+reddit_user = os.environ.get("REDDIT_USER", "osu-bot")
 reddit_password = os.environ["REDDIT_PASSWORD"]
 reddit_client_id = os.environ["REDDIT_CLIENT_ID"]
 reddit_client_secret = os.environ["REDDIT_CLIENT_SECRET"]
@@ -147,7 +147,7 @@ title_ignores = [
     "LOVED",
 ]
 me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
-repo_url = "https://github.com/christopher-dG/osu-bot-serverless"
+repo_url = "https://github.com/christopher-dG/osu-bot"
 unnoticed = "https://github.com/christopher-dG/unnoticed/wiki"
 memes = [
     "pls enjoy gaem",

@@ -1,11 +1,11 @@
 # osu!bot
 
-[![Build Status](https://travis-ci.org/christopher-dG/osu-bot-serverless.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot-serverless)
-[![CodeCov](https://codecov.io/gh/christopher-dG/osu-bot-serverless/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot-serverless)
+[![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
+[![CodeCov](https://codecov.io/gh/christopher-dG/osu-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot)
 
 **[osu!bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.**
 
-This is its third iteration, which replaces the original spaghetti-tier [Ruby implementation](https://github.com/christopher-dG/osu-bot) and the "Wow I love multiple dispatch so let's write a combinatorial explosion of methods with excessively fine-grained signatures" [Julia implementation](https://github.com/christopher-dG/OsuBot.jl).
+This is its third iteration, which replaces the original spaghetti-tier [Ruby implementation](https://github.com/christopher-dG/osu-bot-legacy) and the "Wow I love multiple dispatch so let's write a combinatorial explosion of methods with excessively fine-grained signatures" [Julia implementation](https://github.com/christopher-dG/OsuBot.jl).
 
 ### Formatting Score Posts
 
@@ -40,7 +40,7 @@ Even if this doesn't work, the JSON response you get back should provide some in
 
 ### Contact
 
-Messages to the bot are forwarded to me, so feel free to [PM](https://www.reddit.com/message/compose?to=osu-bot&subject=osu!bot feedback) any problems, questions, or suggestions, or just reply to one of its comments.
+Messages to the bot are forwarded to me, so feel free to [PM](https://www.reddit.com/message/compose?to=osu-bot&subject=Feedback) any problems, questions, or suggestions, or just reply to one of its comments.
 
 ### Acknowledgements
 
