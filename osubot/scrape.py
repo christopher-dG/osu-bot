@@ -3,6 +3,8 @@ import os.path
 from . import consts
 from .utils import request, s3_zipped_download, s3_zipped_upload, safe_call
 
+tillerino_api = "https://api.tillerino.org"
+
 
 def download_beatmap(ctx):
     """Download a .osu file."""
@@ -18,10 +20,15 @@ def download_beatmap(ctx):
         print("Downloaded beatmap from S3")
         return osu_path
 
-    # TODO: This request sometimes fails for no apparent reason.
     text = request("%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
     if not text:
+        text = request(
+            "%s/beatmaps/byHash/%s/file?k=%s" %
+            (tillerino_api, ctx.beatmap.file_md5, consts.tillerino_key),
+        )
+    if not text:
         return None
+
     text = consts.osu_file_begin_re.sub("osu file format", text)
 
     with open(osu_path, "w") as f:

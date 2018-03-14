@@ -13,6 +13,7 @@ osu_key = os.environ["OSU_API_KEY"]
 osu_api = osuapi.OsuApi(osu_key, connector=osuapi.ReqConnector(sess=sess))
 osusearch_url = "https://osusearch.com/api/search"
 osusearch_key = os.environ["OSUSEARCH_API_KEY"]
+tillerino_key = os.environ["TILLERINO_API_KEY"]
 osu_url = "https://osu.ppy.sh"
 s3_bucket = boto3.resource("s3").Bucket("osu-bot")
 
