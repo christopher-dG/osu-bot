@@ -133,6 +133,8 @@ def edit_bot_comment(comment, yt_id):
     url = "https://youtu.be/%s" % yt_id
 
     title, channel = get_youtube_data(yt_id)
+    title = title.replace(")", "\)")
+    channel = channel.replace(")", "\)")
     if bool(title) and bool(channel):
         url += " \"'%s' by '%s'\"" % (title, channel)
 
