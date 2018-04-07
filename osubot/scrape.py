@@ -20,7 +20,7 @@ def download_beatmap(ctx):
         print("Downloaded beatmap from S3")
         return osu_path
 
-    text = request("%s/osu/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
+    text = request("%s/osu/%d" % (consts.old_url, ctx.beatmap.beatmap_id))
     if not text:
         text = request(
             "%s/beatmaps/byHash/%s/file?k=%s" %
@@ -43,7 +43,7 @@ def download_beatmap(ctx):
 
 def mapper_id(ctx):
     """Get the mapper ID of a beatmap."""
-    text = request("%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
+    text = request("%s/b/%d" % (consts.old_url, ctx.beatmap.beatmap_id))
     if not text:
         return None
 
@@ -58,7 +58,7 @@ def player_old_username(ctx):
     if not ctx.player:
         return None
 
-    text = request("%s/u/%d" % (consts.osu_url, ctx.player.user_id))
+    text = request("%s/u/%d" % (consts.old_url, ctx.player.user_id))
     if not text:
         return None
 
@@ -71,7 +71,7 @@ def playstyle(ctx):
     if not ctx.player:
         return None
 
-    website = request("%s/u/%d" % (consts.osu_url, ctx.player.user_id))
+    website = request("%s/u/%d" % (consts.old_url, ctx.player.user_id))
     if not website:
         return None
 
@@ -128,7 +128,7 @@ def api_max_combo(ctx):
 def web_max_combo(ctx):
     """Try to find the max combo from the top rank on the leaderboard."""
     # TODO: We could look at all the scores on the leaderboard.
-    text = request("%s/b/%d" % (consts.osu_url, ctx.beatmap.beatmap_id))
+    text = request("%s/b/%d" % (consts.old_url, ctx.beatmap.beatmap_id))
     if not text:
         return None
 

@@ -15,6 +15,7 @@ osusearch_url = "https://osusearch.com/api/search"
 osusearch_key = os.environ["OSUSEARCH_API_KEY"]
 tillerino_key = os.environ["TILLERINO_API_KEY"]
 osu_url = "https://osu.ppy.sh"
+old_url = "https://old.ppy.sh"
 s3_bucket = boto3.resource("s3").Bucket("osu-bot")
 
 # Reddit stuff
