@@ -101,12 +101,7 @@ def max_combo(ctx):
         if nobjs is not None:
             return nobjs[0] + nobjs[1]
 
-    if ctx.mode in [consts.taiko, consts.ctb]:
-        combo = web_max_combo(ctx)  # This might not be accurate for mania.
-        if combo is not None:
-            return combo
-
-    return None
+    return web_max_combo(ctx)  # This might not be accurate for mania.
 
 
 def api_max_combo(ctx):

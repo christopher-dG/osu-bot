@@ -100,8 +100,8 @@ def approved_subheader(ctx):
         tokens.append("%sx max combo" % sep(max_combo))
 
     status = consts.int2status[ctx.beatmap.approved.value]
-    if ctx.beatmap.approved_date is not None:
-        status += " (%s)" % ctx.beatmap.approved_date.date()
+    if ctx.beatmap.approved_date is not None and status != "Qualified":
+        status += " (%d)" % ctx.beatmap.approved_date.year
     tokens.append(status)
 
     if ctx.beatmap.playcount:
@@ -120,7 +120,7 @@ def unranked_subheader(ctx):
     if max_combo is not None:
         tokens.append("%sx max combo" % sep(max_combo))
 
-    tokens.append("Unranked (Updated %s)" % ctx.beatmap.last_update.date())
+    tokens.append("Unranked")
 
     return md.bold(" || ".join(tokens))
 
