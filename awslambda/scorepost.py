@@ -55,7 +55,7 @@ def scorepost(event, _):
         return finish(error="Post already has a reply")
 
     ctx_d = ctx.to_dict()
-    err = post_reply(post, reply, sticky=True)
+    err = post_reply(post, reply, sticky=True, flair="Gameplay", css="game")
     if err:
         return finish(
             status=500,

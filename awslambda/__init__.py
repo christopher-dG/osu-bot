@@ -103,9 +103,10 @@ def post_has_reply(post, username):
     )
 
 
-def post_reply(post, text, sticky=False):
+def post_reply(post, text, sticky=False, flair="", css=""):
     """
-    Reply to, save, and upvote a post, and optionally sticky the comment.
+    Reply to, save, and upvote a post, optionally flair it,
+    and optionally sticky the comment.
     Returns None on success, the error in string form otherwise.
     """
     if testrun:
@@ -117,6 +118,8 @@ def post_reply(post, text, sticky=False):
             c.mod.distinguish(sticky=True)
         post.save()
         post.upvote()
+        if flair:
+            post.mod.flair(text=flair, css_class=css)
     except Exception as e:
         print("Reddit exception: %s" % e)
         return str(e)
