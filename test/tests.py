@@ -20,6 +20,7 @@ nomod_map_table_header = re.compile("""\
 \|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\
 """)  # noqa
+#                                                  CS                    AR                     OD                     HP                      SR                    BPM             Length                  pp  # noqa
 nomod_map_table_values = re.compile("""\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|""")  # noqa
 
 modded_map_table_header = re.compile("""\
@@ -59,6 +60,10 @@ def try_assert(f, expected, *args, attr=None, **kwargs):
         assert result == expected
     except Exception as e:
         assert False, "%s: %s" % (f.__name__, e)
+
+
+def _assert_match(regex, text):
+    assert regex.search(text), "\nText:\n%s\nRegex:\n%s" % (text, regex.pattern)  # noqa
 
 
 def isapprox(x, y, t=0.005):
@@ -295,13 +300,13 @@ def test_std_end2end():
         "> Accuracy:      99.83%",
         "> Guest mapper:  None",
     ])
-    assert approved_header.search(reply)
-    assert approved_subheader.search(reply)
-    assert modded_map_table_header.search(reply)
-    assert modded_map_table_values.search(reply)
-    assert player_table_header.search(reply)
-    assert player_table_values.search(reply)
-    assert footer.search(reply)
+    _assert_match(approved_header, reply)
+    _assert_match(approved_subheader, reply)
+    _assert_match(modded_map_table_header, reply)
+    _assert_match(modded_map_table_values, reply)
+    _assert_match(player_table_header, reply)
+    _assert_match(player_table_values, reply)
+    _assert_match(footer, reply)
 
 
 def test_std_unranked_end2end():
@@ -315,13 +320,13 @@ def test_std_unranked_end2end():
         "> Accuracy:      99.95%",
         "> Guest mapper:  None",
     ])
-    assert unranked_header.search(reply)
-    assert unranked_subheader.search(reply)
-    assert nomod_map_table_header.search(reply)
-    assert nomod_map_table_values.search(reply)
-    assert player_table_header.search(reply)
-    assert player_table_values.search(reply)
-    assert footer.search(reply)
+    _assert_match(unranked_header, reply)
+    _assert_match(unranked_subheader, reply)
+    _assert_match(nomod_map_table_header, reply)
+    _assert_match(nomod_map_table_values, reply)
+    _assert_match(player_table_header, reply)
+    _assert_match(player_table_values, reply)
+    _assert_match(footer, reply)
 
 
 def test_taiko_end2end():
@@ -335,13 +340,13 @@ def test_taiko_end2end():
         "> Accuracy:      96.67%",
         "> Guest mapper:  None",
     ])
-    assert approved_header.search(reply)
-    assert approved_subheader.search(reply)
-    assert modded_map_table_header.search(reply)
-    assert modded_map_table_values.search(reply)
-    assert player_table_header.search(reply)
-    assert player_table_values.search(reply)
-    assert footer.search(reply)
+    _assert_match(approved_header, reply)
+    _assert_match(approved_subheader, reply)
+    _assert_match(modded_map_table_header, reply)
+    _assert_match(modded_map_table_values, reply)
+    _assert_match(player_table_header, reply)
+    _assert_match(player_table_values, reply)
+    _assert_match(footer, reply)
 
 
 def test_ctb_end2end():
@@ -355,13 +360,13 @@ def test_ctb_end2end():
         "> Accuracy:      99.92%",
         "> Guest mapper:  None",
     ])
-    assert approved_header.search(reply)
-    assert approved_subheader.search(reply)
-    assert modded_map_table_header.search(reply)
-    assert modded_map_table_values.search(reply)
-    assert player_table_header.search(reply)
-    assert player_table_values.search(reply)
-    assert footer.search(reply)
+    _assert_match(approved_header, reply)
+    _assert_match(approved_subheader, reply)
+    _assert_match(modded_map_table_header, reply)
+    _assert_match(modded_map_table_values, reply)
+    _assert_match(player_table_header, reply)
+    _assert_match(player_table_values, reply)
+    _assert_match(footer, reply)
     assert "osu!catch pp is experimental" in reply
 
 
@@ -376,13 +381,13 @@ def test_mania_end2end():
         "> Accuracy:      98.53%",
         "> Guest mapper:  None",
     ])
-    assert approved_header.search(reply)
-    assert approved_subheader.search(reply)
-    assert nomod_map_table_header.search(reply)
-    assert nomod_map_table_values.search(reply)
-    assert player_table_header.search(reply)
-    assert player_table_values.search(reply)
-    assert footer.search(reply)
+    _assert_match(approved_header, reply)
+    _assert_match(approved_subheader, reply)
+    _assert_match(nomod_map_table_header, reply)
+    _assert_match(nomod_map_table_values, reply)
+    _assert_match(player_table_header, reply)
+    _assert_match(player_table_values, reply)
+    _assert_match(footer, reply)
     assert "osu!mania pp is experimental" in reply
 
 
