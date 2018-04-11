@@ -276,7 +276,7 @@ def player_table(ctx):
 
 
 def footer(ctx):
-    """Return a footer with some general information."""
+    """Return a footer with some general information and hidden logs."""
     tokens = [
         md.link("^Source", consts.repo_url),
         md.link("^Developer", consts.me),
@@ -300,7 +300,12 @@ def footer(ctx):
         mode += consts.mode2str[ctx.mode]
         tokens.append("^(%s pp is experimental)" % mode)
 
-    return "^(%s – )%s" % (random.choice(consts.memes), "^( | )".join(tokens))
+    text = "^(%s – )%s" % (random.choice(consts.memes), "^( | )".join(tokens))
+    logs = md.link(  # Invisible link with hover text.
+        consts.spc,
+        "http://x \"%s\"" % "\n".join(s.replace("\"", "'") for s in ctx.logs),
+    )
+    return "%s %s" % (text, logs)
 
 
 def map_rank_one(ctx):

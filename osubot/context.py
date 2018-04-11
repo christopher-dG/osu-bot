@@ -5,13 +5,14 @@ from .utils import combine_mods, map_str, matched_bracket_contents, safe_call
 
 class Context:
     """A container for all relevant data."""
-    def __init__(self, player, beatmap, mode, mods, acc, guest_mapper):
+    def __init__(self, player, beatmap, mode, mods, acc, guest_mapper, logs):
         self.player = player  # osuapi.models.User, None if missing
         self.beatmap = beatmap  # osuapi.models.Beatmap, None if missing
         self.mode = mode  # Int (0-4), None if missing
         self.mods = mods  # Int, 0 if missing
         self.acc = acc  # Float (0-100), None if missing
         self.guest_mapper = guest_mapper  # osuapi.models.User, None if missing
+        self.logs = logs  # List of strings
 
     def __repr__(self):
         mode = "Unknown" if self.mode is None else consts.mode2str[self.mode]
@@ -44,8 +45,9 @@ class Context:
 
 def from_score_post(title):
     """Construct a Context from the title of score post."""
-    player = getplayer(title)
-    beatmap = getmap(title, player=player)
+    logs = []
+    player = getplayer(title, logs=logs)
+    beatmap = getmap(title, player=player, logs=logs)
     mode = getmode(title, player=player, beatmap=beatmap)
     mods = getmods(title)
     acc = getacc(title)
@@ -75,18 +77,22 @@ def from_score_post(title):
             if updated_beatmaps:
                 beatmap = updated_beatmaps[0]
 
-    return Context(player, beatmap, mode, mods, acc, guest_mapper)
+    return Context(player, beatmap, mode, mods, acc, guest_mapper, logs)
 
 
-def getplayer(title):
+def getplayer(title, logs=[]):
     """Get the player from the post title."""
     match = consts.player_re.search(title)
     if not match:
+        logs.append("Player: No regex match")
         return None
     name = strip_annots(match.group(1))
 
-    player = safe_call(consts.osu_api.get_user, name)
-    return player[0] if player else None
+    players = safe_call(consts.osu_api.get_user, name)
+    if players:
+        return players[0]
+    logs.append("Player: '%s' not found" % name)
+    return None
 
 
 def strip_annots(s):
@@ -101,10 +107,11 @@ def strip_annots(s):
     return name.strip()
 
 
-def getmap(title, player=None):
+def getmap(title, player=None, logs=[]):
     """Search for the beatmap."""
     match = consts.map_re.search(title)
     if not match:
+        logs.append("Beatmap: No regex match")
         return None
     map_s = match.group(1).strip()
 
@@ -115,7 +122,7 @@ def getmap(title, player=None):
         if contents:
             map_s = "%s - %s [%s]" % (match.group(1), match.group(2), contents)
 
-    return search(player, map_s)
+    return search(player, map_s, logs=logs)
 
 
 def getmode(title, player=None, beatmap=None):

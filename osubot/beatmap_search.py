@@ -2,18 +2,21 @@ from . import consts
 from .utils import compare, request, safe_call
 
 
-def search(player, beatmap):
+def search(player, beatmap, logs=[]):
     """Search for beatmap with player."""
     if player:
         result = search_events(player, beatmap)
         if result:
+            logs.append("Beatmap: Found in events")
             return result
         result = search_recent(player, beatmap)
         if result:
+            logs.append("Beatmap: Found in recent")
             return result
 
     result = search_osusearch(beatmap)
     if result:
+        logs.append("Beatmap: Found with osusearch")
         return result
 
     return None

@@ -17,16 +17,21 @@ def download_beatmap(ctx):
 
     s3_key = "osu/%s.zip" % ctx.beatmap.file_md5
     if s3_zipped_download(s3_key) and os.path.isfile(osu_path):
-        print("Downloaded beatmap from S3")
+        ctx.logs.append(".osu: Downloaded from S3")
         return osu_path
 
     text = request("%s/osu/%d" % (consts.old_url, ctx.beatmap.beatmap_id))
-    if not text:
+    if text:
+        ctx.logs.append(".osu: Downloaded from osu!web")
+    else:
         text = request(
             "%s/beatmaps/byHash/%s/file?k=%s" %
             (tillerino_api, ctx.beatmap.file_md5, consts.tillerino_key),
         )
+        if text:
+            ctx.logs.append(".osu: Downloaded from Tillerino")
     if not text:
+        ctx.logs.append(".osu: Not downloaded")
         return None
 
     text = consts.osu_file_begin_re.sub("osu file format", text)
@@ -36,7 +41,7 @@ def download_beatmap(ctx):
 
     # Store the beatmap for next time.
     if s3_zipped_upload(s3_key, os.path.basename(osu_path), text):
-        print("Uploaded beatmap to S3")
+        ctx.logs.append(".osu: Uploaded to S3")
 
     return osu_path
 
@@ -49,6 +54,7 @@ def mapper_id(ctx):
 
     match = consts.mapper_id_re.search(text)
     if not match:
+        ctx.logs.append("Mapper ID: No regex match")
         return None
     return int(match.group(1))
 
@@ -92,6 +98,7 @@ def max_combo(ctx):
 
     combo = api_max_combo(ctx)
     if combo is not None:
+        ctx.logs.append("Max combo: Found via API")
         return combo
 
     # Taiko is the only mode where the number of hitobject lines in
@@ -99,9 +106,14 @@ def max_combo(ctx):
     if ctx.mode == consts.taiko:
         nobjs = map_objects(ctx)
         if nobjs is not None:
+            ctx.logs.append("Max combo: Computed manually")
             return nobjs[0] + nobjs[1]
 
-    return web_max_combo(ctx)  # This might not be accurate for mania.
+    combo = web_max_combo(ctx)  # This might not be accurate for mania.
+    if combo is not None:
+        ctx.logs.append("Max combo: Found via osu!web")
+        return combo
+    return None
 
 
 def api_max_combo(ctx):
@@ -134,10 +146,12 @@ def web_max_combo(ctx):
 
     match = consts.combo_re.search(text)
     if not match:
+        ctx.logs.append("combo_re: No match")
         return None
     combo = match.group(1)
     match = misses_re.search(text)
     if not match:
+        ctx.logs.append("misses_re: No match")
         return None
 
     return int(combo) if match.group(1) == "0" else None
