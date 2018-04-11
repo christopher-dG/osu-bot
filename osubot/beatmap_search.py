@@ -1,5 +1,7 @@
+import datetime
+
 from . import consts
-from .utils import compare, request, safe_call
+from .utils import compare, map_str, request, safe_call
 
 
 def search(player, beatmap, logs=[]):
@@ -8,6 +10,10 @@ def search(player, beatmap, logs=[]):
         result = search_events(player, beatmap)
         if result:
             logs.append("Beatmap: Found in events")
+            return result
+        result = search_best(player, beatmap)
+        if result:
+            logs.append("Beatmap: Found in best")
             return result
         result = search_recent(player, beatmap)
         if result:
@@ -19,6 +25,7 @@ def search(player, beatmap, logs=[]):
         logs.append("Beatmap: Found with osusearch")
         return result
 
+    logs.append("Beatmap: Not found")
     return None
 
 
@@ -44,6 +51,29 @@ def search_events(player, beatmap, mode=False, b_id=None):
     return None
 
 
+def search_best(player, beatmap):
+    """Search player's best plays for beatmap."""
+    best = safe_call(consts.osu_api.get_user_best, player.user_id, limit=100)
+    if not best:
+        return None
+
+    today = datetime.datetime.today()
+    threshold = datetime.timedelta(weeks=1)
+    for score in filter(lambda s: today - s.date < threshold, best):
+        beatmaps = safe_call(
+            consts.osu_api.get_beatmaps,
+            beatmap_id=score.beatmap_id,
+        )
+        if not beatmaps:
+            continue
+        bmap = beatmaps[0]
+
+        if compare(map_str(bmap), beatmap):
+            return bmap
+
+    return None
+
+
 def search_recent(player, beatmap):
     """Search player's recent plays for beatmap."""
     recent = safe_call(consts.osu_api.get_user_recent, player.user_id, limit=50)  # noqa
@@ -64,8 +94,7 @@ def search_recent(player, beatmap):
             continue
         bmap = beatmaps[0]
 
-        map_str = "%s - %s [%s]" % (bmap.artist, bmap.title, bmap.version)
-        if compare(map_str, beatmap):
+        if compare(map_str(bmap), beatmap):
             return bmap
 
     return None
