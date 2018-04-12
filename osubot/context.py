@@ -115,7 +115,10 @@ def getmap(title, player=None, logs=[]):
         return None
     map_s = match.group(1).strip()
 
-    match = consts.map_pieces_re.search(map_s)
+    match = consts.map_double_brackets_re.search(map_s)
+    if not match:
+        match = consts.map_pieces_re.search(map_s)
+
     if match:
         diff = match.group(3)
         contents = matched_bracket_contents("[%s]" % diff)
