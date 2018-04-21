@@ -37,7 +37,7 @@ scorev2_re = re.compile("SV2|SCOREV2")
 paren_re = re.compile("\((.+?)\)")
 bracket_re = re.compile("\[(.+?)\]")
 mapper_id_re = re.compile("Creator:</td><td class=[\"']colour[\"']><a href=[\"']/u/(\d+)")  # noqa
-old_username_re = re.compile("<div class=[\"']profile-username[\"'] title=[\"']Previously known as (.+?)[\"']>")  # noqa
+old_username_re = re.compile("<div class=[\"']profile-username[\"']\s+title=[\"']Previously known as (.+?)[\"']>")  # noqa
 combo_re = re.compile("Max Combo</strong></td><td ?>([0-9]+)</td>")
 misses_re = re.compile("<strong>Misses</strong></td><td ?>([0-9]+)</td>")
 mania_misses_re = re.compile("<strong>100 / 50 / Misses</strong></td><td ?>\d+ / \d+ / ([0-9]+)</td>")  # noqa
