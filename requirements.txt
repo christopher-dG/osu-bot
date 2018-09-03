@@ -1,7 +1,7 @@
 boto3
 git+https://github.com/christopher-dG/catch-the-pp
-editdistance
 markdown-strings
 osuapi
 praw
+pylev
 requests_cache

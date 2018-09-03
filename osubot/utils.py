@@ -1,4 +1,4 @@
-import editdistance
+import pylev
 import os
 import sys
 import traceback
@@ -128,7 +128,7 @@ def compare(x, y):
     x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
     y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
 
-    return editdistance.eval(x.upper(), y.upper()) <= 2
+    return pylev.levenshtein(x.upper(), y.upper()) <= 2
 
 
 def is_ignored(mods):
