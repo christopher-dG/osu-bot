@@ -14,6 +14,8 @@ from . import (
     reddit_login,
 )
 
+gameplay_flair = ["5d2f4278-89df-11e4-aa8d-22000bc18bb2", "Gameplay"]
+
 
 def scorepost(event, _):
     """Process a score post."""
@@ -55,7 +57,7 @@ def scorepost(event, _):
         return finish(error="Post already has a reply")
 
     ctx_d = ctx.to_dict()
-    err = post_reply(post, reply, sticky=True, flair="Gameplay", css="game")
+    err = post_reply(post, reply, sticky=True, flair=gameplay_flair)
     if err:
         return finish(
             status=500,
