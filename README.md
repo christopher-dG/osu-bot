@@ -33,7 +33,13 @@ If your post didn't get a reply, you can try sending a POST request to `https://
 For example, for [this post](https://redd.it/53l422):
 
 ```sh
+# Linux/MacOS
 curl -X POST "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422"
+```
+
+```Powershell
+# Windows (PowerShell)
+Invoke-WebRequest "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422" -Method POST -UseBasicParsing
 ```
 
 Even if this doesn't work, the JSON response you get back should provide some insight on what went wrong.
