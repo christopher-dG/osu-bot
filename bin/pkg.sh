@@ -7,5 +7,5 @@ python3 -m pip install -r requirements.txt -Ut build
 sed -i 's/#boto3/boto3/' requirements.txt
 cp -r awslambda osubot build
 cd build
-aws s3 cp s3://osu-bot-serverless/bin/oppai ./oppai
+aws s3 cp s3://osu-bot/bin/oppai ./oppai
 zip -r ../pkg.zip *
