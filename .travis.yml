@@ -4,7 +4,7 @@ notifications:
 python: 3.6
 install:
   - pip install awscli codecov tox
-  - aws s3 cp s3://osu-bot-serverless/bin/oppai ./bin/oppai
+  - aws s3 cp s3://osu-bot/bin/oppai ./bin/oppai
   - chmod +x ./bin/oppai
   - export PATH=$PATH:$(pwd)/bin
 script: tox

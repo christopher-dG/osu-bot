@@ -7,4 +7,4 @@ cd $dir/oppai-ng
 git fetch origin
 git reset --hard origin/master
 ./build
-aws s3 cp oppai s3://osu-bot-serverless/bin/oppai
+aws s3 cp oppai s3://osu-bot/bin/oppai
