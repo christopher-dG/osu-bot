@@ -1,0 +1,7 @@
+boto3
+git+https://github.com/christopher-dG/catch-the-pp
+markdown-strings
+osuapi
+praw
+pylev
+requests_cache

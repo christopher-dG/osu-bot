@@ -1,16 +1,15 @@
-**DEPRECATED: The bot now lives [here](https://github.com/christopher-dG/osu-bot-serverless).**
+# osu!bot
 
-# OsuBot
+[![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
+[![CodeCov](https://codecov.io/gh/christopher-dG/osu-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot)
 
-[![Build Status](https://travis-ci.org/christopher-dG/OsuBot.jl.svg?branch=master)](https://travis-ci.org/christopher-dG/OsuBot.jl)
+**[osu!bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.**
 
-[/u/osu-bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap
-and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.
+This is its third iteration, which replaces the original spaghetti-tier [Ruby implementation](https://github.com/christopher-dG/osu-bot-legacy) and the "Wow I love multiple dispatch so let's write a combinatorial explosion of methods with excessively fine-grained signatures" [Julia implementation](https://github.com/christopher-dG/OsuBot.jl).
 
 ### Formatting Score Posts
 
-The bot depends on you to properly format your title! The beginning of your
-post title should look something like this:
+The bot depends on you to properly format your title! The beginning of your post title should look something like this:
 
 ```
 Player Name | Song Artist - Song Title [Diff Name] +Mods
@@ -22,68 +21,33 @@ For example:
 Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP RECORD*
 ```
 
-There are plenty of other subtleties to title formatting that will/won't work,
-but almost all common styles will work just fine.
+In general, anything following the [official criteria](https://redd.it/7gzfhp) should work.
 
-### Summoning The Bot
+There's one notable exception which doesn't work, which is mods separated by spaces: "HD HR" and "HD, HR" both get parsed as HD only.
+Additionally, prefixing the mods with "+" makes parsing much more consistent, for example "+HDHR".
 
-In addition to commenting on score posts, the bot can reply to your comments
-when you ask it to. To do so, begin your comment by tagging the bot, followed
-by one command per line. Note that the order of the commands determines the
-order in the reply.
+### Manually Triggering Comments
 
-| Command | Arguments | Description | Usage |
-| :-: | :-: | :-: | :-: |
-| `!player` | `username` | Creates a player information table for the given player. For now, this will always retrieve stats for osu!std. | `!player Vaxei` |
-| `!map` | `beatmap_id [+mods] [acc%]` | Creates a map information table for a single diff, optionally with given mods and accuracy. Note that the argument must be a *beatmap* id, and not a *beatmapset* id. | `!map 1233051 +HD 98.5%` |
-| `!leaderboard` | `beatmap_id [n] [+mods]` | Displays a map's leaderboard. By default, the top 5 scores of any mod combination are showed. | `!leaderboard 1316353 10 +HR`
+The bot generally does not retry comments.
+If your post didn't get a reply, you can try sending a POST request to `https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=ID` where `ID` is the Reddit post ID.
+For example, for [this post](https://redd.it/53l422):
 
-A comment using multiple commands might look like this:
-
-```
-/u/osu-bot !player Toy
-!map 888715 97%
-!map 1179007 +HDHR
+```sh
+# Linux/MacOS
+curl -X POST "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422"
 ```
 
-Due to Markdown formatting, this will all end up on one line, but it won't
-cause any problems (and it'll look better).
+```Powershell
+# Windows (PowerShell)
+Invoke-WebRequest "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422" -Method POST -UseBasicParsing
+```
 
-If you'd like to see a new command, please [get in touch](#contact)!
-
-### Development Dependencies
-
-* [Julia](https://julialang.org)
-* [Python](https://python.org)
-* [PRAW](https://github.com/praw-dev/praw)
-* [oppai](https://github.com/Francesco149/oppai-ng) somewhere on your `$PATH`
-* The following environment variables:
-  * `REDDIT_USER_AGENT`
-  * `REDDIT_CLIENT_ID`
-  * `REDDIT_CLIENT_SECRET`
-  * `REDDIT_USERNAME`
-  * `REDDIT_PASSWORD`
-  * `REDDIT_SUBREDDIT`
-  * `OSU_API_KEY`
-  * `OSUSEARCH_API_KEY`
+Even if this doesn't work, the JSON response you get back should provide some insight on what went wrong.
 
 ### Contact
 
-If you have ideas, feedback, or anything else to say, feel free to
-[open an issue](https://github.com/christopher-dG/OsuBot.jl/issues/new), or
-send me a message:
+Messages to the bot are forwarded to me, so feel free to [PM](https://www.reddit.com/message/compose?to=osu-bot&subject=Feedback) any problems, questions, or suggestions, or just reply to one of its comments.
 
-* Reddit: `/u/PM_ME_DOG_PICS_PLS`
-* Discord: `Chris | Slow Twitch#7120`
-* osu!: `Slow Twitch`
+### Acknowledgements
 
-***
-
-Credit for mod/pp calculations goes to
-[Francesco149](https://github.com/Francesco149/oppai-ng).
-
-If you want to thank me in some way, I'll happily accept
-[the gift of supporter](https://osu.ppy.sh/users/3172543).
-
-**This project is not affiliated with [osu!](https://osu.ppy.sh/home) in any
-way.**
+Thanks to [Franc[e]sco](https://github.com/Francesco149) and [khazhyk](https://github.com/khazhyk) for [oppai](https://github.com/Francesco149/oppai-ng) and [osuapi](https://github.com/khazhyk/osuapi) respectively, both of which have saved me much time and effort.

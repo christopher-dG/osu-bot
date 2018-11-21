@@ -1,17 +1,15 @@
-language: generic
-os: linux
-services: docker
+language: python
 notifications:
   email: false
-before_script:
-  - echo "export REDDIT_USER_AGENT=\"$REDDIT_USER_AGENT\"" >> config.sh
-  - echo "export REDDIT_CLIENT_ID=\"$REDDIT_CLIENT_ID\"" >> config.sh
-  - echo "export REDDIT_CLIENT_SECRET=\"$REDDIT_CLIENT_SECRET\"" >> config.sh
-  - echo "export REDDIT_USERNAME=\"$REDDIT_USERNAME\"" >> config.sh
-  - echo "export REDDIT_PASSWORD=\"$REDDIT_PASSWORD\"" >> config.sh
-  - echo "export REDDIT_SUBREDDIT=\"$REDDIT_SUBREDDIT\"" >> config.sh
-  - echo "export OSU_API_KEY=\"$OSU_API_KEY\"" >> config.sh
-  - echo "export OSUSEARCH_API_KEY=\"$OSUSEARCH_API_KEY\"" >> config.sh
-  - docker build -t $DOCKERHUB_USERNAME/images:osu-bot .
-script: docker run --rm $DOCKERHUB_USERNAME/images:osu-bot test
-after_success: if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD && docker push $DOCKERHUB_USERNAME/images:osu-bot; fi
+python: 3.6
+install:
+  - pip install awscli codecov tox
+  - aws s3 cp s3://osu-bot-serverless/bin/oppai ./bin/oppai
+  - chmod +x ./bin/oppai
+  - export PATH=$PATH:$(pwd)/bin
+script: tox
+after_success:
+  - codecov
+  - ./bin/pkg.sh
+  - if [ "$TRAVIS_BRANCH" != "master" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
+  - aws lambda update-function-code --function-name osu-bot-score-post --zip-file fileb://pkg.zip > /dev/null

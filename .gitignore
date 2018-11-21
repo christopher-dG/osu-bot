@@ -1,5 +1,11 @@
-.DS_Store
-*.jl.cov
-*.jl.*.cov
-*.jl.mem
-/config.sh
+__pycache__/
+*.pyc
+*.egg-info
+*.log
+.coverage
+.env
+pkg.zip
+/build/
+/.tox/
+/venv/
+/bin/oppai-ng/
