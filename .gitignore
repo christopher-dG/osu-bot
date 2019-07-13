@@ -1,11 +1,6 @@
+*.env
+*_cache/
+.serverless/
 __pycache__/
-*.pyc
-*.egg-info
-*.log
-.coverage
-.env
-pkg.zip
-/build/
-/.tox/
-/venv/
-/bin/oppai-ng/
+layers/
+node_modules/

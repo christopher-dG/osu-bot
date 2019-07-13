@@ -1,15 +1,12 @@
 language: python
+dist: xenial
+python: 3.7
+before_script: pip install -r requirements.txt -r requirements.dev.txt
+env:
+  - AWS_DEFAULT_REGION=us-east-1
+script:
+  - pytest
+  - mypy osubot test
+  - black --check osubot test
 notifications:
   email: false
-python: 3.6
-install:
-  - pip install awscli codecov tox
-  - aws s3 cp s3://osu-bot/bin/oppai ./bin/oppai
-  - chmod +x ./bin/oppai
-  - export PATH=$PATH:$(pwd)/bin
-script: tox
-after_success:
-  - codecov
-  - ./bin/pkg.sh
-  - if [ "$TRAVIS_BRANCH" != "master" ] || [ "$TRAVIS_PULL_REQUEST" != "false" ]; then exit 0; fi
-  - aws lambda update-function-code --function-name osu-bot-score-post --zip-file fileb://pkg.zip > /dev/null

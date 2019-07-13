@@ -1,13 +1,10 @@
 # osu!bot
 
 [![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
-[![CodeCov](https://codecov.io/gh/christopher-dG/osu-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot)
 
 **[osu!bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.**
 
-This is its third iteration, which replaces the original spaghetti-tier Ruby implementation and the "Wow I love multiple dispatch so let's write a combinatorial explosion of methods with excessively fine-grained signatures" Julia implementation. They can be found in separate branches as historical artifacts.
-
-### Formatting Score Posts
+### Information For Score Posters
 
 The bot depends on you to properly format your title! The beginning of your post title should look something like this:
 
@@ -22,27 +19,6 @@ Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP REC
 ```
 
 In general, anything following the [official criteria](https://redd.it/7gzfhp) should work.
-
-There's one notable exception which doesn't work, which is mods separated by spaces: "HD HR" and "HD, HR" both get parsed as HD only.
-Additionally, prefixing the mods with "+" makes parsing much more consistent, for example "+HDHR".
-
-### Manually Triggering Comments
-
-The bot generally does not retry comments.
-If your post didn't get a reply, you can try sending a POST request to `https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=ID` where `ID` is the Reddit post ID.
-For example, for [this post](https://redd.it/53l422):
-
-```sh
-# Linux/MacOS
-curl -X POST "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422"
-```
-
-```Powershell
-# Windows (PowerShell)
-Invoke-WebRequest "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422" -Method POST -UseBasicParsing
-```
-
-Even if this doesn't work, the JSON response you get back should provide some insight on what went wrong.
 
 ### Contact
 
