@@ -1,6 +1,7 @@
+beautifulsoup4
 boto3
 git+https://github.com/christopher-dG/catch-the-pp
 osuapi
+praw
 pylev
-requests
 requests_cache

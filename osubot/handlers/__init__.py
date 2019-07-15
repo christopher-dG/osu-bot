@@ -1,1 +1,1 @@
-from . import comment, link, poll, post
+from . import comment, poll, post

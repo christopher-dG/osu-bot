@@ -1,12 +1,7 @@
+notifications: {email: false}
 language: python
 dist: xenial
 python: 3.7
+env: [AWS_DEFAULT_REGION=us-east-1]
 before_script: pip install -r requirements.txt -r requirements.dev.txt
-env:
-  - AWS_DEFAULT_REGION=us-east-1
-script:
-  - pytest
-  - mypy osubot test
-  - black --check osubot test
-notifications:
-  email: false
+script: ./bin/test.sh

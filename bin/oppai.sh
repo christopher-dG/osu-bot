@@ -17,5 +17,5 @@ else
   cd $(dirname "$0")/..
   mkdir -p layers/oppai
   cp "$0" layers/oppai
-  docker run --rm --mount "type=bind,source=$(pwd)/layers/oppai,destination=/opt" "$IMAGE" /opt/$(basename "$0") build
+  docker run -t --rm --mount "type=bind,source=$(pwd)/layers/oppai,destination=/opt" "$IMAGE" /opt/$(basename "$0") build
 fi

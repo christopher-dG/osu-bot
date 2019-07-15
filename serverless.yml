@@ -55,8 +55,6 @@ layers:
 functions:
   comment:
     handler: osubot.handlers.comment.handler
-  link:
-    handler: osubot.handlers.link.handler
   poll:
     handler: osubot.handlers.poll.handler
     timeout: 300

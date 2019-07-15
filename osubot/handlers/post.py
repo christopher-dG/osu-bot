@@ -1,5 +1,5 @@
-import os
+from .. import reddit
 
 
-def handler(event: dict, _context=None) -> None:
-    print(os.system("oppai -v"))
+def handler(id: str, _context=None) -> None:
+    post = reddit.get_post(id)
