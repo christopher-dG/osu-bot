@@ -2,7 +2,8 @@ import os
 
 from typing import List, Optional, Union
 
-from osuapi import Beatmap, OsuApi, ReqConnector, Score, User
+from osuapi import OsuApi, ReqConnector
+from osuapi.model import Beatmap, Score, User
 from requests_cache import CachedSession
 
 _api = OsuApi(

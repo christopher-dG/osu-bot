@@ -1,2 +1,2 @@
 osu_web = "https://osu.ppy.sh"
-tillerino = "https://api.tillerino.org"
+tillerino_api = "https://api.tillerino.org"

@@ -1,5 +1,4 @@
 import re
-
 from typing import Callable, Iterator, Optional, TypeVar
 
 from praw.models import Comment, Submission
@@ -8,7 +7,7 @@ from .. import aws, reddit
 
 _anchor = "reddit_anchor"
 _re_post = re.compile(r".+\|.+-.+\[.+\]")
-T = TypeVar("T", Comment, Submission)
+_T = TypeVar("_T", Comment, Submission)
 
 
 def handler(_event={}, _context=None) -> None:
@@ -18,7 +17,7 @@ def handler(_event={}, _context=None) -> None:
 
 
 def _make_poller(
-    listing: Callable[[Optional[str]], Iterator[T]], key: str
+    listing: Callable[[Optional[str]], Iterator[_T]], key: str
 ) -> Callable[[], None]:
     """Return a function that polls a Reddit listing."""
 
@@ -40,7 +39,7 @@ _poll_posts = _make_poller(reddit.get_posts, "post")
 _poll_comments = _make_poller(reddit.get_comments, "comment")
 
 
-def _should_process(thing: T) -> bool:
+def _should_process(thing: _T) -> bool:
     """Determine whether a post or comment should be processed."""
     if thing.saved:
         return False
@@ -69,10 +68,7 @@ def _is_score_post(post: Submission) -> bool:
 def _get_anchor(key: str) -> Optional[str]:
     """Get a Reddit anchor."""
     item = aws.ddb_get_item(_anchor)
-    if item is None:
-        return None
-    # TO#O: can probably remove str conversion when DDB types are better.
-    return str(item[key])
+    return None if item is None else item[key]
 
 
 def _set_anchor(key: str, anchor: str) -> None:
