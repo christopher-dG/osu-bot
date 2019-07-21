@@ -5,7 +5,7 @@ from typing import Iterator, Optional
 from praw import Reddit
 from praw.models import Comment, Submission
 
-from . import logger
+from .globals import logger
 
 _reddit = Reddit(
     client_id=os.getenv("REDDIT_CLIENT_ID", ""),

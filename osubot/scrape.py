@@ -6,16 +6,14 @@ from bs4 import BeautifulSoup
 from osuapi.model import Beatmap, User
 from requests_cache import CachedSession
 
-from . import logger
+from .globals import http_session, logger
 from .urls import osu_web
-
-_session = CachedSession(backend="memory")
 
 
 def _user_data(user: User) -> Optional[Dict[str, Any]]:
     """Get user data from the osu! web site."""
     url = f"{osu_web}/u/{user.user_id}"
-    resp = _session.get(url)
+    resp = http_session.get(url)
     if resp.status_code != 200:
         logger.warning(f"Request for {url} returned {resp.status_code}")
         return None

@@ -10,7 +10,7 @@ import boto3
 
 from botocore.exceptions import ClientError
 
-from . import logger
+from .globals import logger
 
 _bucket = boto3.resource("s3").Bucket(os.getenv("S3_BUCKET", ""))
 _lambda = boto3.client("lambda")

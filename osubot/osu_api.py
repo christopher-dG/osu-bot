@@ -4,11 +4,10 @@ from typing import List, Optional, Union
 
 from osuapi import OsuApi, ReqConnector
 from osuapi.model import Beatmap, Score, User
-from requests_cache import CachedSession
 
-_api = OsuApi(
-    os.getenv("OSU_API_KEY"), connector=ReqConnector(CachedSession(backend="memory"))
-)
+from .globals import http_session
+
+_api = OsuApi(os.getenv("OSU_API_KEY"), connector=ReqConnector(http_session))
 
 
 def get_user(user: Union[int, str], **kwargs) -> Optional[User]:

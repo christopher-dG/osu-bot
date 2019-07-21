@@ -1,6 +1,5 @@
 import hashlib
 import json
-import requests
 import subprocess
 
 from functools import lru_cache
@@ -14,8 +13,8 @@ import catch_the_pp
 
 from osuapi.model import Beatmap, OsuMod, OsuMode, Score
 
-from . import aws, logger
-from .urls import osu_web, tillerino_api
+from . import aws
+from .globals import http_session, logger, osu_web, tillerino_api
 
 _oppai_bin = "oppai"
 _osu_file_dir = Path(gettempdir()) / "osu"
@@ -115,7 +114,7 @@ def _upload_osu(path: Path) -> None:
 
 def _request_osu(url: str, md5: str, dest: Path) -> Optional[Path]:
     """Request a .osu file from somewhere."""
-    resp = requests.get(url)
+    resp = http_session.get(url)
     code = resp.status_code
     content_type = resp.headers["Content-Type"]
     if code == 200 and "text/plain" in content_type:
