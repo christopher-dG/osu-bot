@@ -5,17 +5,13 @@ from typing import List, Optional, Union
 from osuapi import OsuApi, ReqConnector
 from osuapi.model import Beatmap, Score, User
 
-from .globals import http_session
+from .globals import http
 
-_api = OsuApi(os.getenv("OSU_API_KEY"), connector=ReqConnector(http_session))
+_api = OsuApi(os.getenv("OSU_API_KEY"), connector=ReqConnector(http))
 
 
 def get_user(user: Union[int, str], **kwargs) -> Optional[User]:
     """Get a user."""
-    if isinstance(user, int):
-        kwargs["type"] = "id"
-    elif isinstance(user, str):
-        kwargs["type"] = "username"
     kwargs.setdefault("event_days", 31)
     users = _api.get_user(user, **kwargs)
     return users[0] if users else None

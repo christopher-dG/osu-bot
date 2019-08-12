@@ -2,6 +2,7 @@ import hashlib
 import json
 import subprocess
 
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
@@ -14,13 +15,15 @@ import catch_the_pp
 from osuapi.model import Beatmap, OsuMod, OsuMode, Score
 
 from . import aws
-from .globals import http_session, logger, osu_web, tillerino_api
+from .globals import http, logger, osu_web
 
 _oppai_bin = "oppai"
 _osu_file_dir = Path(gettempdir()) / "osu"
 _osu_file_dir.mkdir(exist_ok=True)
+_tillerino_api = "https://api.tillerino.org"
 
 
+@dataclass(frozen=True)
 class Stats:
     """A container for beatmap stats."""
 
@@ -91,7 +94,7 @@ def _download_osu(beatmap: Beatmap) -> Optional[Path]:
     if path is not None:
         return path
     path = _request_osu(
-        f"{tillerino_api}/beatmaps/byHash/{beatmap.file_md5}",
+        f"{_tillerino_api}/beatmaps/byHash/{beatmap.file_md5}",
         beatmap.file_md5,
         osu_dest,
     )
@@ -114,7 +117,7 @@ def _upload_osu(path: Path) -> None:
 
 def _request_osu(url: str, md5: str, dest: Path) -> Optional[Path]:
     """Request a .osu file from somewhere."""
-    resp = http_session.get(url)
+    resp = http.get(url)
     code = resp.status_code
     content_type = resp.headers["Content-Type"]
     if code == 200 and "text/plain" in content_type:
