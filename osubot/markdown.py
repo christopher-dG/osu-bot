@@ -21,16 +21,12 @@ def build_comment(ctx):
     if not ctx.player and not ctx.beatmap:
         return None
 
-    comment = "\n\n".join(filter(
-        bool,
-        [
-            map_header(ctx),
-            map_table(ctx),
-            player_table(ctx),
-            "***",
-            footer(ctx),
-        ],
-    ))
+    comment = "\n\n".join(
+        filter(
+            bool,
+            [map_header(ctx), map_table(ctx), player_table(ctx), "***", footer(ctx),],
+        )
+    )
 
     return None if comment.startswith("***") else comment
 
@@ -47,7 +43,7 @@ def map_header(ctx):
     map_link = md.link(escape(map_str(b)), map_url)
     dl_link = md.link(
         "(%s)" % consts.dl,
-        "%s/d/%d \"Download this beatmap\"" % (consts.osu_url, b.beatmapset_id),  # noqa
+        '%s/d/%d "Download this beatmap"' % (consts.osu_url, b.beatmapset_id),  # noqa
     )
     mapper_id = scrape.mapper_id(ctx)
     mapper = b.creator if mapper_id is None else mapper_id
@@ -61,7 +57,7 @@ def map_header(ctx):
         hover += ": %s" % counts if hover else counts
 
     if hover:
-        mapper_url += " \"%s\"" % hover
+        mapper_url += ' "%s"' % hover
 
     mapper_link = md.link(escape(b.creator), mapper_url)
     map_s = "%s %s by %s" % (map_link, dl_link, mapper_link)
@@ -70,7 +66,7 @@ def map_header(ctx):
         guest_url = "%s/u/%d" % (consts.osu_url, ctx.guest_mapper.user_id)
         counts = mapper_counts(ctx, mapper=ctx.guest_mapper.user_id)
         if counts:
-            guest_url += " \"%s\"" % counts
+            guest_url += ' "%s"' % counts
         guest_link = md.link(ctx.guest_mapper.username, guest_url)
         map_s += " (GD by %s)" % guest_link
 
@@ -146,17 +142,9 @@ def map_table(ctx):
             ["AR", r(nomod["ar"], 1), r(modded["ar"], 1)],
             ["OD", r(nomod["od"], 1), r(modded["od"], 1)],
             ["HP", r(nomod["hp"], 1), r(modded["hp"], 1)],
-            [
-                "SR",
-                r(nomod["sr"], 2, force=True),
-                r(modded["sr"], 2, force=True),
-            ],
+            ["SR", r(nomod["sr"], 2, force=True), r(modded["sr"], 2, force=True),],
             ["BPM", round(nomod["bpm"]), round(modded["bpm"])],
-            [
-                "Length",
-                s_to_ts(nomod["length"]),
-                s_to_ts(modded["length"]),
-            ],
+            ["Length", s_to_ts(nomod["length"]), s_to_ts(modded["length"]),],
         ]
     else:
         cols = [
@@ -183,18 +171,20 @@ def map_table(ctx):
             pp_vals[acc] = nomod_pp, None
 
     accs_joined = (" %s " % consts.bar).join(
-        "%s%%" % (r(a, 2, force=True) if int(a) != a else str(a))
-        for a in sorted(pp_vals.keys()),
+        (
+            "%s%%" % (r(a, 2, force=True) if int(a) != a else str(a))
+            for a in sorted(pp_vals.keys())
+        )
     )
     nomod_joined = (" %s " % consts.bar).join(
-        sep(round(pp_vals[acc][0])) for acc in sorted(pp_vals.keys()),
+        (sep(round(pp_vals[acc][0])) for acc in sorted(pp_vals.keys()))
     )
 
     if pp_vals:
         cols.append(["pp (%s)" % accs_joined, nomod_joined])
         if modded:
             modded_joined = (" % s " % consts.bar).join(
-                sep(round(pp_vals[acc][1])) for acc in sorted(pp_vals.keys()),
+                (sep(round(pp_vals[acc][1])) for acc in sorted(pp_vals.keys()))
             )
             cols[-1].append(modded_joined)
 
@@ -258,7 +248,7 @@ def player_table(ctx):
             hover = map_hover(ctx_clone, oldmap=ctx.beatmap, oldmods=ctx.mods)
 
             if hover:
-                map_url += " \"%s\"" % hover
+                map_url += ' "%s"' % hover
 
             map_link = md.link(nonbreaking(escape(map_str(bmap))), map_url)
 
@@ -302,8 +292,7 @@ def footer(ctx):
 
     text = "^(%s – )%s" % (random.choice(consts.memes), "^( | )".join(tokens))
     logs = md.link(  # Invisible link with hover text.
-        consts.spc,
-        "http://x \"%s\"" % "\n".join(s.replace("\"", "'") for s in ctx.logs),
+        consts.spc, 'http://x "%s"' % "\n".join(s.replace('"', "'") for s in ctx.logs),
     )
     return "%s %s" % (text, logs)
 
@@ -316,10 +305,7 @@ def map_rank_one(ctx):
     mode = ctx.mode if ctx.mode is not None else consts.std
     apimode = consts.int2osuapimode[mode]
     scores = safe_call(
-        consts.osu_api.get_scores,
-        ctx.beatmap.beatmap_id,
-        mode=apimode,
-        limit=2,
+        consts.osu_api.get_scores, ctx.beatmap.beatmap_id, mode=apimode, limit=2,
     )
     if not scores:
         return None
@@ -340,7 +326,7 @@ def map_rank_one(ctx):
         hover = None
     player_url = "%s/u/%s" % (consts.osu_url, score.user_id)
     if hover:
-        player_url += " \"%s\"" % hover
+        player_url += ' "%s"' % hover
     player_link = md.link(escape(score.username), player_url)
 
     player = "#%d: %s" % (2 if use_two else 1, player_link)
@@ -377,8 +363,9 @@ def mapper_counts(ctx, mapper=None):
         if consts.int2status.get(b[1]) in groups:
             groups[consts.int2status[b[1]]] += 1
 
-    return "%s ranked, %s qualified, %s loved, %s unranked" % \
-        tuple(sep(groups[k]) for k in ["Ranked", "Qualified", "Loved", "Unranked"])  # noqa
+    return "%s ranked, %s qualified, %s loved, %s unranked" % tuple(
+        sep(groups[k]) for k in ["Ranked", "Qualified", "Loved", "Unranked"]
+    )  # noqa
 
 
 def mapper_renamed(ctx, mapper_id=None):
@@ -399,40 +386,43 @@ def map_hover(ctx, oldmap=None, oldmods=None):
     """Generate link hover text for a beatmap."""
     if not ctx.beatmap:
         return None
-    if oldmap and ctx.beatmap.beatmap_id == oldmap.beatmap_id and \
-       ctx.mods == oldmods:
+    if oldmap and ctx.beatmap.beatmap_id == oldmap.beatmap_id and ctx.mods == oldmods:
         return None
 
     d = diff.diff_vals(ctx, modded=ctx.mods != consts.nomod)
     if not d:
         return None
 
-    return " - ".join([
-        "SR%s" % round_to_str(d["sr"], 2, force=True),
-        "CS%s" % round_to_str(d["cs"], 1),
-        "AR%s" % round_to_str(d["ar"], 1),
-        "OD%s" % round_to_str(d["od"], 1),
-        "HP%s" % round_to_str(d["hp"], 1),
-        "%dBPM" % d["bpm"],
-        s_to_ts(d["length"]),
-    ])
+    return " - ".join(
+        [
+            "SR%s" % round_to_str(d["sr"], 2, force=True),
+            "CS%s" % round_to_str(d["cs"], 1),
+            "AR%s" % round_to_str(d["ar"], 1),
+            "OD%s" % round_to_str(d["od"], 1),
+            "HP%s" % round_to_str(d["hp"], 1),
+            "%dBPM" % d["bpm"],
+            s_to_ts(d["length"]),
+        ]
+    )
 
 
 def player_hover(ctx, oldplayer=None):
     """Generate link hover text for a player."""
-    if not ctx.player or \
-       (oldplayer and ctx.player.user_id == oldplayer.user_id):
+    if not ctx.player or (oldplayer and ctx.player.user_id == oldplayer.user_id):
         return None
     p = ctx.player
     if not p.pp_raw:  # Player is inactive so most stats are null.
         return None
 
-    return " - ".join([
-        "%spp" % sep(round(p.pp_raw)),
-        "rank #%s (#%s %s)" % (sep(p.pp_rank), sep(p.pp_country_rank), p.country),  # noqa
-        "%s%% accuracy" % round_to_str(p.accuracy, 2, force=True),
-        "%s playcount" % sep(p.playcount),
-    ])
+    return " - ".join(
+        [
+            "%spp" % sep(round(p.pp_raw)),
+            "rank #%s (#%s %s)"
+            % (sep(p.pp_rank), sep(p.pp_country_rank), p.country),  # noqa
+            "%s%% accuracy" % round_to_str(p.accuracy, 2, force=True),
+            "%s playcount" % sep(p.playcount),
+        ]
+    )
 
 
 def centre_table(t):

@@ -5,6 +5,7 @@ from .utils import combine_mods, map_str, matched_bracket_contents, safe_call
 
 class Context:
     """A container for all relevant data."""
+
     def __init__(self, player, beatmap, mode, mods, acc, guest_mapper, logs):
         self.player = player  # osuapi.models.User, None if missing
         self.beatmap = beatmap  # osuapi.models.Beatmap, None if missing
@@ -36,10 +37,14 @@ class Context:
         return {
             "acc": "None" if self.acc is None else "%.2f%%" % self.acc,
             "beatmap": map_str(self.beatmap) if self.beatmap else "None",
-            "mode": "Unknown" if self.mode is None else consts.mode2str[self.mode],  # noqa
+            "mode": "Unknown"
+            if self.mode is None
+            else consts.mode2str[self.mode],  # noqa
             "mods": combine_mods(self.mods),
             "player": self.player.username if self.player else "None",
-            "guest mapper": self.guest_mapper.username if self.guest_mapper else "None"  # noqa
+            "guest mapper": self.guest_mapper.username
+            if self.guest_mapper
+            else "None",  # noqa
         }
 
 
@@ -165,7 +170,7 @@ def getmods(title):
     tail = match.group(1)
 
     if "+" in tail and tail.index("+") < (len(tail) - 1):
-        tokens = tail[(tail.index("+") + 1):].split()
+        tokens = tail[(tail.index("+") + 1) :].split()
         if tokens:
             mods = getmods_token(tokens[0])
             if mods is not None:
@@ -190,7 +195,7 @@ def getmods_token(token):
 
     mods = set()
     for i in range(0, len(token), 2):
-        mod = consts.mods2int.get(token[i:i+2])
+        mod = consts.mods2int.get(token[i : i + 2])
         if mod is None:
             return None
         mods.add(mod)

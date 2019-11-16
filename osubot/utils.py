@@ -37,20 +37,42 @@ def combine_mods(mods):
 def accuracy(s, mode):
     """Calculate accuracy for a score s as a float from 0-100."""
     if mode == consts.std:
-        return 100 * (s.count300 + s.count100/3 + s.count50/6) / \
-            (s.count300 + s.count100 + s.count50 + s.countmiss)
+        return (
+            100
+            * (s.count300 + s.count100 / 3 + s.count50 / 6)
+            / (s.count300 + s.count100 + s.count50 + s.countmiss)
+        )
 
     if mode == consts.taiko:
-        return 100 * (s.count300 + s.count100/2) / \
-            (s.count300 + s.count100 + s.countmiss)
+        return (
+            100
+            * (s.count300 + s.count100 / 2)
+            / (s.count300 + s.count100 + s.countmiss)
+        )
 
     if mode == consts.ctb:
-        return 100 * (s.count300 + s.count100 + s.count50) / \
-            (s.count300 + s.count100 + s.count50 + s.countkatu + s.countmiss)
+        return (
+            100
+            * (s.count300 + s.count100 + s.count50)
+            / (s.count300 + s.count100 + s.count50 + s.countkatu + s.countmiss)
+        )
 
     if mode == consts.mania:
-        x = s.countgeki + s.count300 + 2*s.countkatu/3 + s.count100/3 + s.count50/6  # noqa
-        y = s.countgeki + s.count300 + s.countkatu + s.count100 + s.count50 + s.countmiss  # noqa
+        x = (
+            s.countgeki
+            + s.count300
+            + 2 * s.countkatu / 3
+            + s.count100 / 3
+            + s.count50 / 6
+        )  # noqa
+        y = (
+            s.countgeki
+            + s.count300
+            + s.countkatu
+            + s.count100
+            + s.count50
+            + s.countmiss
+        )  # noqa
         return 100 * x / y
 
 
@@ -66,8 +88,8 @@ def s_to_ts(secs):
 
 def round_to_str(n, p, force=False):
     """Round n to p digits, or less if force is not set. Returns a string."""
-    epsilon = 1 / 10000**p  # For floating point errors.
-    if p == 0 or (abs(n - round(n)) + epsilon < 1 / 10**p and not force):
+    epsilon = 1 / 10000 ** p  # For floating point errors.
+    if p == 0 or (abs(n - round(n)) + epsilon < 1 / 10 ** p and not force):
         return str(round(n))
 
     if force:
@@ -115,7 +137,7 @@ def request(url, *args, text=True, **kwargs):
 
 def sep(n):
     """Format n with commas."""
-    return"{:,}".format(n)
+    return "{:,}".format(n)
 
 
 def safe_url(s):
@@ -125,8 +147,8 @@ def safe_url(s):
 
 def compare(x, y):
     """Leniently compare two strings."""
-    x = x.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
-    y = y.replace(" ", "").replace("&quot;", "\"").replace("&amp;", "&")
+    x = x.replace(" ", "").replace("&quot;", '"').replace("&amp;", "&")
+    y = y.replace(" ", "").replace("&quot;", '"').replace("&amp;", "&")
 
     return pylev.levenshtein(x.upper(), y.upper()) <= 2
 
@@ -153,7 +175,7 @@ def matched_bracket_contents(s):
     if "[" not in s:
         return None
 
-    s = s[(s.index("[") + 1):]
+    s = s[(s.index("[") + 1) :]
     n = 0
 
     for i, c in enumerate(s):

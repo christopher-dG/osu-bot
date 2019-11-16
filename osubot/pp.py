@@ -93,10 +93,10 @@ def mania_pp(ctx, acc, modded=True, score=None):
 
     # Disclaimer: I did not write this.
     f = 64 - 3 * od
-    k = 2.5 * pow((150 / f) * pow(acc, 16), 1.8) * \
-        min(1.15, pow(nobjs / 1500, 0.3))
-    x = (pow(5 * max(1, sr / 0.0825) - 4, 3) / 110000) * \
-        (1 + 0.1 * min(1, nobjs / 1500))
+    k = 2.5 * pow((150 / f) * pow(acc, 16), 1.8) * min(1.15, pow(nobjs / 1500, 0.3))
+    x = (pow(5 * max(1, sr / 0.0825) - 4, 3) / 110000) * (
+        1 + 0.1 * min(1, nobjs / 1500)
+    )
     if score < 500000:
         m = score / 500000 * 0.1
     elif score < 600000:
@@ -140,10 +140,7 @@ def oppai_pp(ctx, acc, modded=True, taiko=False):
     try:
         pp_j = json.loads(out)
     except Exception as e:
-        print(
-            "Converting oppai output to JSON failed: %s\nOutput: %s" %
-            (e, out)
-        )
+        print("Converting oppai output to JSON failed: %s\nOutput: %s" % (e, out))
         return None
     pp = pp_j.get("pp")
 

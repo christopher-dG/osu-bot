@@ -25,8 +25,8 @@ def download_beatmap(ctx):
         ctx.logs.append(".osu: Downloaded from osu!web")
     else:
         text = request(
-            "%s/beatmaps/byHash/%s/file?k=%s" %
-            (tillerino_api, ctx.beatmap.file_md5, consts.tillerino_key),
+            "%s/beatmaps/byHash/%s/file?k=%s"
+            % (tillerino_api, ctx.beatmap.file_md5, consts.tillerino_key),
         )
         if text:
             ctx.logs.append(".osu: Downloaded from Tillerino")
@@ -172,7 +172,7 @@ def map_objects(ctx):
         return None
 
     regulars, sliders = 0, 0
-    for line in lines[(i+1):]:
+    for line in lines[(i + 1) :]:
         if "|" in line:
             sliders += 1
         elif line:

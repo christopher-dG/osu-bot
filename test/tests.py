@@ -7,26 +7,40 @@ logging.getLogger("urllib3").propagate = False
 
 
 #                                         Map name               Map URL                           Download                   Download URL                               Mapper            Mapper URL             Rename                      Map counts                                                 GD name             GD URL                   GD map counts                                                       Mode  # noqa
-approved_header = re.compile("""#### \[.+-.+\[.+\]\]\(https://osu\.ppy\.sh/b/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+ "Download this beatmap"\) by \[.+\]\(https://osu\.ppy\.sh/u/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https://osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))? \|\| osu![a-z]+""")  # noqa
+approved_header = re.compile(
+    """#### \[.+-.+\[.+\]\]\(https://osu\.ppy\.sh/b/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+ "Download this beatmap"\) by \[.+\]\(https://osu\.ppy\.sh/u/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https://osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))? \|\| osu![a-z]+"""
+)  # noqa
 #                                       #1/2   Player         Player URL               pp           Rank         Country rank          Accuracy                     Playcount              Mods                  Accuracy             pp                  Max combo           Ranked status/year        Playcount  # noqa
-approved_subheader = re.compile("""\*\*#[12]: \[.+\]\(https://osu\.ppy\.sh/u/\d+(?: "[\d,]+pp - rank #[\d,]+ \(#[\d,]+ [A-Z]{2}\) - \d{1,3}\.\d{2}% accuracy - [\d,]+ playcount")?\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+(?: \(\d{4}\))? \|\| [\d,]+ plays\*\*""")  # noqa
+approved_subheader = re.compile(
+    """\*\*#[12]: \[.+\]\(https://osu\.ppy\.sh/u/\d+(?: "[\d,]+pp - rank #[\d,]+ \(#[\d,]+ [A-Z]{2}\) - \d{1,3}\.\d{2}% accuracy - [\d,]+ playcount")?\) \((?:\+(?:[A-Z2]{2})+ - )?\d{1,3}\.\d{2}%(?: - [\d,]+pp)?\) \|\| [\d,]+x max combo \|\| \w+(?: \(\d{4}\))? \|\| [\d,]+ plays\*\*"""
+)  # noqa
 
 #                                       Map name             Map URL                              Download                      Download URL                               Mapper            Mapper URL          Rename                       Map counts                                                   GD name            GD URL                  GD map counts  # noqa
-unranked_header = re.compile("""#### \[.+-.+\[.+\]\]\(https://osu\.ppy\.sh/b/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+ "Download this beatmap"\) by \[.+\]\(https://osu\.ppy\.sh/u/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https://osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?""")  # noqa
+unranked_header = re.compile(
+    """#### \[.+-.+\[.+\]\]\(https://osu\.ppy\.sh/b/\d+(:?\?m=\d)?\) \[\(&#x2b07;\)\]\(https://osu\.ppy\.sh/d/\d+ "Download this beatmap"\) by \[.+\]\(https://osu\.ppy\.sh/u/.+ "(?:Renamed to '.+': )?[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\)(?: \(GD by \[.+\]\(https://osu.ppy.sh/u/\d+ "[\d,]+ ranked, [\d,]+ qualified, [\d,]+ loved, [\d,]+ unranked"\))?"""
+)  # noqa
 #                                     Mode           Max combo           Ranked status  # noqa
-unranked_subheader = re.compile("""osu![a-z]+ \|\| [\d,]+x max combo \|\| Unranked""")  # noqa
+unranked_subheader = re.compile(
+    """osu![a-z]+ \|\| [\d,]+x max combo \|\| Unranked"""
+)  # noqa
 
-nomod_map_table_header = re.compile("""\
+nomod_map_table_header = re.compile(
+    """\
 \|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\
-""")  # noqa
+"""
+)  # noqa
 #                                                  CS                    AR                     OD                     HP                      SR                    BPM             Length                  pp  # noqa
-nomod_map_table_values = re.compile("""\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|""")  # noqa
+nomod_map_table_values = re.compile(
+    """\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|"""
+)  # noqa
 
-modded_map_table_header = re.compile("""\
+modded_map_table_header = re.compile(
+    """\
 \|\s+\|\s+CS\s+\|\s+AR\s+\|\s+OD\s+\|\s+HP\s+\|\s+SR\s+\|\s+BPM\s+\|\s+Length\s+\|\s+pp \(.+\)\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\|:-:\
-""")  # noqa
+"""
+)  # noqa
 
 #               Mod             CS                        AR                     OD                       HP                      SR               BPM                  Length                 pp  # noqa
 nomod = """\|\s+NoMod\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|"""  # noqa
@@ -34,19 +48,27 @@ nomod = """\|\s+NoMod\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{
 modded = """\|\s+\+(?:[A-Z2]{2})+\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}(?:\.\d)?\s+\|\s+\d{1,2}\.\d{2}\s+\|\s+[\d,]+\s+\|\s+(?:\d{2}:)?\d{2}:\d{2}\s+\|\s+.+\s+\|"""  # noqa
 modded_map_table_values = re.compile("%s\n%s" % (nomod, modded))
 
-player_table_header = re.compile("""\
+player_table_header = re.compile(
+    """\
 \|\s+Player\s+\|\s+Rank\s+\|\s+pp\s+\|\s+Accuracy\s+\|(?:\s+Playstyle\s+\|)?\s+Playcount\s+\|\s+Top Play\s+\|
 :-:\|:-:\|:-:\|:-:\|:-:\|:-:(?:\|:-:)?\
-""")  # noqa
+"""
+)  # noqa
 
 #                                         Name             URL                         Old name                       Rank                Country rank                pp            Accuracy                Playstyle          Playcount          Top plau map                 Map URL                       Map SR                 Map CS             Map AR              Map OD               Map HP            Map BPM         Map length                        Mods                             Accuracy                            pp  # noqa
-player_table_values = re.compile("""\|\s+\[.+\]\(https://osu\.ppy\.sh/u/\d+(?: "Previously known as '.+'")?\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|(?:\s+[A-Z\+]+\s+\|)?\s+[\d,]+\s+\|\s+\[.+#x2011;.+\[.+\]\]\(https://osu\.ppy\.sh/b/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\) (?:\+(?:[A-Z2]{2})+&nbsp;&#124;&nbsp;)?\d{1,3}\.\d{2}%&nbsp;&#124;&nbsp;[\d,]+pp\s+\|""")  # noqa
+player_table_values = re.compile(
+    """\|\s+\[.+\]\(https://osu\.ppy\.sh/u/\d+(?: "Previously known as '.+'")?\)\s+\|\s+#[\d,]+&nbsp;\(#[\d,]+&nbsp;[A-Z]{2}\)\s+\|\s+[\d,]+\s+\|\s+\d{1,3}\.\d{2}%\s+\|(?:\s+[A-Z\+]+\s+\|)?\s+[\d,]+\s+\|\s+\[.+#x2011;.+\[.+\]\]\(https://osu\.ppy\.sh/b/\d+(?:\?m=\d)?(?: "SR\d{1,2}\.\d{2} - CS\d{1,2}(?:\.\d)? - AR\d{1,2}(?:\.\d)? - OD\d{1,2}(?:\.\d)? - HP\d{1,2}(?:\.\d)? - [\d,]+BPM - (?:\d{2}:)?\d{2}:\d{2}")?\) (?:\+(?:[A-Z2]{2})+&nbsp;&#124;&nbsp;)?\d{1,3}\.\d{2}%&nbsp;&#124;&nbsp;[\d,]+pp\s+\|"""
+)  # noqa
 
 #                          Meme                         Repo                                                             Profile  # noqa
-footer = re.compile("""\^\(.+ – \)\[\^Source\]\(https://github\.com/christopher-dG/osu-bot\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)""")  # noqa
+footer = re.compile(
+    """\^\(.+ – \)\[\^Source\]\(https://github\.com/christopher-dG/osu-bot\)\^\( \| \)\[\^Developer\]\(https://reddit\.com/u/PM_ME_DOG_PICS_PLS\)"""
+)  # noqa
 
 std_t = "Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83%"
-std_unranked_t = "Mlaw | t+pazolite with Kabocha - Elder Dragon Legend [???] 99.95%"  # noqa
+std_unranked_t = (
+    "Mlaw | t+pazolite with Kabocha - Elder Dragon Legend [???] 99.95%"  # noqa
+)
 taiko_t = "applerss | KASAI HARCORES - Cycle Hit [Strike] HD,DT 96,67%"
 ctb_t = "[ctb] Dusk | onoken - P8107 [Nervous Breakdown] +HR 99.92%"
 mania_t = "(mania) WindyS | LeaF - Doppelganger [Alter Ego] 98.53%"
@@ -110,31 +132,18 @@ def test_accuracy():
             self.countmiss = nm
 
     assert isapprox(
-        osubot.utils.accuracy(
-            Foo(1344, 236, 2, 206, 82, 8),
-            osubot.consts.std,
-        ),
-        89.5,
+        osubot.utils.accuracy(Foo(1344, 236, 2, 206, 82, 8), osubot.consts.std,), 89.5,
     )
     assert isapprox(
-        osubot.utils.accuracy(
-            Foo(2401, 436, 0, 13, 4, 92),
-            osubot.consts.taiko,
-        ),
+        osubot.utils.accuracy(Foo(2401, 436, 0, 13, 4, 92), osubot.consts.taiko,),
         89.42,
     )
     assert isapprox(
-        osubot.utils.accuracy(
-            Foo(2655, 171, 435, 339, 3, 31),
-            osubot.consts.ctb,
-        ),
+        osubot.utils.accuracy(Foo(2655, 171, 435, 339, 3, 31), osubot.consts.ctb,),
         98.97,
     )
     assert isapprox(
-        osubot.utils.accuracy(
-            Foo(902, 13, 4, 1882, 180, 16),
-            osubot.consts.mania,
-        ),
+        osubot.utils.accuracy(Foo(902, 13, 4, 1882, 180, 16), osubot.consts.mania,),
         97.06,
     )
 
@@ -145,6 +154,7 @@ def test_map_str():
             self.artist = a
             self.title = t
             self.version = v
+
     assert osubot.utils.map_str(Foo("foo", "bar", "baz")) == "foo - bar [baz]"
 
 
@@ -175,7 +185,9 @@ def test_round_to_string():
 
 
 def test_safe_call():
-    def foo(x, y=0): return x / y
+    def foo(x, y=0):
+        return x / y
+
     assert osubot.utils.safe_call(foo, 0, y=1) == 0
     assert osubot.utils.safe_call(foo, 1, y=0) is None
     assert osubot.utils.safe_call(foo, 1, y=0, alt=10) == 10
@@ -205,7 +217,7 @@ def test_compare():
     assert osubot.utils.compare("foo bar", "foobar")
     assert osubot.utils.compare("foobar", "FOOBAR")
     assert osubot.utils.compare("foo&bar", "FOO&amp;BAR")
-    assert osubot.utils.compare("foo\"bar", "FOO&quot;BAR")
+    assert osubot.utils.compare('foo"bar', "FOO&quot;BAR")
     assert osubot.utils.compare("foo", "fob")
 
 
@@ -214,7 +226,9 @@ def test_safe_url():
     assert osubot.utils.safe_url("foobar") == "foobar"
     assert osubot.utils.safe_url(osubot.consts.osu_key) == "###"
     assert osubot.utils.safe_url(osubot.consts.osusearch_key) == "###"
-    assert osubot.utils.safe_url("?k=%s&b=1" % osubot.consts.osu_key) == "?k=###&b=1"  # noqa
+    assert (
+        osubot.utils.safe_url("?k=%s&b=1" % osubot.consts.osu_key) == "?k=###&b=1"
+    )  # noqa
 
 
 def test_escape():
@@ -291,15 +305,17 @@ def test_getguestmapper():
 
 def test_std_end2end():
     ctx, reply = osubot.scorepost(std_t)
-    assert str(ctx) == "\n".join([
-        "Context:",
-        "> Player:        Cookiezi",
-        "> Beatmap:       xi - FREEDOM DiVE [FOUR DIMENSIONS]",
-        "> Mode:          osu!standard",
-        "> Mods:          +HDHR",
-        "> Accuracy:      99.83%",
-        "> Guest mapper:  None",
-    ])
+    assert str(ctx) == "\n".join(
+        [
+            "Context:",
+            "> Player:        Cookiezi",
+            "> Beatmap:       xi - FREEDOM DiVE [FOUR DIMENSIONS]",
+            "> Mode:          osu!standard",
+            "> Mods:          +HDHR",
+            "> Accuracy:      99.83%",
+            "> Guest mapper:  None",
+        ]
+    )
     _assert_match(approved_header, reply)
     _assert_match(approved_subheader, reply)
     _assert_match(modded_map_table_header, reply)
@@ -311,15 +327,17 @@ def test_std_end2end():
 
 def test_std_unranked_end2end():
     ctx, reply = osubot.scorepost(std_unranked_t)
-    assert str(ctx) == "\n".join([
-        "Context:",
-        "> Player:        Mlaw",
-        "> Beatmap:       t+pazolite with Kabocha - Elder Dragon Legend [???]",
-        "> Mode:          osu!standard",
-        "> Mods:          NoMod",
-        "> Accuracy:      99.95%",
-        "> Guest mapper:  None",
-    ])
+    assert str(ctx) == "\n".join(
+        [
+            "Context:",
+            "> Player:        Mlaw",
+            "> Beatmap:       t+pazolite with Kabocha - Elder Dragon Legend [???]",
+            "> Mode:          osu!standard",
+            "> Mods:          NoMod",
+            "> Accuracy:      99.95%",
+            "> Guest mapper:  None",
+        ]
+    )
     _assert_match(unranked_header, reply)
     _assert_match(unranked_subheader, reply)
     _assert_match(nomod_map_table_header, reply)
@@ -331,15 +349,17 @@ def test_std_unranked_end2end():
 
 def test_taiko_end2end():
     ctx, reply = osubot.scorepost(taiko_t)
-    assert str(ctx) == "\n".join([
-        "Context:",
-        "> Player:        applerss",
-        "> Beatmap:       KASAI HARCORES - Cycle Hit [Strike]",
-        "> Mode:          osu!taiko",
-        "> Mods:          +HDDT",
-        "> Accuracy:      96.67%",
-        "> Guest mapper:  None",
-    ])
+    assert str(ctx) == "\n".join(
+        [
+            "Context:",
+            "> Player:        applerss",
+            "> Beatmap:       KASAI HARCORES - Cycle Hit [Strike]",
+            "> Mode:          osu!taiko",
+            "> Mods:          +HDDT",
+            "> Accuracy:      96.67%",
+            "> Guest mapper:  None",
+        ]
+    )
     _assert_match(approved_header, reply)
     _assert_match(approved_subheader, reply)
     _assert_match(modded_map_table_header, reply)
@@ -351,15 +371,17 @@ def test_taiko_end2end():
 
 def test_ctb_end2end():
     ctx, reply = osubot.scorepost(ctb_t)
-    assert str(ctx) == "\n".join([
-        "Context:",
-        "> Player:        Dusk",
-        "> Beatmap:       onoken - P8107 [Nervous Breakdown]",
-        "> Mode:          osu!catch",
-        "> Mods:          +HR",
-        "> Accuracy:      99.92%",
-        "> Guest mapper:  None",
-    ])
+    assert str(ctx) == "\n".join(
+        [
+            "Context:",
+            "> Player:        Dusk",
+            "> Beatmap:       onoken - P8107 [Nervous Breakdown]",
+            "> Mode:          osu!catch",
+            "> Mods:          +HR",
+            "> Accuracy:      99.92%",
+            "> Guest mapper:  None",
+        ]
+    )
     _assert_match(approved_header, reply)
     _assert_match(approved_subheader, reply)
     _assert_match(modded_map_table_header, reply)
@@ -372,15 +394,17 @@ def test_ctb_end2end():
 
 def test_mania_end2end():
     ctx, reply = osubot.scorepost(mania_t)
-    assert str(ctx) == "\n".join([
-        "Context:",
-        "> Player:        WindyS",
-        "> Beatmap:       LeaF - Doppelganger [Alter Ego]",
-        "> Mode:          osu!mania",
-        "> Mods:          NoMod",
-        "> Accuracy:      98.53%",
-        "> Guest mapper:  None",
-    ])
+    assert str(ctx) == "\n".join(
+        [
+            "Context:",
+            "> Player:        WindyS",
+            "> Beatmap:       LeaF - Doppelganger [Alter Ego]",
+            "> Mode:          osu!mania",
+            "> Mods:          NoMod",
+            "> Accuracy:      98.53%",
+            "> Guest mapper:  None",
+        ]
+    )
     _assert_match(approved_header, reply)
     _assert_match(approved_subheader, reply)
     _assert_match(nomod_map_table_header, reply)

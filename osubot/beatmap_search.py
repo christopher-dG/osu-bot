@@ -39,8 +39,9 @@ def search_events(player, beatmap, mode=False, b_id=None):
         match = consts.event_re.search(event.display_html)
         if not match:
             continue
-        if (b_id is not None and event.beatmap_id == b_id) or \
-           compare(match.group(1), beatmap):
+        if (b_id is not None and event.beatmap_id == b_id) or compare(
+            match.group(1), beatmap
+        ):
             if mode:
                 return consts.eventstr2mode.get(match.group(2), None)
             b_id = event.beatmap_id
@@ -60,10 +61,7 @@ def search_best(player, beatmap):
     today = datetime.datetime.today()
     threshold = datetime.timedelta(weeks=1)
     for score in filter(lambda s: today - s.date < threshold, best):
-        beatmaps = safe_call(
-            consts.osu_api.get_beatmaps,
-            beatmap_id=score.beatmap_id,
-        )
+        beatmaps = safe_call(consts.osu_api.get_beatmaps, beatmap_id=score.beatmap_id,)
         if not beatmaps:
             continue
         bmap = beatmaps[0]
@@ -86,10 +84,7 @@ def search_recent(player, beatmap):
             continue
         ids.append(score.beatmap_id)
 
-        beatmaps = safe_call(
-            consts.osu_api.get_beatmaps,
-            beatmap_id=score.beatmap_id,
-        )
+        beatmaps = safe_call(consts.osu_api.get_beatmaps, beatmap_id=score.beatmap_id,)
         if not beatmaps:
             continue
         bmap = beatmaps[0]
@@ -127,19 +122,18 @@ def search_osusearch(beatmap):
     if not beatmaps:
         return None
 
-    matching_maps = list(filter(
-        lambda m: compare(
-            beatmap,
-            "%s - %s [%s]" % (m["artist"], m["title"], m["difficulty_name"]),
-        ),
-        beatmaps,
-    ))
+    matching_maps = list(
+        filter(
+            lambda m: compare(
+                beatmap,
+                "%s - %s [%s]" % (m["artist"], m["title"], m["difficulty_name"]),
+            ),
+            beatmaps,
+        )
+    )
     if not matching_maps:
         return None
 
     fav_map = max(matching_maps, key=lambda m: m.get("favorites", 0))
-    beatmaps = safe_call(
-        consts.osu_api.get_beatmaps,
-        beatmap_id=fav_map["beatmap_id"],
-    )
+    beatmaps = safe_call(consts.osu_api.get_beatmaps, beatmap_id=fav_map["beatmap_id"],)
     return beatmaps[0] if beatmaps else None
