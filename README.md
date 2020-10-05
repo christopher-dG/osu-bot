@@ -21,7 +21,7 @@ For example:
 Cookiezi | xi - FREEDOM DiVE [FOUR DIMENSIONS] +HDHR 99.83% FC 800pp *NEW PP RECORD*
 ```
 
-In general, anything following the [official criteria](https://redd.it/7gzfhp) should work.
+In general, anything following the [official criteria](https://reddit.com/r/osugame/wiki/scoreposting) should work.
 
 There's one notable exception which doesn't work, which is mods separated by spaces: "HD HR" and "HD, HR" both get parsed as HD only.
 Additionally, prefixing the mods with "+" makes parsing much more consistent, for example "+HDHR".
