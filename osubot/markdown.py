@@ -6,7 +6,6 @@ from . import consts, diff, pp, scrape
 from .utils import (
     accuracy,
     combine_mods,
-    escape,
     map_str,
     nonbreaking,
     round_to_str,
@@ -40,7 +39,7 @@ def map_header(ctx):
     map_url = "%s/b/%d" % (consts.osu_url, b.beatmap_id)
     if ctx.mode is not None:
         map_url += "?m=%d" % ctx.mode
-    map_link = md.link(escape(map_str(b)), map_url)
+    map_link = md.link(map_str(b), map_url)
     dl_link = md.link(
         "(%s)" % consts.dl,
         '%s/d/%d "Download this beatmap"' % (consts.osu_url, b.beatmapset_id),  # noqa
@@ -59,7 +58,7 @@ def map_header(ctx):
     if hover:
         mapper_url += ' "%s"' % hover
 
-    mapper_link = md.link(escape(b.creator), mapper_url)
+    mapper_link = md.link(b.creator, mapper_url)
     map_s = "%s %s by %s" % (map_link, dl_link, mapper_link)
 
     if ctx.guest_mapper:
@@ -205,7 +204,7 @@ def player_table(ctx):
     old_username = scrape.player_old_username(ctx)
     if old_username and old_username.lower() != p.username.lower():
         player_url += " \"Previously known as '%s'\"" % old_username
-    player_link = md.link(nonbreaking(escape(p.username)), player_url)
+    player_link = md.link(nonbreaking(p.username), player_url)
 
     cols = [
         ["Player", player_link],
@@ -250,7 +249,7 @@ def player_table(ctx):
             if hover:
                 map_url += ' "%s"' % hover
 
-            map_link = md.link(nonbreaking(escape(map_str(bmap))), map_url)
+            map_link = md.link(nonbreaking(map_str(bmap)), map_url)
 
             mods = combine_mods(score.enabled_mods.value)
             buf = "%s %s " % (mods, consts.bar) if mods else ""
@@ -327,7 +326,7 @@ def map_rank_one(ctx):
     player_url = "%s/u/%s" % (consts.osu_url, score.user_id)
     if hover:
         player_url += ' "%s"' % hover
-    player_link = md.link(escape(score.username), player_url)
+    player_link = md.link(score.username, player_url)
 
     player = "#%d: %s" % (2 if use_two else 1, player_link)
     tokens = []

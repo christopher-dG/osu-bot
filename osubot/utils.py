@@ -14,12 +14,6 @@ def map_str(beatmap):
     return "%s - %s [%s]" % (beatmap.artist, beatmap.title, beatmap.version)
 
 
-def escape(s):
-    """Escape Markdown formatting."""
-    tb = str.maketrans({"^": "\^", "*": "\*", "_": "\_", "~": "\~", "<": "\<"})
-    return s.translate(tb)
-
-
 def combine_mods(mods):
     """Convert a mod integer to a mod string."""
     mods_a = []
