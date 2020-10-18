@@ -1,8 +1,5 @@
 # osu!bot
 
-[![Build Status](https://travis-ci.org/christopher-dG/osu-bot.svg?branch=master)](https://travis-ci.org/christopher-dG/osu-bot)
-[![CodeCov](https://codecov.io/gh/christopher-dG/osu-bot/branch/master/graph/badge.svg)](https://codecov.io/gh/christopher-dG/osu-bot)
-
 **[osu!bot](https://reddit.com/u/osu-bot) is a Reddit bot that posts beatmap and player information to [/r/osugame](https://reddit.com/r/osugame) score posts.**
 
 This is its third iteration, which replaces the original spaghetti-tier Ruby implementation and the "Wow I love multiple dispatch so let's write a combinatorial explosion of methods with excessively fine-grained signatures" Julia implementation. They can be found in separate branches as historical artifacts.
