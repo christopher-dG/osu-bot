@@ -231,6 +231,11 @@ def test_safe_url():
     )  # noqa
 
 
+def test_escape():
+    assert osubot.utils.escape("") == ""
+    assert osubot.utils.escape("a*b_c^d~e") == "a\*b\_c\^d\~e"
+
+
 def test_is_ignored():
     assert not osubot.utils.is_ignored(1 << 3)
     assert osubot.utils.is_ignored(1 << 7)

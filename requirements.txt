@@ -1,6 +1,6 @@
 boto3
 git+https://github.com/christopher-dG/catch-the-pp
-markdown-strings
+markdown-strings==3.1.0
 osuapi
 praw
 pylev
