@@ -24,7 +24,7 @@ def build_comment(ctx):
     comment = "\n\n".join(
         filter(
             bool,
-            [map_header(ctx), map_table(ctx), player_table(ctx), "***", footer(ctx),],
+            [map_header(ctx), map_table(ctx), player_table(ctx), "***", footer(ctx)],
         )
     )
 
@@ -41,10 +41,6 @@ def map_header(ctx):
     if ctx.mode is not None:
         map_url += "?m=%d" % ctx.mode
     map_link = md.link(escape(map_str(b)), map_url)
-    dl_link = md.link(
-        "(%s)" % consts.dl,
-        '%s/d/%d "Download this beatmap"' % (consts.osu_url, b.beatmapset_id),  # noqa
-    )
     mapper_id = scrape.mapper_id(ctx)
     mapper = b.creator if mapper_id is None else mapper_id
     mapper_url = "%s/u/%s" % (consts.osu_url, mapper)
@@ -60,7 +56,7 @@ def map_header(ctx):
         mapper_url += ' "%s"' % hover
 
     mapper_link = md.link(escape(b.creator), mapper_url)
-    map_s = "%s %s by %s" % (map_link, dl_link, mapper_link)
+    map_s = "%s by %s" % (map_link, mapper_link)
 
     if ctx.guest_mapper:
         guest_url = "%s/u/%d" % (consts.osu_url, ctx.guest_mapper.user_id)
