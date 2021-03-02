@@ -1,0 +1,17 @@
+# .env requirements:
+# - REDDIT_CLIENT_ID
+# - REDDIT_CLIENT_SECRET
+# - REDDIT_PASSWORD
+# - YOUTUBE_KEY
+version: '3'
+services:
+  monitor:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: python /root/bin/monitor.py
+  videos:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: python /root/bin/video_links.py
