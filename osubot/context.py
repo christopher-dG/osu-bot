@@ -55,6 +55,7 @@ def from_score_post(title):
     beatmap = getmap(title, player=player, logs=logs)
     mode = getmode(title, player=player, beatmap=beatmap)
     mods = getmods(title)
+    logs.append("osr2mp4-mods: %s" % combine_mods(mods))
     acc = getacc(title)
     guest_mapper = getguestmapper(title)
 
