@@ -15,7 +15,7 @@ test = "--test" in sys.argv
 score_re = re.compile(".+[\|丨].+-.+\[.+\]")
 user = os.environ.get("OSU_BOT_USER", "osu-bot")
 sub = os.environ.get("OSU_BOT_SUB", "osugame")
-api = "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy"
+api = "http://server:%s/scorepost" % os.environ["FLASK_RUN_PORT"]
 logger = logging.getLogger()
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO)
 

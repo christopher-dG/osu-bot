@@ -4,6 +4,8 @@
 
 This is its third iteration, which replaces the original spaghetti-tier Ruby implementation and the "Wow I love multiple dispatch so let's write a combinatorial explosion of methods with excessively fine-grained signatures" Julia implementation. They can be found in separate branches as historical artifacts.
 
+Also, the code is absolutely awful for all iterations.
+
 ### Formatting Score Posts
 
 The bot depends on you to properly format your title! The beginning of your post title should look something like this:
@@ -22,24 +24,6 @@ In general, anything following the [official criteria](https://reddit.com/r/osug
 
 There's one notable exception which doesn't work, which is mods separated by spaces: "HD HR" and "HD, HR" both get parsed as HD only.
 Additionally, prefixing the mods with "+" makes parsing much more consistent, for example "+HDHR".
-
-### Manually Triggering Comments
-
-The bot generally does not retry comments.
-If your post didn't get a reply, you can try sending a POST request to `https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=ID` where `ID` is the Reddit post ID.
-For example, for [this post](https://redd.it/53l422):
-
-```sh
-# Linux/MacOS
-curl -X POST "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422"
-```
-
-```Powershell
-# Windows (PowerShell)
-Invoke-WebRequest "https://2s5lll4kz9.execute-api.us-east-1.amazonaws.com/scorepost/proxy?id=53l422" -Method POST -UseBasicParsing
-```
-
-Even if this doesn't work, the JSON response you get back should provide some insight on what went wrong.
 
 ### Contact
 
