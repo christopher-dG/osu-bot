@@ -1,0 +1,9 @@
+[package]
+name = "rosu-pp-cli"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.4.6", features = ["derive"] }
+rosu-pp = "0.9.5"
+serde_json = "1.0.107"

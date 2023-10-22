@@ -1,18 +1,13 @@
-FROM python:3.6-alpine
+FROM rust:1.73.0 as rosu
+COPY rosu-pp-cli .
+RUN cargo install --path .
+
+FROM python:3.11-slim
 ENV PYTHONPATH /root
 ENV FLASK_APP osubot.server
 ENV FLASK_RUN_HOST 0.0.0.0
 ENV FLASK_RUN_PORT 5000
-ENV OPPAI_VERSION 4.1.0
 COPY requirements.txt /tmp/requirements.txt
-RUN apk add gcc git libc-dev && \
-  git clone https://github.com/Francesco149/oppai-ng /tmp/oppai && \
-  cd /tmp/oppai && \
-  git checkout $OPPAI_VERSION && \
-  ./build && \
-  install oppai /usr/bin/oppai && \
-  pip install -r /tmp/requirements.txt && \
-  apk del gcc git libc-dev && \
-  rm -rf /tmp/oppai /tmp/requirements.txt
 COPY bin /root/bin
 COPY osubot /root/osubot
+COPY --from=rosu /usr/local/cargo/bin/rosu-pp-cli /usr/local/bin/rosu-pp-cli

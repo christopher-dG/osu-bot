@@ -9,3 +9,4 @@ pkg.zip
 /.tox/
 /venv/
 /bin/oppai-ng/
+/rosu-pp-cli/target/
