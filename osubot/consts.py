@@ -3,6 +3,7 @@ import os
 import osuapi
 import re
 import requests_cache
+import rosu_pp_py as rosu
 
 # Web stuff
 sess = requests_cache.CachedSession(backend="memory", expire_after=300,)  # 5 minutes.
@@ -71,6 +72,12 @@ int2osuapimode = {
     taiko: osuapi.OsuMode.taiko,
     ctb: osuapi.OsuMode.ctb,
     mania: osuapi.OsuMode.mania,
+}
+int2rosumode = {
+    std: rosu.GameMode.Osu,
+    taiko: rosu.GameMode.Taiko,
+    ctb: rosu.GameMode.Catch,
+    mania: rosu.GameMode.Mania,
 }
 eventstr2mode = {
     "osu!": std,
