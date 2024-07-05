@@ -95,6 +95,7 @@ def search_recent(player, beatmap):
     return None
 
 
+# NOTE: I am pretty sure osusearch.com is down for good..
 def search_osusearch(beatmap):
     """Search osusearch.com for beatmap."""
     match = consts.map_pieces_re.search(beatmap)

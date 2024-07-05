@@ -16,7 +16,7 @@ def map_str(beatmap):
 
 def escape(s):
     """Escape Markdown formatting."""
-    tb = str.maketrans({"^": "\^", "*": "\*", "_": "\_", "~": "\~", "<": "\<"})
+    tb = str.maketrans({"^": "\\^", "*": "\\*", "_": "\\_", "~": "\\~", "<": "\\<"})
     return s.translate(tb)
 
 
@@ -155,7 +155,7 @@ def compare(x, y):
 
 def is_ignored(mods):
     """Check whether all enabled mods are to be ignored."""
-    if mods is None:
+    if mods is None or mods == consts.nomod:
         return True
     nonignores = set(consts.int2mods.keys()) - set(consts.ignore_mods)
     return not any(m & mods for m in nonignores)
