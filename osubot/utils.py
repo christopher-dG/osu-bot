@@ -142,7 +142,7 @@ def sep(n):
 
 def safe_url(s):
     """Obfuscate sensitive keys in a string."""
-    return s.replace(consts.osu_key, "###").replace(consts.osusearch_key, "###")  # noqa
+    return s.replace(consts.osu_key, "###") # noqa
 
 
 def compare(x, y):

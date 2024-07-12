@@ -20,11 +20,6 @@ def search(player, beatmap, logs=[]):
             logs.append("Beatmap: Found in recent")
             return result
 
-    # result = search_osusearch(beatmap)
-    # if result:
-    #    logs.append("Beatmap: Found with osusearch")
-    #    return result
-
     logs.append("Beatmap '%s': Not found" % beatmap)
     return None
 
@@ -91,50 +86,4 @@ def search_recent(player, beatmap):
 
         if compare(map_str(bmap), beatmap):
             return bmap
-
     return None
-
-
-# NOTE: I am pretty sure osusearch.com is down for good..
-def search_osusearch(beatmap):
-    """Search osusearch.com for beatmap."""
-    match = consts.map_pieces_re.search(beatmap)
-    if not match:
-        return None
-    artist, title, diff = match.groups()
-
-    params = {
-        "key": consts.osusearch_key,
-        "artist": artist.strip(),
-        "title": title.strip(),
-        "diff_name": diff.strip(),
-    }
-
-    resp = request(consts.osusearch_url, text=False, params=params)
-    if not resp:
-        return None
-
-    try:
-        d = resp.json()
-    except Exception as e:
-        return None
-
-    beatmaps = d.get("beatmaps", [])
-    if not beatmaps:
-        return None
-
-    matching_maps = list(
-        filter(
-            lambda m: compare(
-                beatmap,
-                "%s - %s [%s]" % (m["artist"], m["title"], m["difficulty_name"]),
-            ),
-            beatmaps,
-        )
-    )
-    if not matching_maps:
-        return None
-
-    fav_map = max(matching_maps, key=lambda m: m.get("favorites", 0))
-    beatmaps = safe_call(consts.osu_api.get_beatmaps, beatmap_id=fav_map["beatmap_id"],)
-    return beatmaps[0] if beatmaps else None

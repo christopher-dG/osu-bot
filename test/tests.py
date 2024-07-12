@@ -225,7 +225,6 @@ def test_safe_url():
     assert osubot.utils.safe_url("") == ""
     assert osubot.utils.safe_url("foobar") == "foobar"
     assert osubot.utils.safe_url(osubot.consts.osu_key) == "###"
-    assert osubot.utils.safe_url(osubot.consts.osusearch_key) == "###"
     assert (
         osubot.utils.safe_url("?k=%s&b=1" % osubot.consts.osu_key) == "?k=###&b=1"
     )  # noqa

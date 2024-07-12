@@ -1,26 +1,17 @@
-# .env requirements:
-# - OSUSEARCH_API_KEY
-# - OSU_API_KEY
-# - REDDIT_CLIENT_ID
-# - REDDIT_CLIENT_SECRET
-# - REDDIT_PASSWORD
-# - TILLERINO_API_KEY
-# - USE_S3_CACHE=true
-# - YOUTUBE_KEY
-version: '3'
+version: "3"
 services:
-  monitor:
-    build: .
-    restart: unless-stopped
-    env_file: .env
-    command: python /root/bin/monitor.py --auto
-  videos:
-    build: .
-    restart: unless-stopped
-    env_file: .env
-    command: python /root/bin/video_links.py
-  server:
-    build: .
-    restart: unless-stopped
-    env_file: .env
-    command: flask run
+    monitor:
+        build: .
+        restart: unless-stopped
+        env_file: .env
+        command: python /root/bin/monitor.py --auto
+    videos:
+        build: .
+        restart: unless-stopped
+        env_file: .env
+        command: python /root/bin/video_links.py
+    server:
+        build: .
+        restart: unless-stopped
+        env_file: .env
+        command: flask run
