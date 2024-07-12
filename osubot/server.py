@@ -20,10 +20,9 @@ def handler():
     p_id = request.args.get("id")
     if p_id is None:
         return finish(status=400, error="Missing id parameter")
-    print("ID: %s" % p_id)
+    print("Processing post ID: %s" % p_id)
     global testrun
     testrun = request.args.get("test") == "true"
-    print(testrun)
     reddit = reddit_login(consts.reddit_user)
     post = praw.models.Submission(reddit, p_id)
     try:
@@ -54,7 +53,8 @@ def handler():
             comment=reply,
             error=err,
         )
-    print("%s\nCommented:\n%s" % (ctx, reply))
+    print(f'Processed post {ctx}')
+    if os.environ.get("DEBUG_LOGS") == "True": print("[DEBUG] Commented:\n%s" % reply)
     return finish(context=ctx_d, comment=reply)
 
 

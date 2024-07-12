@@ -54,13 +54,9 @@ def post_api(p_id):
         url += "&test=true"
     logger.info("Posting to %s" % url)
     resp = requests.post(url)
-    d = resp.json()
-    comment = d.pop("comment", None)
-    if comment:
-        d["comment"] = "<omitted>"
-    print("%d: %s" % (resp.status_code, json.dumps(d, indent=4)))
-    if comment:
-        print("Comment:\n%s" % comment)
+    # data = resp.json()
+    # print(data)
+    logger.info(f"Post success, got status {resp.status_code}")
     return resp.status_code == 200
 
 
