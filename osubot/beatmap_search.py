@@ -20,10 +20,10 @@ def search(player, beatmap, logs=[]):
             logs.append("Beatmap: Found in recent")
             return result
 
-    result = search_osusearch(beatmap)
-    if result:
-        logs.append("Beatmap: Found with osusearch")
-        return result
+    # result = search_osusearch(beatmap)
+    # if result:
+    #    logs.append("Beatmap: Found with osusearch")
+    #    return result
 
     logs.append("Beatmap '%s': Not found" % beatmap)
     return None

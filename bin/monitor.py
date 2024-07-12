@@ -7,6 +7,9 @@ import praw
 import re
 import requests
 import sys
+from dotenv import load_dotenv
+
+load_dotenv()
 
 sys.stdout = sys.stderr
 auto = "--auto" in sys.argv
@@ -15,10 +18,9 @@ test = "--test" in sys.argv
 score_re = re.compile(".+[\|丨].+-.+\[.+\]")
 user = os.environ.get("OSU_BOT_USER", "osu-bot")
 sub = os.environ.get("OSU_BOT_SUB", "osugame")
-api = "http://server:%s/scorepost" % os.environ["FLASK_RUN_PORT"]
+api = f'{os.environ.get("API_HOST")}:{os.environ.get("FLASK_RUN_PORT", 5000)}/scorepost'
 logger = logging.getLogger()
 logging.basicConfig(format="%(asctime)s: %(message)s", level=logging.INFO)
-
 
 def monitor():
     reddit = praw.Reddit(

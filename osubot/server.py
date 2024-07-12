@@ -12,7 +12,7 @@ from flask import Flask, request
 app = Flask(__name__)
 
 testrun = False
-gameplay_flair = ["5d2f4278-89df-11e4-aa8d-22000bc18bb2", "Gameplay"]
+gameplay_flair = [os.environ.get("REDDIT_FLAIR_ID"), os.environ.get("REDDIT_FLAIR_NAME")]
 
 
 @app.route("/scorepost", methods=["POST"])
