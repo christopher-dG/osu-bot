@@ -6,3 +6,4 @@ praw==7.7.1
 pylev==1.4.0
 requests_cache==1.2.1
 rosu-pp-py==1.0.1
+python-dotenv==1.0.1

@@ -7,6 +7,9 @@ import re
 import requests
 import sys
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 sys.stdout = sys.stderr
 test = "--test" in sys.argv
@@ -82,12 +85,11 @@ def find_bot_comment(other):
 
     for comment in submission.comments:
         if comment.author.name == user and comment.is_root:
-            logger.info("Found comment:\n%s\n" % comment.body)
+            if os.environ.get("DEBUG_LOGS") == "True": logger.info("Found comment:\n%s\n" % comment.body)
             return comment
 
     logger.info("No bot comment found on post %s" % submission.id)
     return None
-
 
 def get_youtube_data(yt_id):
     """Get the title and creator of a YouTube video."""
@@ -144,9 +146,11 @@ def edit_bot_comment(comment, yt_id):
     if not test:
         comment.edit(body)
 
-    logger.info("New comment contents:\n%s\n" % body)
+    if os.environ.get("DEBUG_LOGS") == "True":
+        logger.info("[DEBUG] Edited comment contents:\n%s\n" % body)
+    else:
+        logger.info("Edited comment")
     return True
-
 
 if __name__ == "__main__":
     if "REDDIT_PASSWORD" not in os.environ:
