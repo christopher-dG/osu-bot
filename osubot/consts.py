@@ -179,6 +179,7 @@ title_ignores = [
     "LOVED",
 ]
 me = "https://reddit.com/u/PM_ME_DOG_PICS_PLS"
+new_dev = "https://reddit.com/u/MasterIO02"
 repo_url = "https://github.com/christopher-dG/osu-bot"
 unnoticed = "https://github.com/christopher-dG/unnoticed/wiki"
 memes = [
