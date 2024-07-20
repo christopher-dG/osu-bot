@@ -171,7 +171,8 @@ title_ignores = [
     "UNNOTICED?",
     "RIPPLE",
     "GATARI",
-    "UNSUBMITTED" "OFFLINE",
+    "UNSUBMITTED",
+    "OFFLINE",
     "RESTRICTED",
     "BANNED",
     "UNRANKED",
@@ -197,4 +198,27 @@ memes = [
     "rrtyui :(",
     "0 pp if unranked",
     "these movements are from an algorithm designed in java",
+
+    # suggested by u/Lettalosudroid
+    "quit w",
+    "permazoomer",
+    "Cookiezi did it in 1485",
+    "if fc (if ranked (if submitted))",
+    "Blame top left",
+    "Should have doubletapped",
+    "Welcome to the new area",
+    "When you see it",
+    
+    # suggested by u/Comfortable-Chip-740
+    "what oh my god 😱 it's a stop sign 🛑 finding nemo 🐡 gold fish 🐠 Dory 🐟 NATIONAL GEOGRAPHIC 🟨 GODDAMN IT",
+    "unironically cheating",
+    "YIPPEEE",
+    "check him hold times",
+
+    # suggested by u/Chibu68_
+    "check him pc",
+    "I showed osu! to a girl at work", # nice copypasta, u/Comfortable-Chip-740
+
+    # suggested by u/helium1337
+    "one of the best players in the world and spare"
 ]
