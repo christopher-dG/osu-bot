@@ -264,9 +264,9 @@ def player_table(ctx):
 def footer(ctx):
     """Return a footer with some general information and hidden logs."""
     tokens = [
-        md.link("^Source", consts.repo_url),
-        md.link("^Developer", consts.new_dev),
-        md.link("^Original Developer", consts.me)
+        md.link("Source", consts.repo_url),
+        md.link("Developer", consts.new_dev),
+        md.link("Original Developer", consts.me)
     ]
 
     # TODO: Add usage instructions link when commands are ready.
