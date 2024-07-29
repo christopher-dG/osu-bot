@@ -27,7 +27,7 @@ Additionally, prefixing the mods with "+" makes parsing much more consistent, fo
 
 ### Contact
 
-Messages to the bot are forwarded to me, so feel free to [PM](https://www.reddit.com/message/compose?to=osu-bot&subject=Feedback) any problems, questions, or suggestions, or just reply to one of its comments.
+Send any problems, questions, or suggestions to the Reddit users mentioned as developers in the bot's comments.
 
 ### Acknowledgements
 
