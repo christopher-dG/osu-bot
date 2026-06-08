@@ -133,7 +133,7 @@ def map_table(ctx):
     r = round_to_str
     if modded:
         cols = [
-            ["", "NoMod", combine_mods(ctx.mods)],
+            ["Mod", "NoMod", combine_mods(ctx.mods)],
             ["CS", r(nomod["cs"], 1), r(modded["cs"], 1)],
             ["AR", r(nomod["ar"], 1), r(modded["ar"], 1)],
             ["OD", r(nomod["od"], 1), r(modded["od"], 1)],
