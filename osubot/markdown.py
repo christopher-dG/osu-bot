@@ -266,7 +266,7 @@ def footer(ctx):
     tokens = [
         md.link("Source", consts.repo_url),
         md.link("Developer", consts.new_dev),
-        md.link("Original Developer", consts.me)
+        md.link("Original&nbsp;Developer", consts.me)
     ]
 
     # TODO: Add usage instructions link when commands are ready.
@@ -287,7 +287,7 @@ def footer(ctx):
         mode += consts.mode2str[ctx.mode]
         tokens.append("^(%s pp is experimental)" % mode)
 
-    text = "^(%s – )%s" % (random.choice(consts.memes), "^( | )".join(tokens))
+    text = "^(%s – )^%s" % (random.choice(consts.memes), "&nbsp;|&nbsp;".join(tokens))
     logs = md.link(  # Invisible link with hover text.
         consts.spc, 'http://x "%s"' % "\n".join(s.replace('"', "'") for s in ctx.logs),
     )
